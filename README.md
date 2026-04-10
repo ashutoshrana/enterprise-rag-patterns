@@ -38,6 +38,8 @@ It does not include customer data, institution-specific logic, or branded assist
 - `CONTRIBUTING.md`
 - `GOVERNANCE.md`
 - `docs/architecture.md`
+- `docs/implementation-note-01.md`
+- `docs/articles/`
 - `docs/adr/`
 - `docs/case-study-anonymized.md`
 - `examples/context-pipeline.yaml`
@@ -80,6 +82,11 @@ This repo is meant to show practical architecture thinking, not marketing langua
 - publish a reference event flow for system-of-record synchronization
 - add policy examples for human escalation thresholds
 - document anonymized implementation lessons from production-style operating environments
+
+## Published notes
+
+- implementation note: [`docs/implementation-note-01.md`](./docs/implementation-note-01.md)
+- article: [`docs/articles/production-grade-rag-in-regulated-enterprise-environments.md`](./docs/articles/production-grade-rag-in-regulated-enterprise-environments.md)
 
 ## Project governance
 
