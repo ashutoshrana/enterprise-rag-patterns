@@ -1,0 +1,21 @@
+channels:
+  - sms
+  - voice
+context_sources:
+  - crm_record
+  - document_status
+  - interaction_history
+  - policy_flags
+policy:
+  require_human_when:
+    - identity_conflict
+    - compliance_hold
+    - repeated_user_confusion
+  allow_autonomous_actions:
+    - send_reminder
+    - summarize_context
+    - request_missing_step
+memory:
+  strategy: scoped_session
+  continuity:
+    preserve_across_channels: true
