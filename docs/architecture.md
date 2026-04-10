@@ -2,6 +2,15 @@
 
 ## Core layers
 
+```mermaid
+flowchart LR
+  A["Channel Layer\nVoice | SMS | Chat"] --> B["Orchestration Layer\nSession | Retrieval | Policy"]
+  B --> C["Systems Layer\nCRM | ERP | Knowledge | Analytics"]
+  B --> D["Human Oversight\nOperator Review | Escalation"]
+  C --> B
+  D --> B
+```
+
 ### 1. Channel layer
 
 The channel layer handles voice, SMS, chat, or other inbound / outbound interaction surfaces.

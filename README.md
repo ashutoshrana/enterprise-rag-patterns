@@ -35,7 +35,10 @@ It does not include customer data, institution-specific logic, or branded assist
 
 ## Repository structure
 
+- `CONTRIBUTING.md`
+- `GOVERNANCE.md`
 - `docs/architecture.md`
+- `docs/adr/`
 - `docs/case-study-anonymized.md`
 - `examples/context-pipeline.yaml`
 - `src/enterprise_rag_patterns/`
@@ -77,6 +80,13 @@ This repo is meant to show practical architecture thinking, not marketing langua
 - publish a reference event flow for system-of-record synchronization
 - add policy examples for human escalation thresholds
 - document anonymized implementation lessons from production-style operating environments
+
+## Project governance
+
+- contribution guidance: [`CONTRIBUTING.md`](./CONTRIBUTING.md)
+- governance model: [`GOVERNANCE.md`](./GOVERNANCE.md)
+- architecture decisions: [`docs/adr`](./docs/adr)
+- system overview: [`docs/architecture.md`](./docs/architecture.md)
 
 ## Status
 
