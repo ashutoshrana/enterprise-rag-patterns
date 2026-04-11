@@ -28,12 +28,11 @@ Key regulations referenced:
 
 from __future__ import annotations
 
-import hashlib
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Callable
 
 
 class RecordCategory(Enum):
@@ -187,11 +186,11 @@ class FERPAContextPolicy:
 
     def filter_retrieved_documents(
         self,
-        documents: list[dict],
+        documents: list[dict[str, object]],
         student_id_field: str = "student_id",
         institution_id_field: str = "institution_id",
         category_field: str = "record_category",
-    ) -> list[dict]:
+    ) -> list[dict[str, object]]:
         """
         Filter a list of retrieved documents to only those authorized by this policy.
 
