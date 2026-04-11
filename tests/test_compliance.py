@@ -1,6 +1,5 @@
 """Tests for enterprise_rag_patterns.compliance — FERPA context governance."""
 
-import pytest
 
 from enterprise_rag_patterns.compliance import (
     AuditRecord,
@@ -10,7 +9,6 @@ from enterprise_rag_patterns.compliance import (
     StudentIdentityScope,
     make_enrollment_advisor_policy,
 )
-
 
 # ---------------------------------------------------------------------------
 # StudentIdentityScope
@@ -68,7 +66,12 @@ DOCS = [
     {"doc_id": "own-academic", "student_id": "S-1", "institution_id": "inst-a", "record_category": "academic_record"},
     {"doc_id": "own-financial", "student_id": "S-1", "institution_id": "inst-a", "record_category": "financial_record"},
     {"doc_id": "other-student", "student_id": "S-2", "institution_id": "inst-a", "record_category": "academic_record"},
-    {"doc_id": "other-institution", "student_id": "S-1", "institution_id": "inst-b", "record_category": "academic_record"},
+    {
+        "doc_id": "other-institution",
+        "student_id": "S-1",
+        "institution_id": "inst-b",
+        "record_category": "academic_record",
+    },
     {"doc_id": "shared-kb", "institution_id": "inst-a"},  # no student_id — shared knowledge
     {"doc_id": "unknown-category", "student_id": "S-1", "institution_id": "inst-a", "record_category": "unknown_xyz"},
 ]
