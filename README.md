@@ -127,3 +127,13 @@ If you use these patterns in your work, see `CITATION.cff` or use GitHub's "Cite
 ## Status
 
 Active development. Current focus: compliance-aware RAG patterns for regulated enterprise environments, applicable across cloud providers and enterprise platforms.
+---
+
+
+## Part of the enterprise AI patterns trilogy
+
+| Library | Focus | Regulation |
+|---------|-------|-----------|
+| **enterprise-rag-patterns** | What to retrieve | FERPA identity-scoped RAG |
+| [regulated-ai-governance](https://github.com/ashutoshrana/regulated-ai-governance) | What agents may do | FERPA, HIPAA, GLBA policy enforcement |
+| [integration-automation-patterns](https://github.com/ashutoshrana/integration-automation-patterns) | How data flows | Event-driven enterprise integration |
