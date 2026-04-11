@@ -37,13 +37,20 @@ It does not include customer data, institution-specific logic, or branded assist
 
 - `CONTRIBUTING.md`
 - `GOVERNANCE.md`
+- `CITATION.cff`
 - `docs/architecture.md`
 - `docs/implementation-note-01.md`
+- `docs/implementation-note-02.md` — FERPA boundaries in RAG
 - `docs/articles/`
 - `docs/adr/`
 - `docs/case-study-anonymized.md`
 - `examples/context-pipeline.yaml`
+- `examples/ferpa_rag_pipeline.py` — complete runnable FERPA-compliant pipeline
 - `src/enterprise_rag_patterns/`
+  - `context.py` — context envelope and source assembly
+  - `session.py` — cross-channel session continuity
+  - `policy.py` — escalation and action-boundary policy objects
+  - `compliance.py` — FERPA-aware context governance with audit logging
 
 ## Why these patterns matter
 
@@ -54,7 +61,7 @@ Enterprise AI systems usually fail at the seams:
 
 The goal here is to make those seams explicit and reusable.
 
-## Initial modules
+## Modules
 
 - `context.py`
   Context envelope and source assembly patterns.
@@ -64,6 +71,13 @@ The goal here is to make those seams explicit and reusable.
 
 - `policy.py`
   Escalation and action-boundary policy objects.
+
+- `compliance.py`
+  FERPA-aware context governance for regulated environments. Provides
+  `StudentIdentityScope` for defining retrieval boundaries, `FERPAContextPolicy`
+  for filtering retrieved documents before they enter the LLM context window,
+  and `AuditRecord` for 34 CFR § 99.32 disclosure logging.
+  See `docs/implementation-note-02.md` for design rationale and usage guidance.
 
 ## Intended audience
 
@@ -85,7 +99,8 @@ This repo is meant to show practical architecture thinking, not marketing langua
 
 ## Published notes
 
-- implementation note: [`docs/implementation-note-01.md`](./docs/implementation-note-01.md)
+- implementation note 01: [`docs/implementation-note-01.md`](./docs/implementation-note-01.md) — Cross-channel continuity problem and solution
+- implementation note 02: [`docs/implementation-note-02.md`](./docs/implementation-note-02.md) — FERPA boundaries in retrieval-augmented generation
 - article: [`docs/articles/production-grade-rag-in-regulated-enterprise-environments.md`](./docs/articles/production-grade-rag-in-regulated-enterprise-environments.md)
 
 ## Project governance
@@ -95,10 +110,10 @@ This repo is meant to show practical architecture thinking, not marketing langua
 - architecture decisions: [`docs/adr`](./docs/adr)
 - system overview: [`docs/architecture.md`](./docs/architecture.md)
 
+## Citing this work
+
+If you use these patterns in your work, see `CITATION.cff` or use GitHub's "Cite this repository" button above.
+
 ## Status
 
-Early scaffold. Safe to extend into:
-- reference implementation
-- architecture notes
-- examples and diagrams
-- issue-backed roadmap
+Active development. Current focus: FERPA-compliant RAG patterns for regulated enterprise environments.
