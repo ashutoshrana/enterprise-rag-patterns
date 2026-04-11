@@ -6,6 +6,49 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.2.0] - 2026-04-11
+
+### Added
+
+**Vector store filter adapters** (`src/enterprise_rag_patterns/vector_stores/`):
+- `base.py` — `ComplianceFilter` dataclass and `VectorStoreFilterAdapter` ABC; portable filter specification for compliance-scoped vector queries
+- `pinecone_adapter.py` — `PineconeComplianceFilter`: builds Pinecone v8 metadata filter dict (`$and` / `$eq` / `$in`) for FERPA/HIPAA scoping
+- `weaviate_adapter.py` — `WeaviateComplianceFilter`: builds Weaviate v4 `Filter` object using `Filter.by_property().equal()` and `&` combinator; lazy import
+- `qdrant_adapter.py` — `QdrantComplianceFilter`: builds Qdrant `Filter` with `FieldCondition` / `MatchValue` / `MatchAny`; lazy import
+- `chroma_adapter.py` — `ChromaComplianceFilter`: builds ChromaDB `where` dict with `$and` / `$eq` / `$in` operators
+
+**Framework integrations** (`src/enterprise_rag_patterns/integrations/`):
+- `llama_index.py` — `FERPANodePostprocessor`: LlamaIndex `BaseNodePostprocessor` enforcing student identity scoping; emits 34 CFR § 99.32 audit log entries
+- `haystack.py` — `FERPAHaystackFilter`: Haystack 2.x `@component` filtering documents on `meta["student_id"]` and `meta["institution_id"]`; lazy import with `_make_haystack_component()` for pipeline serialisation
+
+**GDPR regulation module** (`src/enterprise_rag_patterns/regulations/`):
+- `gdpr.py` — GDPR Article 17 RAG-layer erasure patterns: `ErasureRequest`, `ErasureAuditRecord`, `GDPRRAGPolicy`; supports `filter_for_subject`, `record_erasure`, and `to_log_entry`
+- `__init__.py` — exports all GDPR symbols
+
+**Async compliance** (`src/enterprise_rag_patterns/async_compliance.py`):
+- `async_filter_retrieved_documents` — async wrapper for `FERPAContextPolicy.filter_retrieved_documents`
+- `async_record_access` — async wrapper for `FERPAContextPolicy.record_access`
+- Async-wrapper pattern: `await asyncio.sleep(0)` yields to event loop then delegates to synchronous implementation — compatible with all async AI frameworks
+
+**Tests**:
+- `tests/test_vector_store_adapters.py` — full coverage of all four adapters; verifies filter structure without real vector store connections
+- `tests/test_gdpr.py` — covers `ErasureRequest`, `GDPRRAGPolicy.filter_for_subject`, `record_erasure`, `to_log_entry`
+- `tests/test_integrations.py` — covers `FERPAHaystackFilter` and `FERPANodePostprocessor` with duck-typed stubs; no framework import required
+- `tests/test_async_compliance.py` — covers `async_filter_retrieved_documents` and `async_record_access` via `asyncio.run`
+
+**Open-source contribution infrastructure**:
+- `CONTRIBUTING.md` — comprehensive guide: dev setup, how to add adapters/regulations/integrations, PR checklist with regulatory citation requirement
+- `CODE_OF_CONDUCT.md` — Contributor Covenant 2.1
+- `ECOSYSTEM.md` — compatibility matrix for vector stores, frameworks, and regulations
+- `.github/ISSUE_TEMPLATE/new-vector-store.md` — issue template for new vector store adapters
+- `.github/ISSUE_TEMPLATE/new-regulation.md` — issue template for new regulation modules
+- `.github/ISSUE_TEMPLATE/new-framework-integration.md` — issue template for new framework integrations
+
+**Package configuration**:
+- `pyproject.toml` — version bumped to `0.2.0`; added optional dependency groups: `llama-index`, `haystack`, `pinecone`, `weaviate`, `qdrant`, `chromadb`, `all`
+
+---
+
 ## [0.1.0] — 2026-04-11
 
 ### Added
