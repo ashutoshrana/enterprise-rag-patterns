@@ -28,10 +28,15 @@ This repo focuses on:
 - session continuity across channels
 - human-in-loop escalation rules
 - enterprise-safe action boundaries
-- reference architecture notes for regulated or operationally sensitive environments
-- patterns that apply across CRM, ERP, knowledge, and workflow platforms
+- compliance and audit patterns for regulated environments (FERPA and similar frameworks)
+- reference architecture notes for operationally sensitive deployments
 
-It does not include customer data, institution-specific logic, or branded assistant artifacts.
+The patterns are designed to be:
+- **Cloud-agnostic** — applicable on AWS, GCP, Azure, OCI, or hybrid environments
+- **Platform-agnostic** — not tied to any specific CRM, ERP, vector database, or LLM provider
+- **Regulation-aware** — compliance module targets FERPA; the same pattern applies to HIPAA, GLBA, and similar record-access frameworks
+
+It does not include customer data, institution-specific logic, or vendor-specific implementation artifacts.
 
 ## Repository structure
 
@@ -116,4 +121,4 @@ If you use these patterns in your work, see `CITATION.cff` or use GitHub's "Cite
 
 ## Status
 
-Active development. Current focus: FERPA-compliant RAG patterns for regulated enterprise environments.
+Active development. Current focus: compliance-aware RAG patterns for regulated enterprise environments, applicable across cloud providers and enterprise platforms.

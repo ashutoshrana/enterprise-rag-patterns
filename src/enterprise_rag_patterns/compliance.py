@@ -14,6 +14,12 @@ retrieval-augmented workflows. It does not replace institutional legal review
 but provides the architectural layer that makes FERPA compliance
 mechanically enforceable rather than manually audited.
 
+The patterns are cloud-agnostic and platform-agnostic. They work with any
+vector store (Pinecone, Weaviate, pgvector, Chroma, OpenSearch, etc.), any
+LLM provider, and any cloud environment (AWS, GCP, Azure, OCI). The same
+structural pattern applies to other regulated-access frameworks (HIPAA, GLBA)
+by substituting the appropriate record categories and disclosure rules.
+
 Key regulations referenced:
   34 CFR § 99.3   — Definitions (education records, legitimate educational interest)
   34 CFR § 99.31  — Conditions for disclosure without consent

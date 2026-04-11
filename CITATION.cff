@@ -5,8 +5,9 @@ title: "enterprise-rag-patterns: Enterprise RAG Architecture Patterns with FERPA
 abstract: >
   Reference implementation of retrieval-augmented generation (RAG) patterns
   for enterprise environments operating under regulatory constraints.
-  Includes FERPA-aware context policy with audit logging (34 CFR § 99.32),
-  cross-channel session continuity, and governed AI escalation primitives.
+  Includes compliance-aware context policy with audit logging (FERPA 34 CFR § 99.32;
+  extensible to HIPAA, GLBA, and similar frameworks), cross-channel session continuity,
+  and governed AI escalation primitives. Cloud-agnostic and platform-agnostic.
 authors:
   - family-names: "Rana"
     given-names: "Ashutosh"
