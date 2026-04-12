@@ -166,11 +166,7 @@ class FERPAComplianceCallbackHandler:
         )
 
         # Rebuild the filtered document list, preserving the original objects.
-        retained_indices: set[int] = {
-            int(str(d["_idx"]))
-            for d in filtered_dicts
-            if "_idx" in d
-        }
+        retained_indices: set[int] = {int(str(d["_idx"])) for d in filtered_dicts if "_idx" in d}
         filtered_documents = [doc for idx, doc in enumerate(documents) if idx in retained_indices]
 
         removed = original_count - len(filtered_documents)
