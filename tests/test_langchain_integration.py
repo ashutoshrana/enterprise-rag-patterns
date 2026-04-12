@@ -21,7 +21,6 @@ from enterprise_rag_patterns.compliance import (
 )
 from enterprise_rag_patterns.integrations.langchain import FERPAComplianceCallbackHandler
 
-
 # ---------------------------------------------------------------------------
 # Stub: duck-typed LangChain Document (no SDK needed)
 # ---------------------------------------------------------------------------
@@ -63,9 +62,7 @@ def _make_handler(
     audit_sink: Any = None,
 ) -> FERPAComplianceCallbackHandler:
     """Construct handler with langchain-core import check patched out."""
-    with patch(
-        "enterprise_rag_patterns.integrations.langchain._check_langchain_available"
-    ):
+    with patch("enterprise_rag_patterns.integrations.langchain._check_langchain_available"):
         return FERPAComplianceCallbackHandler(
             scope=scope or _make_scope(),
             raise_on_violation=raise_on_violation,
@@ -93,8 +90,12 @@ class TestIdentityFiltering:
     def test_blocks_cross_student_documents(self) -> None:
         handler = _make_handler()
         docs = [
-            MockDocument("Other student", {"student_id": "stu_999", "institution_id": "inst_abc", "category": "academic_record"}),
-            MockDocument("Own record", {"student_id": "stu_001", "institution_id": "inst_abc", "category": "academic_record"}),
+            MockDocument(
+                "Other student", {"student_id": "stu_999", "institution_id": "inst_abc", "category": "academic_record"}
+            ),
+            MockDocument(
+                "Own record", {"student_id": "stu_001", "institution_id": "inst_abc", "category": "academic_record"}
+            ),
         ]
         handler.on_retriever_end(docs)
         assert len(docs) == 1
@@ -103,7 +104,9 @@ class TestIdentityFiltering:
     def test_blocks_cross_institution_documents(self) -> None:
         handler = _make_handler()
         docs = [
-            MockDocument("Other inst", {"student_id": "stu_001", "institution_id": "inst_xyz", "category": "academic_record"}),
+            MockDocument(
+                "Other inst", {"student_id": "stu_001", "institution_id": "inst_xyz", "category": "academic_record"}
+            ),
         ]
         handler.on_retriever_end(docs)
         assert len(docs) == 0
@@ -125,8 +128,12 @@ class TestIdentityFiltering:
         handler = _make_handler()
         docs = [
             MockDocument("Own", {"student_id": "stu_001", "institution_id": "inst_abc", "category": "academic_record"}),
-            MockDocument("Other student", {"student_id": "stu_002", "institution_id": "inst_abc", "category": "academic_record"}),
-            MockDocument("Other inst", {"student_id": "stu_001", "institution_id": "inst_xyz", "category": "academic_record"}),
+            MockDocument(
+                "Other student", {"student_id": "stu_002", "institution_id": "inst_abc", "category": "academic_record"}
+            ),
+            MockDocument(
+                "Other inst", {"student_id": "stu_001", "institution_id": "inst_xyz", "category": "academic_record"}
+            ),
             MockDocument("Shared KB", {}),
         ]
         handler.on_retriever_end(docs)
@@ -145,7 +152,9 @@ class TestCategoryFiltering:
     def test_blocks_unauthorized_category(self) -> None:
         handler = _make_handler(scope=_make_scope(categories={RecordCategory.ACADEMIC_RECORD}))
         docs = [
-            MockDocument("Health record", {"student_id": "stu_001", "institution_id": "inst_abc", "category": "health_record"}),
+            MockDocument(
+                "Health record", {"student_id": "stu_001", "institution_id": "inst_abc", "category": "health_record"}
+            ),
         ]
         handler.on_retriever_end(docs)
         assert len(docs) == 0
@@ -153,7 +162,9 @@ class TestCategoryFiltering:
     def test_allows_authorized_category(self) -> None:
         handler = _make_handler(scope=_make_scope(categories={RecordCategory.ACADEMIC_RECORD}))
         docs = [
-            MockDocument("Transcript", {"student_id": "stu_001", "institution_id": "inst_abc", "category": "academic_record"}),
+            MockDocument(
+                "Transcript", {"student_id": "stu_001", "institution_id": "inst_abc", "category": "academic_record"}
+            ),
         ]
         handler.on_retriever_end(docs)
         assert len(docs) == 1
@@ -162,7 +173,9 @@ class TestCategoryFiltering:
         """FERPA: directory_information is always permitted regardless of scope."""
         handler = _make_handler(scope=_make_scope(categories={RecordCategory.ACADEMIC_RECORD}))
         docs = [
-            MockDocument("Dir info", {"student_id": "stu_001", "institution_id": "inst_abc", "category": "directory_information"}),
+            MockDocument(
+                "Dir info", {"student_id": "stu_001", "institution_id": "inst_abc", "category": "directory_information"}
+            ),
         ]
         handler.on_retriever_end(docs)
         assert len(docs) == 1
@@ -170,9 +183,16 @@ class TestCategoryFiltering:
     def test_blocks_multiple_unauthorized_categories(self) -> None:
         handler = _make_handler(scope=_make_scope(categories={RecordCategory.ACADEMIC_RECORD}))
         docs = [
-            MockDocument("Health", {"student_id": "stu_001", "institution_id": "inst_abc", "category": "health_record"}),
-            MockDocument("Disciplinary", {"student_id": "stu_001", "institution_id": "inst_abc", "category": "disciplinary_record"}),
-            MockDocument("Academic", {"student_id": "stu_001", "institution_id": "inst_abc", "category": "academic_record"}),
+            MockDocument(
+                "Health", {"student_id": "stu_001", "institution_id": "inst_abc", "category": "health_record"}
+            ),
+            MockDocument(
+                "Disciplinary",
+                {"student_id": "stu_001", "institution_id": "inst_abc", "category": "disciplinary_record"},
+            ),
+            MockDocument(
+                "Academic", {"student_id": "stu_001", "institution_id": "inst_abc", "category": "academic_record"}
+            ),
         ]
         handler.on_retriever_end(docs)
         assert len(docs) == 1
@@ -188,7 +208,9 @@ class TestRaiseOnViolation:
     def test_raises_when_unauthorized_document_blocked(self) -> None:
         handler = _make_handler(raise_on_violation=True)
         docs = [
-            MockDocument("Other student", {"student_id": "stu_999", "institution_id": "inst_abc", "category": "academic_record"}),
+            MockDocument(
+                "Other student", {"student_id": "stu_999", "institution_id": "inst_abc", "category": "academic_record"}
+            ),
         ]
         with pytest.raises(ValueError, match="FERPA violation"):
             handler.on_retriever_end(docs)
@@ -205,7 +227,9 @@ class TestRaiseOnViolation:
     def test_does_not_raise_in_default_mode(self) -> None:
         handler = _make_handler(raise_on_violation=False)
         docs = [
-            MockDocument("Other", {"student_id": "stu_999", "institution_id": "inst_abc", "category": "academic_record"}),
+            MockDocument(
+                "Other", {"student_id": "stu_999", "institution_id": "inst_abc", "category": "academic_record"}
+            ),
         ]
         # Should silently drop, not raise
         handler.on_retriever_end(docs)
@@ -222,7 +246,9 @@ class TestAuditSink:
         audit_log: list[AuditRecord] = []
         handler = _make_handler(audit_sink=audit_log.append)
         docs = [
-            MockDocument("Transcript", {"student_id": "stu_001", "institution_id": "inst_abc", "category": "academic_record"}),
+            MockDocument(
+                "Transcript", {"student_id": "stu_001", "institution_id": "inst_abc", "category": "academic_record"}
+            ),
         ]
         handler.on_retriever_end(docs)
         assert len(audit_log) == 1
@@ -244,7 +270,9 @@ class TestAuditSink:
         audit_log: list[AuditRecord] = []
         handler = _make_handler(audit_sink=audit_log.append)
         docs = [
-            MockDocument("Other", {"student_id": "stu_999", "institution_id": "inst_abc", "category": "academic_record"}),
+            MockDocument(
+                "Other", {"student_id": "stu_999", "institution_id": "inst_abc", "category": "academic_record"}
+            ),
         ]
         handler.on_retriever_end(docs)
         assert len(audit_log) == 0
@@ -299,8 +327,12 @@ class TestCustomFieldNames:
                 student_id_field="learner_id",
             )
         docs = [
-            MockDocument("Record", {"learner_id": "stu_001", "institution_id": "inst_abc", "category": "academic_record"}),
-            MockDocument("Other", {"learner_id": "stu_999", "institution_id": "inst_abc", "category": "academic_record"}),
+            MockDocument(
+                "Record", {"learner_id": "stu_001", "institution_id": "inst_abc", "category": "academic_record"}
+            ),
+            MockDocument(
+                "Other", {"learner_id": "stu_999", "institution_id": "inst_abc", "category": "academic_record"}
+            ),
         ]
         handler.on_retriever_end(docs)
         assert len(docs) == 1
@@ -313,8 +345,12 @@ class TestCustomFieldNames:
                 category_field="doc_type",
             )
         docs = [
-            MockDocument("Academic", {"student_id": "stu_001", "institution_id": "inst_abc", "doc_type": "academic_record"}),
-            MockDocument("Health", {"student_id": "stu_001", "institution_id": "inst_abc", "doc_type": "health_record"}),
+            MockDocument(
+                "Academic", {"student_id": "stu_001", "institution_id": "inst_abc", "doc_type": "academic_record"}
+            ),
+            MockDocument(
+                "Health", {"student_id": "stu_001", "institution_id": "inst_abc", "doc_type": "health_record"}
+            ),
         ]
         handler.on_retriever_end(docs)
         assert len(docs) == 1

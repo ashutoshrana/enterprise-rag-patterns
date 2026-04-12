@@ -53,7 +53,6 @@ from typing import Any
 
 from enterprise_rag_patterns.compliance import (
     AuditRecord,
-    DisclosureReason,
     FERPAContextPolicy,
     RecordCategory,
     StudentIdentityScope,
@@ -155,9 +154,7 @@ class FERPAComplianceCallbackHandler:
 
         # Convert to the dict-based API expected by FERPAContextPolicy.
         # Inject "_idx" so we can map filtered results back to original objects.
-        doc_dicts: list[dict[str, Any]] = [
-            self._to_dict(doc, idx) for idx, doc in enumerate(documents)
-        ]
+        doc_dicts: list[dict[str, Any]] = [self._to_dict(doc, idx) for idx, doc in enumerate(documents)]
 
         filtered_dicts = self.policy.filter_retrieved_documents(
             doc_dicts,
@@ -174,9 +171,7 @@ class FERPAComplianceCallbackHandler:
             for d in filtered_dicts
             if "_idx" in d
         }
-        filtered_documents = [
-            doc for idx, doc in enumerate(documents) if idx in retained_indices
-        ]
+        filtered_documents = [doc for idx, doc in enumerate(documents) if idx in retained_indices]
 
         removed = original_count - len(filtered_documents)
 
@@ -204,8 +199,7 @@ class FERPAComplianceCallbackHandler:
 
         if removed > 0:
             logger.warning(
-                "[FERPA_AUDIT] event=langchain_filter student_id=%s institution_id=%s "
-                "total=%d removed=%d allowed=%d",
+                "[FERPA_AUDIT] event=langchain_filter student_id=%s institution_id=%s total=%d removed=%d allowed=%d",
                 self.policy.scope.student_id,
                 self.policy.scope.institution_id,
                 original_count,
@@ -263,9 +257,7 @@ class FERPAComplianceCallbackHandler:
             d["record_category"] = meta[self.category_field]
         return d
 
-    def _extract_accessed_categories(
-        self, documents: list[Any]
-    ) -> set[RecordCategory]:
+    def _extract_accessed_categories(self, documents: list[Any]) -> set[RecordCategory]:
         """Return the set of RecordCategory values present in the authorized documents."""
         categories: set[RecordCategory] = set()
         for doc in documents:

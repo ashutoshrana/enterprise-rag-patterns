@@ -1,6 +1,5 @@
 """Tests for enterprise_rag_patterns.compliance — FERPA context governance."""
 
-
 from enterprise_rag_patterns.compliance import (
     AuditRecord,
     DisclosureReason,
@@ -13,6 +12,7 @@ from enterprise_rag_patterns.compliance import (
 # ---------------------------------------------------------------------------
 # StudentIdentityScope
 # ---------------------------------------------------------------------------
+
 
 class TestStudentIdentityScope:
     def test_permits_directory_information_always(self):
@@ -158,6 +158,7 @@ class TestFERPAContextPolicyFilter:
 # FERPAContextPolicy.record_access
 # ---------------------------------------------------------------------------
 
+
 class TestFERPAContextPolicyAudit:
     def test_record_access_returns_audit_record(self):
         policy = _policy()
@@ -172,7 +173,9 @@ class TestFERPAContextPolicyAudit:
     def test_audit_sink_called(self):
         collected = []
         scope = StudentIdentityScope(
-            student_id="S-1", institution_id="inst-a", requesting_user_id="agent",
+            student_id="S-1",
+            institution_id="inst-a",
+            requesting_user_id="agent",
             authorized_categories={RecordCategory.ACADEMIC_RECORD},
         )
         policy = FERPAContextPolicy(scope=scope, audit_sink=collected.append)
@@ -201,16 +204,14 @@ class TestFERPAContextPolicyAudit:
 
     def test_audit_record_id_is_unique(self):
         policy = _policy()
-        ids = {
-            policy.record_access(categories_accessed=[RecordCategory.ACADEMIC_RECORD]).record_id
-            for _ in range(10)
-        }
+        ids = {policy.record_access(categories_accessed=[RecordCategory.ACADEMIC_RECORD]).record_id for _ in range(10)}
         assert len(ids) == 10
 
 
 # ---------------------------------------------------------------------------
 # make_enrollment_advisor_policy factory
 # ---------------------------------------------------------------------------
+
 
 class TestEnrollmentAdvisorFactory:
     def test_creates_policy_with_correct_scope(self):
