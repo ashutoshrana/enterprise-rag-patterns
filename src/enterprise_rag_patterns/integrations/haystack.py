@@ -117,8 +117,7 @@ class FERPAHaystackFilter:
             filtered.append(doc)
 
         logger.info(
-            "[FERPA_AUDIT] event=haystack_filter student_id=%s institution_id=%s "
-            "total=%d removed=%d allowed=%d",
+            "[FERPA_AUDIT] event=haystack_filter student_id=%s institution_id=%s total=%d removed=%d allowed=%d",
             student_id,
             institution_id,
             len(documents),
