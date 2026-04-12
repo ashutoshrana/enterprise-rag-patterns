@@ -1,135 +1,190 @@
 # enterprise-rag-patterns
 
 [![CI](https://github.com/ashutoshrana/enterprise-rag-patterns/actions/workflows/ci.yml/badge.svg)](https://github.com/ashutoshrana/enterprise-rag-patterns/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)
-![PyPI](https://img.shields.io/pypi/v/enterprise-rag-patterns.svg)](https://www.python.org/downloads/)
 [![PyPI](https://img.shields.io/pypi/v/enterprise-rag-patterns.svg)](https://pypi.org/project/enterprise-rag-patterns/)
+[![Python](https://img.shields.io/pypi/pyversions/enterprise-rag-patterns.svg)](https://pypi.org/project/enterprise-rag-patterns/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Downloads](https://img.shields.io/pypi/dm/enterprise-rag-patterns.svg)](https://pypi.org/project/enterprise-rag-patterns/)
 
-Practical reference patterns for retrieval-augmented workflows, context continuity, and governed AI integration in enterprise environments.
+---
 
-## Why this repo exists
+## The problem this solves
 
-Most examples of AI assistants stop at demo quality. Real enterprise systems have harder problems:
-- multiple source systems
-- fragmented context
-- workflow continuity across channels
-- compliance and audit requirements
-- human handoff only when it is actually needed
+Standard RAG implementations retrieve documents and pass them directly to an LLM — with no enforcement of who is allowed to see what. In regulated environments (higher education, healthcare, financial services), this creates a structural compliance failure: a student can receive another student's records, a financial aid record can leak into an enrollment query, and no disclosure log is produced. This library provides the missing layer — an identity-scoped pre-filter that restricts what enters the LLM context window based on verified session identity, authorized record categories, and institution, with every access producing a 34 CFR § 99.32-compliant audit record before any generation occurs.
 
-This repository is a public-safe, anonymized scaffold for those patterns.
+---
 
-## Pattern themes
+## Architecture
 
-The examples in this repository are designed for teams building systems such as:
-- omnichannel service and enrollment workflows
-- multi-step document and verification processes
-- enterprise knowledge retrieval and action support
-- AI-assisted operations that require auditability and controlled human handoff
+```
+Session Token
+     │
+     ▼
+StudentIdentityScope
+(student_id + institution_id + authorized_categories + disclosure_reason)
+     │
+     ├─ Vector Store Pre-filter ──────────────────────────────────┐
+     │   student_id + institution_id + categories checked here   │
+     │   Only authorized documents enter the ranking stage       │
+     │                                                            │
+     ├─ Policy Layer Filter (defense-in-depth) ──────────────────┤
+     │   Application-level identity re-check                     │
+     │   Blocks any document that escaped the vector filter      │
+     │                                                            │
+     ├─ Audit Record ─────────────────────────────────────────────┤
+     │   34 CFR § 99.32 Disclosure Log                           │
+     │   Emitted before LLM sees any document                    │
+     │                                                            │
+     └─ LLM Context (authorized documents only) ─────────────────┘
+```
 
-## Scope
+**Why pre-filter, not post-filter?** Post-filtering is a UI concern, not a compliance control — the LLM has already processed the unauthorized record. FERPA and HIPAA require that disclosure not occur, not that unauthorized data be hidden after the fact. See [docs/adr/](./docs/adr/) for the full architecture decision record.
 
-This repo focuses on:
-- context assembly for AI workflows
-- session continuity across channels
-- human-in-loop escalation rules
-- enterprise-safe action boundaries
-- compliance and audit patterns for regulated environments (FERPA and similar frameworks)
-- reference architecture notes for operationally sensitive deployments
+---
 
-The patterns are designed to be:
-- **Cloud-agnostic** — applicable on AWS, GCP, Azure, OCI, or hybrid environments
-- **Platform-agnostic** — not tied to any specific CRM, ERP, vector database, or LLM provider
-- **Regulation-aware** — compliance module targets FERPA; the same pattern applies to HIPAA, GLBA, and similar record-access frameworks
+## Installation
 
-It does not include customer data, institution-specific logic, or vendor-specific implementation artifacts.
+```bash
+pip install enterprise-rag-patterns
+```
+
+With framework extras:
+
+```bash
+pip install 'enterprise-rag-patterns[langchain]'
+pip install 'enterprise-rag-patterns[llama-index]'
+pip install 'enterprise-rag-patterns[haystack]'
+```
+
+---
+
+## 60-second example
+
+```python
+from enterprise_rag_patterns.compliance import (
+    StudentIdentityScope,
+    RecordCategory,
+    FERPAContextPolicy,
+    DisclosureReason,
+)
+
+# Build a verified scope from your session token — never from user input
+scope = StudentIdentityScope(
+    student_id="stu_001",
+    institution_id="univ_abc",
+    requesting_user_id="advisor_007",
+    authorized_categories={RecordCategory.ACADEMIC_RECORD},
+    disclosure_reason=DisclosureReason.SCHOOL_OFFICIAL,
+)
+policy = FERPAContextPolicy(scope=scope)
+
+# Your retriever returns docs — filter before the LLM sees them
+safe_docs = policy.filter_retrieved_documents(
+    retrieved_docs,
+    student_id_field="student_id",
+    institution_id_field="institution_id",
+    category_field="category",
+)
+
+# Emit a 34 CFR § 99.32 disclosure log entry
+audit = policy.record_access(categories_accessed={RecordCategory.ACADEMIC_RECORD})
+print(audit.to_log_entry())
+# → {"record_id": "...", "student_id": "stu_001", "regulation": "FERPA",
+#    "categories": ["academic_record"], "permitted": true, "timestamp": "..."}
+```
+
+See [`examples/ferpa_rag_pipeline.py`](./examples/ferpa_rag_pipeline.py) for a complete runnable pipeline.
+
+---
+
+## Framework integrations
+
+| Framework | Integration Class | Install Extra |
+|-----------|------------------|---------------|
+| LangChain | `FERPAComplianceCallbackHandler` | `[langchain]` |
+| LlamaIndex | `FERPANodePostprocessor` | `[llama-index]` |
+| Haystack 2.x | `FERPAHaystackFilter` | `[haystack]` |
+| Pinecone | `PineconeComplianceFilter` | `[pinecone]` |
+| Weaviate | `WeaviateComplianceFilter` | `[weaviate]` |
+| Qdrant | `QdrantComplianceFilter` | `[qdrant]` |
+| ChromaDB | `ChromaComplianceFilter` | `[chromadb]` |
+
+---
+
+## Regulations supported
+
+| Regulation | Status | Scope |
+|------------|--------|-------|
+| FERPA (34 CFR § 99) | Implemented | Student education records, disclosure log |
+| GDPR Art. 17 | Implemented | Right to erasure, data subject scope |
+| HIPAA (45 CFR § 164) | Planned | PHI access control and audit |
+| GLBA (16 CFR § 314) | Planned | Customer financial record safeguards |
+
+---
 
 ## Repository structure
 
-- `CONTRIBUTING.md`
-- `GOVERNANCE.md`
-- `CITATION.cff`
-- `docs/architecture.md`
-- `docs/implementation-note-01.md`
-- `docs/implementation-note-02.md` — FERPA boundaries in RAG
-- `docs/articles/`
-- `docs/adr/`
-- `docs/case-study-anonymized.md`
-- `examples/context-pipeline.yaml`
-- `examples/ferpa_rag_pipeline.py` — complete runnable FERPA-compliant pipeline
-- `src/enterprise_rag_patterns/`
-  - `context.py` — context envelope and source assembly
-  - `session.py` — cross-channel session continuity
-  - `policy.py` — escalation and action-boundary policy objects
-  - `compliance.py` — FERPA-aware context governance with audit logging
+```
+src/enterprise_rag_patterns/
+├── compliance.py        # FERPA-scoped pre-filter + 34 CFR § 99.32 audit log
+├── context.py           # Context envelope and source assembly patterns
+├── session.py           # Cross-channel session continuity scaffolding
+└── policy.py            # Escalation and action-boundary policy objects
+docs/
+├── architecture.md
+├── implementation-note-01.md   # Cross-channel continuity problem and solution
+├── implementation-note-02.md   # FERPA boundaries in retrieval-augmented generation
+├── articles/
+├── adr/                        # Architecture decision records
+└── case-study-anonymized.md
+examples/
+├── context-pipeline.yaml
+└── ferpa_rag_pipeline.py       # Complete runnable FERPA-compliant pipeline
+```
 
-## Why these patterns matter
-
-Enterprise AI systems usually fail at the seams:
-- between channels
-- between memory and policy
-- between the AI layer and the system-of-record
-
-The goal here is to make those seams explicit and reusable.
-
-## Modules
-
-- `context.py`
-  Context envelope and source assembly patterns.
-
-- `session.py`
-  Session memory and cross-channel continuity scaffolding.
-
-- `policy.py`
-  Escalation and action-boundary policy objects.
-
-- `compliance.py`
-  FERPA-aware context governance for regulated environments. Provides
-  `StudentIdentityScope` for defining retrieval boundaries, `FERPAContextPolicy`
-  for filtering retrieved documents before they enter the LLM context window,
-  and `AuditRecord` for 34 CFR § 99.32 disclosure logging.
-  See `docs/implementation-note-02.md` for design rationale and usage guidance.
-
-## Intended audience
-
-- enterprise architects
-- AI platform engineers
-- enterprise platform and workflow operators
-- applied AI teams working in regulated or multi-system environments
-
-## Public positioning
-
-This repo is meant to show practical architecture thinking, not marketing language.
-
-## Near-term roadmap
-
-- add architecture decision records for cross-channel continuity
-- publish a reference event flow for system-of-record synchronization
-- add policy examples for human escalation thresholds
-- document anonymized implementation lessons from production-style operating environments
+---
 
 ## Published notes
 
-- implementation note 01: [`docs/implementation-note-01.md`](./docs/implementation-note-01.md) — Cross-channel continuity problem and solution
-- implementation note 02: [`docs/implementation-note-02.md`](./docs/implementation-note-02.md) — FERPA boundaries in retrieval-augmented generation
-- article: [`docs/articles/production-grade-rag-in-regulated-enterprise-environments.md`](./docs/articles/production-grade-rag-in-regulated-enterprise-environments.md)
+- [Implementation Note 01](./docs/implementation-note-01.md) — Cross-channel continuity problem and solution
+- [Implementation Note 02](./docs/implementation-note-02.md) — FERPA boundaries in retrieval-augmented generation
+- [Production-Grade RAG in Regulated Enterprise Environments](./docs/articles/production-grade-rag-in-regulated-enterprise-environments.md)
 
-## Project governance
-
-- contribution guidance: [`CONTRIBUTING.md`](./CONTRIBUTING.md)
-- governance model: [`GOVERNANCE.md`](./GOVERNANCE.md)
-- architecture decisions: [`docs/adr`](./docs/adr)
-- system overview: [`docs/architecture.md`](./docs/architecture.md)
-
-## Citing this work
-
-If you use these patterns in your work, see `CITATION.cff` or use GitHub's "Cite this repository" button above.
-
-## Status
-
-Active development. Current focus: compliance-aware RAG patterns for regulated enterprise environments, applicable across cloud providers and enterprise platforms.
 ---
 
+## Near-term roadmap
+
+- Add architecture decision records for cross-channel continuity
+- Publish a reference event flow for system-of-record synchronization
+- Add policy examples for human escalation thresholds
+- Document anonymized implementation lessons from production-style operating environments
+- HIPAA and GLBA compliance module implementations
+
+---
+
+## Contributing
+
+Contributions are welcome. Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines and [GOVERNANCE.md](./GOVERNANCE.md) for the governance model. Run `pytest tests/ -v` to verify your changes before opening a pull request.
+
+---
+
+## Citation
+
+If you use these patterns in research or production, please cite:
+
+```bibtex
+@software{rana2026erp,
+  author    = {Rana, Ashutosh},
+  title     = {enterprise-rag-patterns: FERPA-compliant retrieval-augmented generation patterns},
+  year      = {2026},
+  url       = {https://github.com/ashutoshrana/enterprise-rag-patterns},
+  license   = {MIT}
+}
+```
+
+Or use GitHub's "Cite this repository" button above (reads `CITATION.cff`).
+
+---
 
 ## Part of the enterprise AI patterns trilogy
 
@@ -138,3 +193,9 @@ Active development. Current focus: compliance-aware RAG patterns for regulated e
 | **enterprise-rag-patterns** | What to retrieve | FERPA identity-scoped RAG |
 | [regulated-ai-governance](https://github.com/ashutoshrana/regulated-ai-governance) | What agents may do | FERPA, HIPAA, GLBA policy enforcement |
 | [integration-automation-patterns](https://github.com/ashutoshrana/integration-automation-patterns) | How data flows | Event-driven enterprise integration |
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE).
