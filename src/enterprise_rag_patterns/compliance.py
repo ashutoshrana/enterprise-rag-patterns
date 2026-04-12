@@ -43,12 +43,13 @@ class RecordCategory(Enum):
     (protected records) and directory information that institutions may
     disclose without consent if the student has not opted out.
     """
-    DIRECTORY_INFORMATION = "directory_information"    # Name, enrollment status, major — disclosable
-    ACADEMIC_RECORD = "academic_record"                # Grades, transcripts — protected
-    FINANCIAL_RECORD = "financial_record"              # Financial aid, billing — protected
-    DISCIPLINARY_RECORD = "disciplinary_record"        # Conduct records — protected
-    HEALTH_RECORD = "health_record"                    # Campus health, accommodations — protected
-    SYSTEM_GENERATED = "system_generated"              # AI-generated context, workflow state
+
+    DIRECTORY_INFORMATION = "directory_information"  # Name, enrollment status, major — disclosable
+    ACADEMIC_RECORD = "academic_record"  # Grades, transcripts — protected
+    FINANCIAL_RECORD = "financial_record"  # Financial aid, billing — protected
+    DISCIPLINARY_RECORD = "disciplinary_record"  # Conduct records — protected
+    HEALTH_RECORD = "health_record"  # Campus health, accommodations — protected
+    SYSTEM_GENERATED = "system_generated"  # AI-generated context, workflow state
 
 
 class DisclosureReason(Enum):
@@ -58,11 +59,12 @@ class DisclosureReason(Enum):
     FERPA allows disclosure without consent under specific conditions.
     Each access to protected records must map to one of these reasons.
     """
-    SCHOOL_OFFICIAL = "school_official"          # § 99.31(a)(1) — legitimate educational interest
-    AUDIT_EVALUATION = "audit_evaluation"        # § 99.31(a)(3) — authorized audit
-    COURT_ORDER = "court_order"                  # § 99.31(a)(9) — judicial order
-    HEALTH_SAFETY = "health_safety"              # § 99.31(a)(10) — emergency
-    SELF_SERVICE = "self_service"                # Student accessing their own records
+
+    SCHOOL_OFFICIAL = "school_official"  # § 99.31(a)(1) — legitimate educational interest
+    AUDIT_EVALUATION = "audit_evaluation"  # § 99.31(a)(3) — authorized audit
+    COURT_ORDER = "court_order"  # § 99.31(a)(9) — judicial order
+    HEALTH_SAFETY = "health_safety"  # § 99.31(a)(10) — emergency
+    SELF_SERVICE = "self_service"  # Student accessing their own records
 
 
 @dataclass(slots=True)
@@ -87,6 +89,7 @@ class StudentIdentityScope:
         consent_on_file: Whether the student has provided written consent
             for disclosures that go beyond the standard exceptions.
     """
+
     student_id: str
     institution_id: str
     requesting_user_id: str
@@ -113,6 +116,7 @@ class AuditRecord:
 
     Reference: 34 CFR § 99.32 — Record of disclosures required
     """
+
     record_id: str
     student_id: str
     institution_id: str
@@ -120,8 +124,8 @@ class AuditRecord:
     categories_accessed: list[RecordCategory]
     disclosure_reason: DisclosureReason
     access_timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    workflow_context: str = ""     # Brief description of the workflow or use case
-    retrieval_query_hash: str = "" # SHA-256 of the retrieval query (not the result) for audit traceability
+    workflow_context: str = ""  # Brief description of the workflow or use case
+    retrieval_query_hash: str = ""  # SHA-256 of the retrieval query (not the result) for audit traceability
 
     def to_log_entry(self) -> str:
         """Format a structured log entry suitable for institutional audit systems."""
@@ -180,6 +184,7 @@ class FERPAContextPolicy:
         block_cross_institution: If True (default), documents tagged with a
             different institution_id than scope.institution_id are always blocked.
     """
+
     scope: StudentIdentityScope
     audit_sink: Callable[[AuditRecord], None] | None = None
     block_cross_institution: bool = True
@@ -285,6 +290,7 @@ class FERPAContextPolicy:
 # ---------------------------------------------------------------------------
 # Convenience factory
 # ---------------------------------------------------------------------------
+
 
 def make_enrollment_advisor_policy(
     student_id: str,
