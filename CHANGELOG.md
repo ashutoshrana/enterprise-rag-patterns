@@ -6,6 +6,25 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.4.0] — 2026-04-12
+
+### Added
+- `integrations/maf.py`: `FERPAAgentMiddleware` — Microsoft Agent Framework (MAF) middleware intercepting agent tool-call messages, applying FERPA identity-scope filtering, emitting 34 CFR § 99.32 audit records. MAF is the enterprise-ready successor to AutoGen and Semantic Kernel (released 2026).
+- `integrations/llama_index_workflow.py`: `FERPAWorkflowStep` + `FERPAFilterEvent` — LlamaIndex 0.12+ event-driven Workflow step enforcing FERPA scoping between retrieval and synthesis steps. Compatible with `llama-index-core>=0.12.0` (current: 0.14.20).
+- New `[maf]` optional dependency: `microsoft-agent-framework>=1.0.0`
+
+### Changed
+- Bumped ecosystem compatibility pins:
+  - `llama-index-core`: `>=0.10.0` → `>=0.12.0` (LlamaIndex 0.14.20 current)
+  - `haystack-ai`: `>=2.0.0` → `>=2.20.0` (Haystack 2.27.0 current)
+  - `pinecone`: `>=3.0.0` → `>=5.0.0` (Pinecone 8.1.2 current; v5 required for async API)
+  - `weaviate-client`: `>=4.0.0` → `>=4.10.0` (Weaviate 4.20.5 current)
+  - `chromadb`: `>=0.5.0` → `>=1.0.0` (ChromaDB 1.5.7 current; v1.0 is GA)
+- `integrations/__init__.py`: exports `FERPAAgentMiddleware`, `FERPAWorkflowStep`, `FERPAFilterEvent`
+- `pyproject.toml`: version bumped to 0.4.0; `[all]` extra now includes `[maf]`
+
+---
+
 ## [0.3.0] — 2026-04-12
 
 ### Added
