@@ -167,7 +167,7 @@ class FERPAComplianceCallbackHandler:
 
         # Rebuild the filtered document list, preserving the original objects.
         retained_indices: set[int] = {
-            int(d["_idx"])  # type: ignore[arg-type]
+            int(str(d["_idx"]))
             for d in filtered_dicts
             if "_idx" in d
         }
