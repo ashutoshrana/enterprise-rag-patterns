@@ -6,6 +6,20 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.3.0] — 2026-04-12
+
+### Added
+- Enhanced CI: coverage reporting (Codecov), ruff format check, build-check job, pip cache, concurrency cancellation
+- Automation: PR auto-labeler, stale bot, Conventional Commits PR title check, first-contributor welcome bot
+- Dependabot; CODEOWNERS; SECURITY.md; pre-commit config; automated release notes
+- `integrations/langchain.py`: `FERPAComplianceCallbackHandler` — LangChain callback handler intercepting `on_retriever_end`, applying identity-scope filtering in-place, emitting 34 CFR § 99.32 audit records
+- LangChain added as `[langchain]` optional dependency (`langchain-core>=0.3.0`)
+- ADRs: `docs/adr/004-pydantic-v2-data-models.md`
+- README: badge row, FERPA pipeline ASCII diagram, ecosystem integration table, 60-second quickstart, regulations table, BibTeX citation
+- GitHub Discussions enabled; 22 standardized labels (type/*, priority/*, status/*, area/*); milestones v0.3.0 + v1.0.0
+
+---
+
 ## [0.2.0] - 2026-04-11
 
 ### Added
