@@ -1,10 +1,20 @@
-"""Tests for 21_energy_utilities_rag.py — NERC CIP + FERC Order 2222 + NRC 10 CFR Part 73"""
+"""
+Tests for Energy and Utilities RAG Pipeline (28_energy_utilities_rag.py).
+
+Covers all four filter layers:
+  Layer 1 — NERCCIPFilter          (NERC CIP-004, CIP-005, CIP-011, CIP-013)
+  Layer 2 — FERCRegulatoryFilter   (18 CFR §388.112 / §388.113 CEII)
+  Layer 3 — DOECybersecurityFilter (DOE Orders 470.4B, 475.1B; CESER guidance)
+  Layer 4 — NRCNuclearSecurityFilter (NRC 10 CFR Part 73 Safeguards Info)
+
+Plus end-to-end pipeline tests and audit record tests.
+"""
 from __future__ import annotations
 
 import importlib.util
+import os
 import sys
 import types
-from pathlib import Path
 
 import pytest
 
@@ -12,51 +22,62 @@ import pytest
 # Module loading
 # ---------------------------------------------------------------------------
 
+_MOD_PATH = os.path.join(os.path.dirname(__file__), "..", "examples", "28_energy_utilities_rag.py")
 
-def _load_module(name: str):
-    examples_dir = Path(__file__).parent.parent / "examples"
-    spec = importlib.util.spec_from_file_location(name, examples_dir / "21_energy_utilities_rag.py")
-    mod = types.ModuleType(name)
-    sys.modules[name] = mod
+
+def _load():
+    spec = importlib.util.spec_from_file_location(
+        "energy_utilities_rag_28",
+        _MOD_PATH,
+    )
+    mod = types.ModuleType("energy_utilities_rag_28")
+    sys.modules["energy_utilities_rag_28"] = mod
     spec.loader.exec_module(mod)
     return mod
 
 
 @pytest.fixture(scope="module")
 def m():
-    return _load_module("energy_utilities_rag")
+    return _load()
 
 
 # ---------------------------------------------------------------------------
-# Test helpers
+# Helper factories
 # ---------------------------------------------------------------------------
 
 
 def _ctx(m, **kwargs):
+    """Fully authorized grid operator context — all flags at their permissive values."""
     defaults = dict(
-        personnel_id="OPS-001",
-        cip_access_level=m.NERCCIPAccessLevel.OPERATIONAL,
-        nerc_training_current=True,
-        authorized_asset_ids=(),
-        market_participant_certified=False,
-        nuclear_clearance=False,
-        control_area_type=m.ControlAreaType.TRANSMISSION,
+        user_id="USER-001",
+        user_role=m.EnergyRole.GRID_OPERATOR,
+        facility_id="FAC-001",
+        user_cleared_for_cip=True,
+        has_need_to_know=True,
+        is_authorized_electronic_access=True,
+        is_on_site_physical_access=True,
+        contractor_agreement_active=True,
+        ferc_ceii_authorized=True,
+        is_ferc_staff=False,
+        doe_clearance_level="classified",
+        nrc_safeguards_authorized=True,
+        is_nrc_inspector=False,
+        is_audit_access=False,
     )
     defaults.update(kwargs)
-    return m.EnergyAccessContext(**defaults)
+    return m.EnergyUtilitiesContext(**defaults)
 
 
 def _doc(m, **kwargs):
+    """Default NOT_BES, non-restricted, non-public document."""
     defaults = dict(
-        doc_id="DOC-001",
-        category=m.EnergyDocumentCategory.MAINTENANCE_PROCEDURE,
-        title="Test Document",
-        impact_level=m.BESCyberSystemImpactLevel.NOT_APPLICABLE,
-        bcsi_classification=False,
-        is_nuclear_safety_system=False,
-        requires_q_clearance=False,
-        market_sensitive=False,
-        asset_id="",
+        document_id="DOC-001",
+        bes_cyber_system_impact=m.BESCyberSystemImpact.NOT_BES,
+        is_ceii=False,
+        is_ferc_restricted=False,
+        is_doe_sensitive=False,
+        is_classified=False,
+        is_safeguards_info=False,
         is_public=False,
     )
     defaults.update(kwargs)
@@ -64,483 +85,442 @@ def _doc(m, **kwargs):
 
 
 # ---------------------------------------------------------------------------
-# Enumerations
-# ---------------------------------------------------------------------------
-
-
-class TestEnumerations:
-    def test_bes_impact_levels(self, m):
-        levels = [m.BESCyberSystemImpactLevel.HIGH, m.BESCyberSystemImpactLevel.MEDIUM,
-                  m.BESCyberSystemImpactLevel.LOW, m.BESCyberSystemImpactLevel.NOT_APPLICABLE]
-        assert len(set(levels)) == 4
-
-    def test_nerc_access_levels(self, m):
-        levels = [m.NERCCIPAccessLevel.OPERATIONAL, m.NERCCIPAccessLevel.INFORMATIONAL,
-                  m.NERCCIPAccessLevel.PUBLIC]
-        assert len(set(levels)) == 3
-
-    def test_document_categories_count(self, m):
-        # 20 document categories (5 BCSI + 4 operational + 5 market + 4 nuclear + 2 public)
-        cats = list(m.EnergyDocumentCategory)
-        assert len(cats) == 20
-
-    def test_control_area_types(self, m):
-        types_ = [m.ControlAreaType.TRANSMISSION, m.ControlAreaType.GENERATION,
-                  m.ControlAreaType.DISTRIBUTION, m.ControlAreaType.NUCLEAR,
-                  m.ControlAreaType.MARKET]
-        assert len(set(types_)) == 5
-
-
-# ---------------------------------------------------------------------------
-# NERCCIPFilter
+# TestNERCCIPFilter — 9 tests
 # ---------------------------------------------------------------------------
 
 
 class TestNERCCIPFilter:
-    def test_public_doc_always_permitted(self, m):
-        f = m.NERCCIPFilter()
-        doc = _doc(m, doc_id="PUB-001", category=m.EnergyDocumentCategory.PUBLIC_NOTICE, is_public=True)
-        ctx = _ctx(m, cip_access_level=m.NERCCIPAccessLevel.PUBLIC, nerc_training_current=False)
-        permitted, reasons = f.filter([doc], ctx)
-        assert doc in permitted
-        assert not reasons
 
-    def test_bcsi_blocked_for_public_access_level(self, m):
-        f = m.NERCCIPFilter()
-        doc = _doc(m, doc_id="SCADA-001", category=m.EnergyDocumentCategory.SCADA_CONFIG,
-                   bcsi_classification=True, impact_level=m.BESCyberSystemImpactLevel.HIGH,
-                   asset_id="BES-001")
-        ctx = _ctx(m, cip_access_level=m.NERCCIPAccessLevel.PUBLIC, nerc_training_current=True)
-        permitted, reasons = f.filter([doc], ctx)
-        assert doc not in permitted
-        assert any("CIP-011-3" in r for r in reasons)
+    @pytest.fixture
+    def nerc(self, m):
+        return m.NERCCIPFilter()
 
-    def test_bcsi_blocked_for_lapsed_training(self, m):
-        f = m.NERCCIPFilter()
-        doc = _doc(m, doc_id="SCADA-002", category=m.EnergyDocumentCategory.SCADA_CONFIG,
-                   bcsi_classification=True, impact_level=m.BESCyberSystemImpactLevel.HIGH,
-                   asset_id="BES-001")
-        ctx = _ctx(m, cip_access_level=m.NERCCIPAccessLevel.OPERATIONAL,
-                   nerc_training_current=False)  # Lapsed training
-        permitted, reasons = f.filter([doc], ctx)
-        assert doc not in permitted
-        assert any("CIP-004-7" in r for r in reasons)
-
-    def test_high_impact_requires_operational_access(self, m):
-        f = m.NERCCIPFilter()
-        doc = _doc(m, doc_id="SCADA-003", category=m.EnergyDocumentCategory.SCADA_CONFIG,
-                   bcsi_classification=True, impact_level=m.BESCyberSystemImpactLevel.HIGH,
-                   asset_id="BES-001")
-        ctx = _ctx(m, cip_access_level=m.NERCCIPAccessLevel.INFORMATIONAL,
-                   nerc_training_current=True)
-        permitted, reasons = f.filter([doc], ctx)
-        assert doc not in permitted
-        assert any("CIP-007-7" in r for r in reasons)
-
-    def test_medium_impact_requires_operational_access(self, m):
-        f = m.NERCCIPFilter()
-        doc = _doc(m, doc_id="NET-001", category=m.EnergyDocumentCategory.NETWORK_DIAGRAM,
-                   bcsi_classification=True, impact_level=m.BESCyberSystemImpactLevel.MEDIUM,
-                   asset_id="BES-CC-001")
-        ctx = _ctx(m, cip_access_level=m.NERCCIPAccessLevel.INFORMATIONAL,
-                   nerc_training_current=True)
-        permitted, reasons = f.filter([doc], ctx)
-        assert doc not in permitted
-        assert any("MEDIUM" in r for r in reasons)
-
-    def test_operational_with_training_permits_high_bcsi(self, m):
-        f = m.NERCCIPFilter()
-        doc = _doc(m, doc_id="SCADA-004", category=m.EnergyDocumentCategory.SCADA_CONFIG,
-                   bcsi_classification=True, impact_level=m.BESCyberSystemImpactLevel.HIGH,
-                   asset_id="BES-TRANS-044")
-        ctx = _ctx(m, cip_access_level=m.NERCCIPAccessLevel.OPERATIONAL,
-                   nerc_training_current=True,
-                   authorized_asset_ids=("BES-TRANS-044",))
-        permitted, reasons = f.filter([doc], ctx)
-        assert doc in permitted
-        assert not reasons
-
-    def test_asset_authorization_required(self, m):
-        f = m.NERCCIPFilter()
-        doc = _doc(m, doc_id="SCADA-005", category=m.EnergyDocumentCategory.SCADA_CONFIG,
-                   bcsi_classification=True, impact_level=m.BESCyberSystemImpactLevel.HIGH,
-                   asset_id="BES-TRANS-999")
-        ctx = _ctx(m, cip_access_level=m.NERCCIPAccessLevel.OPERATIONAL,
-                   nerc_training_current=True,
-                   authorized_asset_ids=("BES-TRANS-001",))  # Different asset
-        permitted, reasons = f.filter([doc], ctx)
-        assert doc not in permitted
-        assert any("EAL" in r or "Electronic Access List" in r for r in reasons)
-
-    def test_non_bcsi_blocked_for_public_access(self, m):
-        f = m.NERCCIPFilter()
-        doc = _doc(m, doc_id="MAINT-001", category=m.EnergyDocumentCategory.MAINTENANCE_PROCEDURE,
-                   bcsi_classification=False, asset_id="")
-        ctx = _ctx(m, cip_access_level=m.NERCCIPAccessLevel.PUBLIC)
-        permitted, reasons = f.filter([doc], ctx)
-        assert doc not in permitted
-        assert any("PUBLIC" in r for r in reasons)
-
-    def test_non_bcsi_permitted_for_informational_access(self, m):
-        f = m.NERCCIPFilter()
-        doc = _doc(m, doc_id="MAINT-002", category=m.EnergyDocumentCategory.MAINTENANCE_PROCEDURE,
-                   bcsi_classification=False, asset_id="")
-        ctx = _ctx(m, cip_access_level=m.NERCCIPAccessLevel.INFORMATIONAL,
-                   nerc_training_current=True)
-        permitted, reasons = f.filter([doc], ctx)
-        assert doc in permitted
-
-    def test_bcsi_categories_set_contents(self, m):
-        f = m.NERCCIPFilter()
-        assert m.EnergyDocumentCategory.SCADA_CONFIG in f._BCSI_CATEGORIES
-        assert m.EnergyDocumentCategory.PROTECTION_SCHEME in f._BCSI_CATEGORIES
-        assert m.EnergyDocumentCategory.NETWORK_DIAGRAM in f._BCSI_CATEGORIES
-        assert m.EnergyDocumentCategory.CYBER_SECURITY_PLAN in f._BCSI_CATEGORIES
-        assert m.EnergyDocumentCategory.ACCESS_CONTROL_LIST in f._BCSI_CATEGORIES
-        assert m.EnergyDocumentCategory.MAINTENANCE_PROCEDURE not in f._BCSI_CATEGORIES
-
-
-# ---------------------------------------------------------------------------
-# FERCOrder2222Filter
-# ---------------------------------------------------------------------------
-
-
-class TestFERCOrder2222Filter:
-    def test_public_ferc_filing_always_permitted(self, m):
-        f = m.FERCOrder2222Filter()
-        doc = _doc(m, doc_id="FERC-001", category=m.EnergyDocumentCategory.FERC_FILING,
-                   is_public=True)
-        ctx = _ctx(m, market_participant_certified=False)
-        permitted, reasons = f.filter([doc], ctx)
-        assert doc in permitted
-        assert not reasons
-
-    def test_public_market_report_always_permitted(self, m):
-        f = m.FERCOrder2222Filter()
-        doc = _doc(m, doc_id="MKT-RPT-001", category=m.EnergyDocumentCategory.MARKET_REPORT_PUBLIC,
-                   is_public=True)
-        ctx = _ctx(m, market_participant_certified=False)
-        permitted, reasons = f.filter([doc], ctx)
-        assert doc in permitted
-
-    def test_der_dispatch_blocked_without_certification(self, m):
-        f = m.FERCOrder2222Filter()
-        doc = _doc(m, doc_id="DER-001", category=m.EnergyDocumentCategory.DER_DISPATCH_CURVE,
-                   market_sensitive=True)
-        ctx = _ctx(m, market_participant_certified=False)
-        permitted, reasons = f.filter([doc], ctx)
-        assert doc not in permitted
-        assert any("FERC" in r and "2222" in r for r in reasons)
-
-    def test_market_bid_data_blocked_without_certification(self, m):
-        f = m.FERCOrder2222Filter()
-        doc = _doc(m, doc_id="BID-001", category=m.EnergyDocumentCategory.MARKET_BID_DATA,
-                   market_sensitive=True)
-        ctx = _ctx(m, market_participant_certified=False)
-        permitted, reasons = f.filter([doc], ctx)
-        assert doc not in permitted
-
-    def test_capacity_position_blocked_without_certification(self, m):
-        f = m.FERCOrder2222Filter()
-        doc = _doc(m, doc_id="CAP-001", category=m.EnergyDocumentCategory.CAPACITY_POSITION,
-                   market_sensitive=True)
-        ctx = _ctx(m, market_participant_certified=False)
-        permitted, reasons = f.filter([doc], ctx)
-        assert doc not in permitted
-
-    def test_market_data_permitted_with_certification(self, m):
-        f = m.FERCOrder2222Filter()
-        doc = _doc(m, doc_id="DER-002", category=m.EnergyDocumentCategory.DER_DISPATCH_CURVE,
-                   market_sensitive=True)
-        ctx = _ctx(m, market_participant_certified=True)
-        permitted, reasons = f.filter([doc], ctx)
-        assert doc in permitted
-        assert not reasons
-
-    def test_market_sensitive_flag_blocked_without_certification(self, m):
-        f = m.FERCOrder2222Filter()
-        doc = _doc(m, doc_id="SENS-001", category=m.EnergyDocumentCategory.OPERATOR_LOG,
-                   market_sensitive=True)
-        ctx = _ctx(m, market_participant_certified=False)
-        permitted, reasons = f.filter([doc], ctx)
-        assert doc not in permitted
-        assert any("market" in r.lower() for r in reasons)
-
-    def test_non_market_doc_permitted_without_certification(self, m):
-        f = m.FERCOrder2222Filter()
-        doc = _doc(m, doc_id="LOG-001", category=m.EnergyDocumentCategory.OPERATOR_LOG,
-                   market_sensitive=False)
-        ctx = _ctx(m, market_participant_certified=False)
-        permitted, reasons = f.filter([doc], ctx)
-        assert doc in permitted
-
-
-# ---------------------------------------------------------------------------
-# NRCCybersecurityFilter
-# ---------------------------------------------------------------------------
-
-
-class TestNRCCybersecurityFilter:
-    def test_public_doc_always_permitted(self, m):
-        f = m.NRCCybersecurityFilter()
-        doc = _doc(m, doc_id="PUB-001", category=m.EnergyDocumentCategory.PUBLIC_NOTICE,
-                   is_public=True)
-        ctx = _ctx(m, nuclear_clearance=False)
-        permitted, reasons = f.filter([doc], ctx)
-        assert doc in permitted
-
-    def test_nuclear_safety_system_blocked_without_clearance(self, m):
-        f = m.NRCCybersecurityFilter()
-        doc = _doc(m, doc_id="NUC-001", category=m.EnergyDocumentCategory.NUCLEAR_SAFETY_SYSTEM,
-                   is_nuclear_safety_system=True, requires_q_clearance=True)
-        ctx = _ctx(m, nuclear_clearance=False)
-        permitted, reasons = f.filter([doc], ctx)
-        assert doc not in permitted
-        assert any("73.54" in r or "Q-level" in r.lower() or "nuclear" in r.lower() for r in reasons)
-
-    def test_nuclear_safety_system_permitted_with_clearance(self, m):
-        f = m.NRCCybersecurityFilter()
-        doc = _doc(m, doc_id="NUC-002", category=m.EnergyDocumentCategory.NUCLEAR_SAFETY_SYSTEM,
-                   is_nuclear_safety_system=True, requires_q_clearance=True)
-        ctx = _ctx(m, nuclear_clearance=True)
-        permitted, reasons = f.filter([doc], ctx)
-        assert doc in permitted
-
-    def test_q_clearance_required_flag_blocks_without_clearance(self, m):
-        f = m.NRCCybersecurityFilter()
-        doc = _doc(m, doc_id="NUC-003", category=m.EnergyDocumentCategory.CRITICAL_DIGITAL_ASSET,
-                   requires_q_clearance=True, is_nuclear_safety_system=False)
-        ctx = _ctx(m, nuclear_clearance=False)
-        permitted, reasons = f.filter([doc], ctx)
-        assert doc not in permitted
-
-    def test_critical_digital_asset_category_blocked_without_clearance(self, m):
-        f = m.NRCCybersecurityFilter()
-        doc = _doc(m, doc_id="CDA-001", category=m.EnergyDocumentCategory.CRITICAL_DIGITAL_ASSET)
-        ctx = _ctx(m, nuclear_clearance=False)
-        permitted, reasons = f.filter([doc], ctx)
-        assert doc not in permitted
-
-    def test_emergency_procedure_blocked_without_clearance(self, m):
-        f = m.NRCCybersecurityFilter()
-        doc = _doc(m, doc_id="EMRG-001", category=m.EnergyDocumentCategory.EMERGENCY_PROCEDURE)
-        ctx = _ctx(m, nuclear_clearance=False)
-        permitted, reasons = f.filter([doc], ctx)
-        assert doc not in permitted
-
-    def test_security_plan_nuclear_blocked_without_clearance(self, m):
-        f = m.NRCCybersecurityFilter()
-        doc = _doc(m, doc_id="SEC-001", category=m.EnergyDocumentCategory.SECURITY_PLAN_NUCLEAR)
-        ctx = _ctx(m, nuclear_clearance=False)
-        permitted, reasons = f.filter([doc], ctx)
-        assert doc not in permitted
-
-    def test_non_nuclear_doc_passes_without_clearance(self, m):
-        f = m.NRCCybersecurityFilter()
-        doc = _doc(m, doc_id="MAINT-001", category=m.EnergyDocumentCategory.MAINTENANCE_PROCEDURE)
-        ctx = _ctx(m, nuclear_clearance=False)
-        permitted, reasons = f.filter([doc], ctx)
-        assert doc in permitted
-
-    def test_nuclear_restricted_categories_set(self, m):
-        f = m.NRCCybersecurityFilter()
-        assert m.EnergyDocumentCategory.NUCLEAR_SAFETY_SYSTEM in f._NUCLEAR_RESTRICTED_CATEGORIES
-        assert m.EnergyDocumentCategory.CRITICAL_DIGITAL_ASSET in f._NUCLEAR_RESTRICTED_CATEGORIES
-        assert m.EnergyDocumentCategory.SECURITY_PLAN_NUCLEAR in f._NUCLEAR_RESTRICTED_CATEGORIES
-        assert m.EnergyDocumentCategory.EMERGENCY_PROCEDURE in f._NUCLEAR_RESTRICTED_CATEGORIES
-
-
-# ---------------------------------------------------------------------------
-# EnergyComplianceAuditRecord
-# ---------------------------------------------------------------------------
-
-
-class TestEnergyComplianceAuditRecord:
-    def test_to_cip_audit_log_structure(self, m):
-        record = m.EnergyComplianceAuditRecord(
-            audit_id="AUD-001",
-            personnel_id="OPS-001",
-            control_area_type=m.ControlAreaType.TRANSMISSION,
-            cip_access_level=m.NERCCIPAccessLevel.OPERATIONAL,
-            training_current=True,
-            nuclear_clearance=False,
-            market_certified=False,
-            documents_requested=5,
-            documents_permitted=3,
-            nerc_blocks=["NERC block 1"],
-            ferc_blocks=[],
-            nrc_blocks=[],
-            permitted_doc_ids=["DOC-A", "DOC-B", "DOC-C"],
+    def test_high_bes_cleared_need_to_know_electronic_access_permitted(self, m, nerc):
+        """HIGH BES + cleared + need-to-know + electronic access → PERMITTED."""
+        ctx = _ctx(
+            m,
+            user_cleared_for_cip=True,
+            has_need_to_know=True,
+            is_authorized_electronic_access=True,
         )
-        log = record.to_cip_audit_log()
-        assert log["audit_id"] == "AUD-001"
-        assert log["personnel_id"] == "OPS-001"
-        assert log["requested"] == 5
-        assert log["permitted"] == 3
-        assert log["nerc_blocks"] == 1
-        assert log["ferc_blocks"] == 0
-        assert log["nrc_blocks"] == 0
-        assert len(log["permitted_docs"]) == 3
+        doc = _doc(m, bes_cyber_system_impact=m.BESCyberSystemImpact.HIGH)
+        result = nerc.evaluate(ctx, doc)
+        assert not result.is_denied
 
-    def test_to_cip_audit_log_fields(self, m):
-        record = m.EnergyComplianceAuditRecord(
-            audit_id="AUD-002",
-            personnel_id="NUC-001",
-            control_area_type=m.ControlAreaType.NUCLEAR,
-            cip_access_level=m.NERCCIPAccessLevel.OPERATIONAL,
-            training_current=True,
-            nuclear_clearance=True,
-            market_certified=False,
-            documents_requested=10,
-            documents_permitted=8,
-            nerc_blocks=[],
-            ferc_blocks=[],
-            nrc_blocks=["NRC block 1", "NRC block 2"],
-            permitted_doc_ids=["A", "B", "C", "D", "E", "F", "G", "H"],
+    def test_high_bes_not_cleared_denied(self, m, nerc):
+        """HIGH BES + NOT cleared → DENIED (CIP-004-6 R3 PRA required)."""
+        ctx = _ctx(m, user_cleared_for_cip=False)
+        doc = _doc(m, bes_cyber_system_impact=m.BESCyberSystemImpact.HIGH)
+        result = nerc.evaluate(ctx, doc)
+        assert result.is_denied
+        assert "CIP-004" in result.reason or "PRA" in result.reason or "personnel" in result.reason.lower()
+
+    def test_high_bes_cleared_no_need_to_know_denied(self, m, nerc):
+        """HIGH BES + cleared + no need-to-know → DENIED (CIP-011-2)."""
+        ctx = _ctx(
+            m,
+            user_cleared_for_cip=True,
+            has_need_to_know=False,
+            is_authorized_electronic_access=True,
         )
-        log = record.to_cip_audit_log()
-        assert log["nuclear_clearance"] is True
-        assert log["training_current"] is True
-        assert log["control_area"] == "NUCLEAR"
+        doc = _doc(m, bes_cyber_system_impact=m.BESCyberSystemImpact.HIGH)
+        result = nerc.evaluate(ctx, doc)
+        assert result.is_denied
+        assert "CIP-011" in result.reason or "need-to-know" in result.reason.lower()
 
+    def test_medium_bes_cleared_need_to_know_permitted(self, m, nerc):
+        """MEDIUM BES + cleared + need-to-know → PERMITTED."""
+        ctx = _ctx(
+            m,
+            user_cleared_for_cip=True,
+            has_need_to_know=True,
+        )
+        doc = _doc(m, bes_cyber_system_impact=m.BESCyberSystemImpact.MEDIUM)
+        result = nerc.evaluate(ctx, doc)
+        assert not result.is_denied
 
-# ---------------------------------------------------------------------------
-# EnergyRAGPipeline
-# ---------------------------------------------------------------------------
+    def test_medium_bes_not_cleared_denied(self, m, nerc):
+        """MEDIUM BES + NOT cleared → DENIED (CIP-004-6 R3)."""
+        ctx = _ctx(m, user_cleared_for_cip=False)
+        doc = _doc(m, bes_cyber_system_impact=m.BESCyberSystemImpact.MEDIUM)
+        result = nerc.evaluate(ctx, doc)
+        assert result.is_denied
+        assert "CIP-004" in result.reason or "PRA" in result.reason
 
+    def test_low_bes_contractor_without_active_agreement_denied(self, m, nerc):
+        """LOW BES + CONTRACTOR without active agreement → DENIED (CIP-013-2)."""
+        ctx = _ctx(
+            m,
+            user_role=m.EnergyRole.CONTRACTOR,
+            contractor_agreement_active=False,
+        )
+        doc = _doc(m, bes_cyber_system_impact=m.BESCyberSystemImpact.LOW)
+        result = nerc.evaluate(ctx, doc)
+        assert result.is_denied
+        assert "CIP-013" in result.reason or "contractor" in result.reason.lower()
 
-class TestEnergyRAGPipeline:
-    def _build_kb(self, m):
-        return [
-            _doc(m, doc_id="SCADA-001", category=m.EnergyDocumentCategory.SCADA_CONFIG,
-                 bcsi_classification=True, impact_level=m.BESCyberSystemImpactLevel.HIGH,
-                 asset_id="BES-TRANS-044"),
-            _doc(m, doc_id="DER-001", category=m.EnergyDocumentCategory.DER_DISPATCH_CURVE,
-                 market_sensitive=True),
-            _doc(m, doc_id="NUC-001", category=m.EnergyDocumentCategory.NUCLEAR_SAFETY_SYSTEM,
-                 is_nuclear_safety_system=True, requires_q_clearance=True),
-            _doc(m, doc_id="PUB-001", category=m.EnergyDocumentCategory.PUBLIC_NOTICE,
-                 is_public=True),
-        ]
+    def test_low_bes_vendor_without_active_agreement_denied(self, m, nerc):
+        """LOW BES + VENDOR without active agreement → DENIED (CIP-013-2)."""
+        ctx = _ctx(
+            m,
+            user_role=m.EnergyRole.VENDOR,
+            contractor_agreement_active=False,
+        )
+        doc = _doc(m, bes_cyber_system_impact=m.BESCyberSystemImpact.LOW)
+        result = nerc.evaluate(ctx, doc)
+        assert result.is_denied
+        assert "CIP-013" in result.reason or "vendor" in result.reason.lower()
 
-    def test_pipeline_layers_execute_in_order(self, m):
-        pipeline = m.EnergyRAGPipeline()
-        kb = self._build_kb(m)
-        ctx = _ctx(m, cip_access_level=m.NERCCIPAccessLevel.OPERATIONAL,
-                   nerc_training_current=True, authorized_asset_ids=("BES-TRANS-044",),
-                   nuclear_clearance=True, market_participant_certified=True)
-        permitted, audit = pipeline.retrieve(kb, ctx)
-        # All docs should be permitted for fully authorized user
-        assert len(permitted) == 4
+    def test_low_bes_grid_operator_not_contractor_permitted(self, m, nerc):
+        """LOW BES + GRID_OPERATOR (not contractor/vendor) → PERMITTED regardless of agreement flag."""
+        ctx = _ctx(
+            m,
+            user_role=m.EnergyRole.GRID_OPERATOR,
+            contractor_agreement_active=False,
+        )
+        doc = _doc(m, bes_cyber_system_impact=m.BESCyberSystemImpact.LOW)
+        result = nerc.evaluate(ctx, doc)
+        assert not result.is_denied
 
-    def test_scenario_a_control_room_operator(self, m):
-        """Authorized operator gets SCADA docs, not market or nuclear docs."""
-        pipeline = m.EnergyRAGPipeline()
-        kb = self._build_kb(m)
-        ctx = _ctx(m, cip_access_level=m.NERCCIPAccessLevel.OPERATIONAL,
-                   nerc_training_current=True, authorized_asset_ids=("BES-TRANS-044",),
-                   nuclear_clearance=False, market_participant_certified=False)
-        permitted, audit = pipeline.retrieve(kb, ctx)
-        ids = {d.doc_id for d in permitted}
-        assert "SCADA-001" in ids   # NERC OK
-        assert "DER-001" not in ids  # FERC block
-        assert "NUC-001" not in ids  # NRC block
-        assert "PUB-001" in ids     # Public
-
-    def test_scenario_b_public_vendor_blocked_from_bcsi(self, m):
-        """PUBLIC access level gets only public docs."""
-        pipeline = m.EnergyRAGPipeline()
-        kb = self._build_kb(m)
-        ctx = _ctx(m, cip_access_level=m.NERCCIPAccessLevel.PUBLIC,
-                   nerc_training_current=False, nuclear_clearance=False,
-                   market_participant_certified=False)
-        permitted, audit = pipeline.retrieve(kb, ctx)
-        ids = {d.doc_id for d in permitted}
-        assert "SCADA-001" not in ids
-        assert "PUB-001" in ids
-        assert audit.documents_permitted < audit.documents_requested
-
-    def test_scenario_c_market_analyst_no_certification(self, m):
-        """Market analyst without certification cannot access DER dispatch curves."""
-        pipeline = m.EnergyRAGPipeline()
-        kb = self._build_kb(m)
-        ctx = _ctx(m, cip_access_level=m.NERCCIPAccessLevel.INFORMATIONAL,
-                   nerc_training_current=True, market_participant_certified=False)
-        permitted, audit = pipeline.retrieve(kb, ctx)
-        ids = {d.doc_id for d in permitted}
-        assert "DER-001" not in ids
-        assert len(audit.ferc_blocks) > 0
-
-    def test_scenario_d_nuclear_admin_with_clearance(self, m):
-        """Q-cleared nuclear admin gets nuclear docs."""
-        pipeline = m.EnergyRAGPipeline()
-        kb = self._build_kb(m)
-        ctx = _ctx(m, cip_access_level=m.NERCCIPAccessLevel.OPERATIONAL,
-                   nerc_training_current=True, authorized_asset_ids=("BES-TRANS-044",),
-                   nuclear_clearance=True, market_participant_certified=False)
-        permitted, audit = pipeline.retrieve(kb, ctx)
-        ids = {d.doc_id for d in permitted}
-        assert "NUC-001" in ids
-        assert len(audit.nrc_blocks) == 0
-
-    def test_audit_record_counts_correct(self, m):
-        pipeline = m.EnergyRAGPipeline()
-        kb = self._build_kb(m)
-        ctx = _ctx(m, cip_access_level=m.NERCCIPAccessLevel.PUBLIC,
-                   nerc_training_current=False)
-        permitted, audit = pipeline.retrieve(kb, ctx)
-        assert audit.documents_requested == len(kb)
-        assert audit.documents_permitted == len(permitted)
-        assert audit.personnel_id == "OPS-001"
-
-    def test_audit_record_has_audit_id(self, m):
-        pipeline = m.EnergyRAGPipeline()
-        _, audit = pipeline.retrieve([], _ctx(m))
-        assert audit.audit_id
-        assert len(audit.audit_id) > 0
-
-    def test_empty_document_list(self, m):
-        pipeline = m.EnergyRAGPipeline()
+    def test_not_bes_document_permitted(self, m, nerc):
+        """NOT_BES document → PERMITTED — NERC CIP does not apply."""
         ctx = _ctx(m)
-        permitted, audit = pipeline.retrieve([], ctx)
-        assert permitted == []
-        assert audit.documents_requested == 0
-        assert audit.documents_permitted == 0
+        doc = _doc(m, bes_cyber_system_impact=m.BESCyberSystemImpact.NOT_BES)
+        result = nerc.evaluate(ctx, doc)
+        assert not result.is_denied
+        assert "not" in result.reason.lower() or "does not apply" in result.reason.lower()
 
-    def test_pipeline_has_three_layers(self, m):
-        pipeline = m.EnergyRAGPipeline()
-        assert hasattr(pipeline, "_nerc")
-        assert hasattr(pipeline, "_ferc")
-        assert hasattr(pipeline, "_nrc")
 
-    def test_nerc_blocks_propagate_to_audit(self, m):
-        pipeline = m.EnergyRAGPipeline()
+# ---------------------------------------------------------------------------
+# TestFERCRegulatoryFilter — 6 tests
+# ---------------------------------------------------------------------------
+
+
+class TestFERCRegulatoryFilter:
+
+    @pytest.fixture
+    def ferc(self, m):
+        return m.FERCRegulatoryFilter()
+
+    def test_ceii_doc_ferc_authorized_user_permitted(self, m, ferc):
+        """CEII doc + FERC CEII NDA on file → PERMITTED (18 CFR §388.113(e))."""
+        ctx = _ctx(m, ferc_ceii_authorized=True, is_ferc_staff=False)
+        doc = _doc(m, is_ceii=True)
+        result = ferc.evaluate(ctx, doc)
+        assert not result.is_denied
+        assert "388.113" in result.reason or "CEII" in result.reason
+
+    def test_ceii_doc_not_authorized_denied(self, m, ferc):
+        """CEII doc + not authorized → DENIED (18 CFR §388.113)."""
+        ctx = _ctx(
+            m,
+            ferc_ceii_authorized=False,
+            is_ferc_staff=False,
+            user_role=m.EnergyRole.FIELD_TECHNICIAN,
+        )
+        doc = _doc(m, is_ceii=True)
+        result = ferc.evaluate(ctx, doc)
+        assert result.is_denied
+        assert "388.113" in result.reason or "CEII" in result.reason
+
+    def test_ferc_restricted_ferc_staff_permitted(self, m, ferc):
+        """FERC restricted filing + FERC staff → PERMITTED (18 CFR §388.113(d))."""
+        ctx = _ctx(m, is_ferc_staff=True)
+        doc = _doc(m, is_ferc_restricted=True, is_ceii=False)
+        result = ferc.evaluate(ctx, doc)
+        assert not result.is_denied
+        assert "388.113" in result.reason or "FERC Staff" in result.reason
+
+    def test_ferc_restricted_not_ferc_staff_denied(self, m, ferc):
+        """FERC restricted (non-CEII) + not FERC staff + wrong role → DENIED."""
+        ctx = _ctx(
+            m,
+            is_ferc_staff=False,
+            user_role=m.EnergyRole.FIELD_TECHNICIAN,
+            has_need_to_know=True,
+        )
+        doc = _doc(m, is_ferc_restricted=True, is_ceii=False)
+        result = ferc.evaluate(ctx, doc)
+        assert result.is_denied
+
+    def test_non_ceii_non_restricted_permitted(self, m, ferc):
+        """Non-CEII, non-restricted doc → PERMITTED — FERC layer does not restrict."""
+        ctx = _ctx(m)
+        doc = _doc(m, is_ceii=False, is_ferc_restricted=False)
+        result = ferc.evaluate(ctx, doc)
+        assert not result.is_denied
+
+    def test_regulator_ceii_permitted(self, m, ferc):
+        """CEII doc + REGULATOR role → PERMITTED (18 CFR §388.113(d) standing access)."""
+        ctx = _ctx(
+            m,
+            user_role=m.EnergyRole.REGULATOR,
+            ferc_ceii_authorized=False,
+            is_ferc_staff=False,
+        )
+        doc = _doc(m, is_ceii=True)
+        result = ferc.evaluate(ctx, doc)
+        assert not result.is_denied
+
+
+# ---------------------------------------------------------------------------
+# TestDOECybersecurityFilter — 6 tests
+# ---------------------------------------------------------------------------
+
+
+class TestDOECybersecurityFilter:
+
+    @pytest.fixture
+    def doe(self, m):
+        return m.DOECybersecurityFilter()
+
+    def test_classified_doc_doe_clearance_permitted(self, m, doe):
+        """Classified doc + DOE clearance 'classified' → PERMITTED (DOE O 470.4B)."""
+        ctx = _ctx(m, doe_clearance_level="classified")
+        doc = _doc(m, is_classified=True)
+        result = doe.evaluate(ctx, doc)
+        assert not result.is_denied
+        assert "Classified" in result.reason or "clearance" in result.reason.lower()
+
+    def test_classified_doc_no_clearance_denied(self, m, doe):
+        """Classified doc + no clearance (empty string) → DENIED."""
+        ctx = _ctx(
+            m,
+            doe_clearance_level="",
+            user_role=m.EnergyRole.FIELD_TECHNICIAN,
+        )
+        doc = _doc(m, is_classified=True)
+        result = doe.evaluate(ctx, doc)
+        assert result.is_denied
+        assert "classified" in result.reason.lower() or "clearance" in result.reason.lower()
+
+    def test_doe_sensitive_with_sensitive_clearance_permitted(self, m, doe):
+        """DOE sensitive + clearance 'sensitive' → PERMITTED."""
+        ctx = _ctx(m, doe_clearance_level="sensitive")
+        doc = _doc(m, is_doe_sensitive=True, is_classified=False)
+        result = doe.evaluate(ctx, doc)
+        assert not result.is_denied
+
+    def test_doe_sensitive_authorized_role_need_to_know_permitted(self, m, doe):
+        """DOE sensitive + SECURITY_ANALYST + need-to-know + no clearance → PERMITTED."""
+        ctx = _ctx(
+            m,
+            user_role=m.EnergyRole.SECURITY_ANALYST,
+            doe_clearance_level="",
+            has_need_to_know=True,
+        )
+        doc = _doc(m, is_doe_sensitive=True, is_classified=False)
+        result = doe.evaluate(ctx, doc)
+        assert not result.is_denied
+
+    def test_doe_sensitive_unauthorized_role_denied(self, m, doe):
+        """DOE sensitive + FIELD_TECHNICIAN (not in authorized roles) + no clearance → DENIED."""
+        ctx = _ctx(
+            m,
+            user_role=m.EnergyRole.FIELD_TECHNICIAN,
+            doe_clearance_level="",
+            has_need_to_know=True,
+        )
+        doc = _doc(m, is_doe_sensitive=True, is_classified=False)
+        result = doe.evaluate(ctx, doc)
+        assert result.is_denied
+
+    def test_non_doe_doc_permitted(self, m, doe):
+        """Non-DOE (not sensitive, not classified) doc → PERMITTED."""
+        ctx = _ctx(m)
+        doc = _doc(m, is_doe_sensitive=False, is_classified=False)
+        result = doe.evaluate(ctx, doc)
+        assert not result.is_denied
+
+
+# ---------------------------------------------------------------------------
+# TestNRCNuclearSecurityFilter — 6 tests
+# ---------------------------------------------------------------------------
+
+
+class TestNRCNuclearSecurityFilter:
+
+    @pytest.fixture
+    def nrc(self, m):
+        return m.NRCNuclearSecurityFilter()
+
+    def test_safeguards_info_nrc_authorized_compliance_officer_permitted(self, m, nrc):
+        """SGI + NRC authorized COMPLIANCE_OFFICER + need-to-know → PERMITTED (10 CFR 73.21)."""
+        ctx = _ctx(
+            m,
+            user_role=m.EnergyRole.COMPLIANCE_OFFICER,
+            nrc_safeguards_authorized=True,
+            has_need_to_know=True,
+            is_nrc_inspector=False,
+        )
+        doc = _doc(m, is_safeguards_info=True)
+        result = nrc.evaluate(ctx, doc)
+        assert not result.is_denied
+        assert "73.21" in result.reason or "SGI" in result.reason
+
+    def test_safeguards_info_nrc_inspector_permitted(self, m, nrc):
+        """SGI + NRC inspector → PERMITTED (standing regulatory authority)."""
+        ctx = _ctx(
+            m,
+            is_nrc_inspector=True,
+            nrc_safeguards_authorized=False,
+        )
+        doc = _doc(m, is_safeguards_info=True)
+        result = nrc.evaluate(ctx, doc)
+        assert not result.is_denied
+        assert "inspector" in result.reason.lower() or "73" in result.reason
+
+    def test_safeguards_info_not_authorized_not_inspector_denied(self, m, nrc):
+        """SGI + not authorized + not inspector → DENIED (10 CFR 73.21)."""
+        ctx = _ctx(
+            m,
+            user_role=m.EnergyRole.FIELD_TECHNICIAN,
+            nrc_safeguards_authorized=False,
+            is_nrc_inspector=False,
+            has_need_to_know=True,
+        )
+        doc = _doc(m, is_safeguards_info=True)
+        result = nrc.evaluate(ctx, doc)
+        assert result.is_denied
+        assert "73.21" in result.reason or "Safeguards" in result.reason
+
+    def test_safeguards_info_regulator_permitted(self, m, nrc):
+        """SGI + REGULATOR role → PERMITTED (standing regulatory authority)."""
+        ctx = _ctx(
+            m,
+            user_role=m.EnergyRole.REGULATOR,
+            nrc_safeguards_authorized=False,
+            is_nrc_inspector=False,
+        )
+        doc = _doc(m, is_safeguards_info=True)
+        result = nrc.evaluate(ctx, doc)
+        assert not result.is_denied
+
+    def test_non_safeguards_non_public_permitted(self, m, nrc):
+        """Non-safeguards doc (is_safeguards_info=False) → PERMITTED — 10 CFR Part 73 does not restrict."""
+        ctx = _ctx(m, user_role=m.EnergyRole.FIELD_TECHNICIAN)
+        doc = _doc(m, is_safeguards_info=False, is_public=False)
+        result = nrc.evaluate(ctx, doc)
+        assert not result.is_denied
+
+    def test_public_doc_permitted(self, m, nrc):
+        """Public doc → PERMITTED — NRC safeguards restrictions do not apply."""
+        ctx = _ctx(m)
+        doc = _doc(m, is_public=True, is_safeguards_info=True)
+        result = nrc.evaluate(ctx, doc)
+        assert not result.is_denied
+
+
+# ---------------------------------------------------------------------------
+# TestEnergyUtilitiesRAGPipeline — 6 tests
+# ---------------------------------------------------------------------------
+
+
+class TestEnergyUtilitiesRAGPipeline:
+
+    @pytest.fixture
+    def pipeline(self, m):
+        return m.EnergyUtilitiesRAGPipeline()
+
+    def test_fully_authorized_user_passes_all_layers(self, m, pipeline):
+        """Fully authorized context allows a plain non-restricted NOT_BES doc through all four layers."""
+        ctx = _ctx(m)
+        doc = _doc(m, document_id="DOC-PASS")
+        result = pipeline.retrieve(ctx, [doc])
+        assert len(result) == 1
+        assert result[0].document_id == "DOC-PASS"
+
+    def test_unauthorized_on_high_bes_doc_fails(self, m, pipeline):
+        """User without CIP clearance is denied a HIGH BES document at Layer 1."""
+        ctx = _ctx(m, user_cleared_for_cip=False)
+        doc = _doc(m, document_id="DOC-HIGH", bes_cyber_system_impact=m.BESCyberSystemImpact.HIGH)
+        result = pipeline.retrieve(ctx, [doc])
+        assert result == []
+
+    def test_retrieve_returns_list(self, m, pipeline):
+        """retrieve() always returns a list."""
+        ctx = _ctx(m)
         docs = [
-            _doc(m, doc_id="BCSI-001", category=m.EnergyDocumentCategory.SCADA_CONFIG,
-                 bcsi_classification=True, impact_level=m.BESCyberSystemImpactLevel.HIGH,
-                 asset_id="BES-001"),
+            _doc(m, document_id="D-001"),
+            _doc(m, document_id="D-002"),
         ]
-        ctx = _ctx(m, cip_access_level=m.NERCCIPAccessLevel.PUBLIC)
-        _, audit = pipeline.retrieve(docs, ctx)
-        assert len(audit.nerc_blocks) > 0
+        result = pipeline.retrieve(ctx, docs)
+        assert isinstance(result, list)
 
-    def test_ferc_blocks_propagate_to_audit(self, m):
-        pipeline = m.EnergyRAGPipeline()
-        docs = [
-            _doc(m, doc_id="DER-001", category=m.EnergyDocumentCategory.DER_DISPATCH_CURVE,
-                 market_sensitive=True),
-        ]
-        ctx = _ctx(m, cip_access_level=m.NERCCIPAccessLevel.OPERATIONAL,
-                   nerc_training_current=True, market_participant_certified=False)
-        _, audit = pipeline.retrieve(docs, ctx)
-        assert len(audit.ferc_blocks) > 0
+    def test_retrieve_with_audit_returns_audit_records(self, m, pipeline):
+        """retrieve_with_audit() returns a tuple of (permitted_docs, audit_records)."""
+        ctx = _ctx(m)
+        doc = _doc(m, document_id="AUDIT-DOC")
+        permitted, audit_records = pipeline.retrieve_with_audit(ctx, [doc])
+        assert isinstance(permitted, list)
+        assert isinstance(audit_records, list)
+        assert len(audit_records) == 1
+        assert isinstance(audit_records[0], m.EnergyAuditRecord)
 
-    def test_nrc_blocks_propagate_to_audit(self, m):
-        pipeline = m.EnergyRAGPipeline()
-        docs = [
-            _doc(m, doc_id="NUC-001", category=m.EnergyDocumentCategory.NUCLEAR_SAFETY_SYSTEM,
-                 is_nuclear_safety_system=True, requires_q_clearance=True),
-        ]
-        ctx = _ctx(m, nuclear_clearance=False)
-        _, audit = pipeline.retrieve(docs, ctx)
-        assert len(audit.nrc_blocks) > 0
+    def test_pipeline_has_four_layers(self, m, pipeline):
+        """Pipeline must contain exactly four filter layers."""
+        assert len(pipeline._layers) == 4
+
+    def test_empty_document_list(self, m, pipeline):
+        """Retrieving from an empty document list returns an empty list."""
+        ctx = _ctx(m)
+        result = pipeline.retrieve(ctx, [])
+        assert result == []
+
+
+# ---------------------------------------------------------------------------
+# TestEnergyAuditRecord — 3 tests
+# ---------------------------------------------------------------------------
+
+
+class TestEnergyAuditRecord:
+
+    def _make_record(self, m, decision=None):
+        """Build a minimal EnergyAuditRecord for audit log testing."""
+        if decision is None:
+            decision = m.EnergyDecision.PERMITTED
+        return m.EnergyAuditRecord(
+            user_id="USER-AUDIT",
+            facility_id="FAC-AUDIT",
+            document_id="DOC-AUDIT",
+            decision=decision,
+            layer_results=[
+                {
+                    "layer": "NERC_CIP_BES_CYBER_SYSTEM",
+                    "decision": "permitted",
+                    "reason": "ok",
+                    "conditions": [],
+                }
+            ],
+        )
+
+    def test_to_audit_log_event_field(self, m):
+        """to_audit_log() must return a dict with event = 'ENERGY_RAG_RETRIEVAL'."""
+        record = self._make_record(m)
+        log = record.to_audit_log()
+        assert log["event"] == "ENERGY_RAG_RETRIEVAL"
+
+    def test_to_audit_log_contains_user_and_facility(self, m):
+        """Audit log dict includes user_id and facility_id from the record."""
+        record = self._make_record(m)
+        log = record.to_audit_log()
+        assert log["user_id"] == "USER-AUDIT"
+        assert log["facility_id"] == "FAC-AUDIT"
+
+    def test_denied_count_via_retrieve_with_audit(self, m):
+        """retrieve_with_audit() audit records reflect correct denied/permitted split."""
+        pipeline = m.EnergyUtilitiesRAGPipeline()
+        ctx = _ctx(m, user_cleared_for_cip=False)
+        permitted_doc = _doc(m, document_id="PUB-DOC", is_public=True)
+        denied_doc = _doc(
+            m,
+            document_id="HIGH-DOC",
+            bes_cyber_system_impact=m.BESCyberSystemImpact.HIGH,
+        )
+        permitted, audit_records = pipeline.retrieve_with_audit(ctx, [permitted_doc, denied_doc])
+        assert len(permitted) == 1
+        assert permitted[0].document_id == "PUB-DOC"
+        assert len(audit_records) == 2
+        decisions = {r.document_id: r.decision for r in audit_records}
+        assert decisions["PUB-DOC"] == m.EnergyDecision.PERMITTED
+        assert decisions["HIGH-DOC"] == m.EnergyDecision.DENIED

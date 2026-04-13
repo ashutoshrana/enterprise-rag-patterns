@@ -6,6 +6,35 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.23.0] — 2026-04-13
+
+### Added — Energy & Utilities RAG (NERC CIP + FERC CEII + DOE Cybersecurity + NRC Nuclear Safeguards)
+
+**`examples/28_energy_utilities_rag.py`** — four-layer defense-in-depth retrieval pipeline
+for energy and utilities platforms enforcing NERC Critical Infrastructure Protection (CIP)
+standards for Bulk Electric System (BES) Cyber Systems, FERC Critical Energy Infrastructure
+Information (CEII) protections under 18 CFR §388.113, DOE cybersecurity controls for
+classified and sensitive energy information, and NRC nuclear safeguards information (SGI)
+controls under 10 CFR 73.21 with tipping-off prohibition equivalent.
+
+**New classes:**
+- `EnergyRole` — GRID_OPERATOR / COMPLIANCE_OFFICER / SECURITY_ANALYST / FIELD_TECHNICIAN / CONTRACTOR / VENDOR / REGULATOR / EXECUTIVE / ADMIN
+- `BESCyberSystemImpact` — HIGH / MEDIUM / LOW / NOT_BES
+- `EnergyDecision` — PERMITTED / DENIED / REDACTED
+- `EnergyUtilitiesContext` — frozen dataclass (14 fields): clearances, physical/electronic access, CEII/DOE/NRC authorizations
+- `EnergyDocument` — frozen dataclass (8 fields): BES impact, CEII, DOE, NRC safeguards, public flags
+- `EnergyFilterResult` — filter output with `is_denied` property
+- `NERCCIPFilter` — CIP-004/005/011/013 personnel and electronic access controls for BES Cyber Systems
+- `FERCRegulatoryFilter` — CEII NDA requirement and FERC restricted filing protections
+- `DOECybersecurityFilter` — classified vs. sensitive energy information access gating
+- `NRCNuclearSecurityFilter` — 10 CFR 73.21 SGI access controls with authorized inspector path
+- `EnergyUtilitiesRAGPipeline` — orchestrates all four layers; `retrieve()` and `retrieve_with_audit()`
+- `EnergyAuditRecord` — structured audit log with `to_audit_log()` producing ENERGY_RAG_RETRIEVAL events
+
+**Tests:** 36 tests — all passing.
+
+---
+
 ## [0.22.0] — 2026-04-13
 
 ### Added — Financial Services RAG (GLBA Title V + SEC Reg S-P + FINRA Rule 3110 + BSA/AML SAR Confidentiality)
