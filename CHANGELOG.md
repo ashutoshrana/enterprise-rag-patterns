@@ -6,6 +6,56 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.13.0] — 2026-04-13
+
+### Added — Multi-State US Consumer Privacy RAG Example (CCPA/CPRA, VCDPA, CPA, CTDPA)
+
+**`examples/18_state_consumer_privacy_rag.py`** — four-layer defense-in-depth retrieval
+pipeline applying all four leading US state consumer privacy statutes independently;
+most-restrictive-jurisdiction logic ensures the union of all applicable state blocks
+governs final retrieval.
+
+New classes (self-contained in the example):
+- `ConsumerPrivacyState` — covered states: CALIFORNIA, VIRGINIA, COLORADO, CONNECTICUT
+- `SensitivePICategory` — 10 sensitive PI categories (PRECISE_GEOLOCATION, HEALTH_MEDICAL,
+  RACIAL_ETHNIC_ORIGIN, SEXUAL_ORIENTATION, CITIZENSHIP_IMMIGRATION, BIOMETRIC,
+  FINANCIAL_ACCOUNT, SSN_GOVERNMENT_ID, CHILDREN_DATA, PERSONAL_COMM_CONTENT)
+- `DataProcessingPurpose` — 10 processing purposes including TARGETED_ADVERTISING,
+  PERSONALIZATION, PROFILING, THIRD_PARTY_SALE, SHARING_CROSS_CONTEXT
+- `ConsumerPrivacyContext` — session boundary: resident states, opt-out flags,
+  GPC signal, sensitive PI consent dict, SPI limit-use instruction, minor flag
+- `CCPACPRAFilter` — Layer 1: CCPA/CPRA (Cal. Civ. Code §§ 1798.100–1798.199.100);
+  sharing opt-out (§1798.135), sale opt-out (§1798.120), SPI limit-use (§1798.121),
+  minor affirmative opt-in requirement (§1798.120(c))
+- `VCDPAFilter` — Layer 2: VCDPA (Va. Code §§ 59.1-571 to 59.1-585); consent gate
+  for sensitive data (§59.1-578); targeted advertising and profiling opt-out (§59.1-577)
+- `CPAFilter` — Layer 3: CPA (Colo. Rev. Stat. §§ 6-1-1301 to 6-1-1313); GPC signal
+  honored as universal opt-out (§6-1-1306(5)); sensitive data consent (§6-1-1308(7))
+- `CTDPAFilter` — Layer 4: CTDPA (Conn. P.A. 22-15); minor protections (under 18, §9);
+  universal opt-out signal recognition; sensitive data consent (§6)
+- `StatePrivacyAuditRecord` — per-query audit: resident states, applicable laws,
+  per-law block details, most-restrictive law, GPC signal honored flag
+- `MultiStatePrivacyPipeline` — orchestrates all four filters independently; computes
+  union of blocked doc IDs (most-restrictive-jurisdiction); returns intersection of
+  documents permitted by every applicable state law
+
+Key design decisions:
+- **Independent filter evaluation:** each filter receives the full candidate set and
+  returns its own blocked list; documents are excluded if blocked by ANY state
+- **GPC signal:** honored by Colorado (§6-1-1306(5)) and Connecticut as a universal
+  opt-out of targeted advertising and sale; not mandated by Virginia VCDPA
+- **Most-restrictive-jurisdiction:** a California opt-out blocks documents even if
+  the consumer is also a Virginia resident and Virginia would permit them
+
+Four scenarios covering: CPRA opt-out with SPI limit-use (CA), no sensitive data
+consent (VA), GPC universal opt-out (CO), dual-state most-restrictive (CA + VA).
+
+Tests: 38 new test cases in `tests/test_state_consumer_privacy.py`.
+
+Sectors covered: **14** (added US State Consumer Privacy: CCPA/CPRA, VCDPA, CPA, CTDPA).
+
+---
+
 ## [0.12.0] — 2026-04-13
 
 ### Added — Telecommunications Sector RAG Example (FCC CPNI + TCPA + NPAC)
