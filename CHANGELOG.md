@@ -6,6 +6,52 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.16.0] — 2026-04-13
+
+### Added — Energy / Utilities RAG Example (NERC CIP + FERC Order 2222 + NRC 10 CFR Part 73)
+
+**`examples/21_energy_utilities_rag.py`** — three-layer defense-in-depth retrieval pipeline
+for energy utility operational knowledge base systems, enforcing NERC CIP v7 BES Cyber Security
+Standards (CIP-004-7, CIP-007-7, CIP-011-3), FERC Order 2222 DER aggregation market data
+restrictions (18 CFR §1c.2), and NRC 10 CFR Part 73.54 nuclear cybersecurity requirements
+for Critical Digital Assets simultaneously and independently.
+
+New classes (self-contained in the example):
+- `BESCyberSystemImpactLevel` — HIGH, MEDIUM, LOW, NOT_APPLICABLE; drives NERC CIP access tiers
+- `NERCCIPAccessLevel` — OPERATIONAL (HIGH/MEDIUM system access), INFORMATIONAL (BCSI read access),
+  PUBLIC (no BES Cyber System access); maps to CIP-007-7 Electronic Access List requirements
+- `EnergyDocumentCategory` — 20 categories: BCSI (SCADA_CONFIG, PROTECTION_SCHEME, NETWORK_DIAGRAM,
+  CYBER_SECURITY_PLAN, ACCESS_CONTROL_LIST), operational non-BCSI (MAINTENANCE_PROCEDURE, OPERATOR_LOG,
+  OUTAGE_REPORT, EQUIPMENT_MANUAL), market data (FERC_FILING, DER_DISPATCH_CURVE, MARKET_BID_DATA,
+  CAPACITY_POSITION, MARKET_REPORT_PUBLIC), nuclear (NUCLEAR_SAFETY_SYSTEM, CRITICAL_DIGITAL_ASSET,
+  SECURITY_PLAN_NUCLEAR, EMERGENCY_PROCEDURE), public (PUBLIC_NOTICE, ANNUAL_REPORT)
+- `ControlAreaType` — TRANSMISSION, GENERATION, DISTRIBUTION, NUCLEAR, MARKET
+- `EnergyAccessContext` — frozen dataclass: personnel_id, cip_access_level, nerc_training_current,
+  authorized_asset_ids (tuple), market_participant_certified, nuclear_clearance, control_area_type
+- `EnergyDocument` — frozen dataclass: doc_id, category, title, impact_level, bcsi_classification,
+  is_nuclear_safety_system, requires_q_clearance, market_sensitive, asset_id, is_public
+- `NERCCIPFilter` — Layer 1: enforces CIP-011-3 BCSI access control, CIP-004-7 training currency,
+  CIP-007-7 Electronic Access List for HIGH/MEDIUM impact systems; `_BCSI_CATEGORIES` frozenset;
+  `_OPERATIONAL_REQUIRED_LEVELS` frozenset
+- `FERCOrder2222Filter` — Layer 2: blocks DER_DISPATCH_CURVE, MARKET_BID_DATA, CAPACITY_POSITION
+  for non-certified market participants; `_CERTIFIED_REQUIRED_CATEGORIES` frozenset;
+  `_PUBLIC_MARKET_CATEGORIES` frozenset (FERC_FILING, MARKET_REPORT_PUBLIC always pass)
+- `NRCCybersecurityFilter` — Layer 3: blocks access to NUCLEAR_SAFETY_SYSTEM, CRITICAL_DIGITAL_ASSET,
+  SECURITY_PLAN_NUCLEAR, EMERGENCY_PROCEDURE without nuclear_clearance; enforces is_nuclear_safety_system
+  and requires_q_clearance flags regardless of category
+- `EnergyComplianceAuditRecord` — CIP/NRC audit record with per-layer block counts; `to_cip_audit_log()`
+  returns structured dict for CIP-004-7 R6 + CIP-007-7 R4 audit evidence
+- `EnergyRAGPipeline` — three-layer orchestrator (NERC → FERC → NRC); returns (permitted_docs, audit)
+
+Four demo scenarios: (A) authorized control room operator SCADA query; (B) unauthorized vendor blocked
+by NERC CIP; (C) uncertified market analyst blocked by FERC Order 2222; (D) Q-cleared nuclear admin
+retrieving reactor safety system documentation.
+
+**Tests:** `tests/test_energy_utilities_rag.py` — 45 tests covering all three filter layers,
+audit record structure, pipeline orchestration, and all four scenarios. Full suite: 633 passed, 2 skipped.
+
+---
+
 ## [0.15.0] — 2026-04-13
 
 ### Added — Real Estate / Mortgage Lending RAG Example (Fair Housing Act + HMDA + CFPB UDAAP + RESPA)
