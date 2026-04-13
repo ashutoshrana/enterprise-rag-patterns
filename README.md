@@ -264,9 +264,9 @@ docs/
 
 ## Near-term roadmap
 
-- `31_india_ai_rag.py` — DPDP Act 2023 + MEITY AI Advisory
-- `32_south_korea_rag.py` — AI Basic Act + PIPA
-- `33_insurance_naic_rag.py` — NAIC Model Law + FCRA §615 + state insurance data
+- `32_india_ai_rag.py` — DPDP Act 2023 + MEITY AI Advisory (LGPD RAG pattern applied to India)
+- `33_south_korea_rag.py` — AI Basic Act + PIPA
+- `34_insurance_naic_rag.py` — NAIC Model Law + FCRA §615 + state insurance data
 - Async vector store adapters for FastAPI/asyncio
 - PyPI download and star count badges
 
