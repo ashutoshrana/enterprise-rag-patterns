@@ -6,6 +6,56 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.12.0] — 2026-04-13
+
+### Added — Telecommunications Sector RAG Example (FCC CPNI + TCPA + NPAC)
+
+**`examples/17_telecom_rag.py`** — three-layer defense-in-depth retrieval pipeline
+for a telecommunications carrier's customer service and operations knowledge base:
+
+New classes (self-contained in the example):
+- `CPNICategory` — CPNI categories under 47 CFR Part 64 (CALL_DETAIL_RECORDS,
+  LOCATION_DATA, NETWORK_USAGE, ACCOUNT_INFORMATION, AGGREGATE_ONLY, NON_CPNI, PUBLIC)
+- `CPNIAuthorizedPurpose` — 47 CFR Part 64.2005 authorized purposes:
+  ACCOUNT_SERVICING (always permitted), MARKETING_WIRELINE_SERVICES (same-type
+  existing customers), MARKETING_JOINT_VENTURE / MARKETING_THIRD_PARTY (opt-in
+  required), NETWORK_OPERATIONS (internal), LAW_ENFORCEMENT (compelled disclosure)
+- `NPACDataType` — NPAC data types under 47 CFR Part 52 (PORTING_STATUS,
+  ROUTING_RECORD, SPID_DATA, SUBSCRIPTION_DATA, NON_NPAC)
+- `AgentRole` — telecom agent roles: CUSTOMER_SERVICE, MARKETING, NETWORK_OPERATIONS,
+  PORTING_TEAM, CARRIER_RELATIONS, COMPLIANCE
+- `TelecomAccessContext` — session boundary: authorized purposes, customer CPNI
+  opt-out status (47 CFR 64.2008), TCPA consent status, NPAC authorization
+- `TelecomComplianceAuditRecord` — per-query record with FCC/TCPA/NPAC citations
+- `CPNIFilter` — Layer 1: enforces 47 CFR Part 64; blocks CPNI documents for
+  marketing purpose when customer has not opted in; blocks all CPNI when
+  customer has opted out (opt-out overrides all purpose claims)
+- `TCPAFilter` — Layer 2: blocks customer contact data (phone numbers, contact
+  preferences) for marketing agents without documented TCPA prior express written
+  consent (PEWC); non-marketing roles are not subject to TCPA restriction
+- `NPACFilter` — Layer 3: restricts NPAC routing/porting data to PORTING_TEAM,
+  CARRIER_RELATIONS, NETWORK_OPERATIONS, COMPLIANCE roles with npac_authorized=True
+
+Design notes: CPNI opt-out (customer-controlled) overrides all agent purpose claims.
+TCPA restricts marketing agents specifically — operational roles accessing contact
+data for legitimate non-marketing purposes are not restricted by TCPA.
+NPAC data is inter-carrier routing data (not customer data) — exposure to customer-
+facing agents creates competitive intelligence risk between carriers.
+
+Scenarios:
+- A: CSR with account_servicing purpose — all CPNI account/usage docs returned;
+  NPAC blocked (customer service role not authorized)
+- B: Marketing agent (no TCPA consent, no CPNI opt-in) — CPNI blocks only for
+  marketing purpose; TCPA blocks contact preference docs; public product docs returned
+- C: Customer opted out (47 CFR 64.2008) — CPNI filter blocks all CPNI regardless
+  of agent purpose; non-CPNI docs returned
+- D: Porting team (npac_authorized=True) — full access including NPAC porting/routing
+  data; NETWORK_OPERATIONS purpose passes CPNI filter
+
+Closes #38.
+
+---
+
 ## [0.11.0] — 2026-04-13
 
 ### Added — Energy/Utilities Sector RAG Example (FERC CEII + NERC CIP + NRC SUNSI)
