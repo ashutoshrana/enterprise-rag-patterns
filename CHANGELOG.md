@@ -6,6 +6,21 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.43.0] — 2026-04-13
+
+### Added — Maritime / Shipping IMO Compliance RAG Pre-filter (`47_maritime_imo_rag.py`)
+
+Four-layer retrieval access control for international maritime safety, pollution prevention, security, and port state control:
+
+- `IMOSafetyFilter` (SOLAS + ISM Code) — no SOLAS Chapter I Safety Certificate → DENIED; no ISM DOC/SMC → DENIED; passenger vessel no LSA cert (Chapter III) → DENIED; ISM audit >5 years overdue → REQUIRES_HUMAN_REVIEW
+- `MARPOLFilter` (MARPOL Annexes I + VI) — no IOPP certificate → DENIED; discharge without Oil Record Book entries (Reg. 17) → DENIED; post-2016 ECA vessel without Tier III NOx cert → DENIED; fuel sulfur >0.5% m/m → REQUIRES_HUMAN_REVIEW
+- `ISPSFilter` (ISPS Code) — no ISSC → DENIED; Ship Security Plan not flag-state approved → DENIED; port facility without PFSP SOLAS approval → DENIED; Security Level 3 without coastal state comms → REQUIRES_HUMAN_REVIEW
+- `MaritimeCrossBorderFilter` (Paris/Tokyo MOU + OFAC) — PSC deficient port without clearance → DENIED; OFAC SDN-listed flag state (KP/IR/SY/CU) → DENIED; OFAC crew nationality without license → DENIED; US waters without CBP 96-hour NOA → REQUIRES_HUMAN_REVIEW
+
+54 new tests. Total: **1722 passed, 2 skipped**.
+
+---
+
 ## [0.42.0] — 2026-04-13
 
 ### Added — Nuclear Energy / NRC Compliance RAG Pre-filter (`46_nuclear_nrc_rag.py`)
