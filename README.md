@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Downloads](https://img.shields.io/pypi/dm/enterprise-rag-patterns.svg)](https://pypi.org/project/enterprise-rag-patterns/)
 
-**Cross-industry compliance patterns for RAG pipelines — 38 regulated sector examples, 5 vector store adapters, 1233 tests.**
+**Cross-industry compliance patterns for RAG pipelines — 38 regulated sector examples, 5 vector store adapters, 1265 tests.**
 
 Defense-in-depth pre-filters that enforce regulatory requirements at the retrieval layer, before any document reaches the LLM context window.
 
@@ -309,9 +309,9 @@ Read [CONTRIBUTING.md](./CONTRIBUTING.md) and [GOVERNANCE.md](./GOVERNANCE.md). 
 
 | Library | Focus | Coverage |
 |---------|-------|---------|
-| **enterprise-rag-patterns** | What to retrieve | 38 sectors · 40 regulations · 1233 tests |
-| [regulated-ai-governance](https://github.com/ashutoshrana/regulated-ai-governance) | What agents may do | 29 governance examples · 16 jurisdictions · 1491 tests |
-| [integration-automation-patterns](https://github.com/ashutoshrana/integration-automation-patterns) | How data flows | 31 patterns · schema registry · GraphQL · 1044 tests |
+| **enterprise-rag-patterns** | What to retrieve | 38 sectors · 40 regulations · 1265 tests |
+| [regulated-ai-governance](https://github.com/ashutoshrana/regulated-ai-governance) | What agents may do | 29 governance examples · 16 jurisdictions · 1527 tests |
+| [integration-automation-patterns](https://github.com/ashutoshrana/integration-automation-patterns) | How data flows | 31 patterns · schema registry · GraphQL · 1072 tests |
 
 ---
 

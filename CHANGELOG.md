@@ -6,6 +6,20 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.34.0] — 2026-04-13
+
+### Added — FilterPipeline and public API foundation
+
+- `src/enterprise_rag_patterns/pipeline.py` — `FilterPipeline` (chains filter callables, short-circuits on DENIED, optional `stop_on_requires_review`) + `PipelineResult` dataclass with `is_approved`/`passed_all_filters`/`filter_batch`/`approved_only`
+- `src/enterprise_rag_patterns/py.typed` — PEP 561 type marker; package now ships annotations
+- `__init__.py` — `__version__ = "0.34.0"`, exports `FilterPipeline`, `PipelineResult`, `__all__`
+- `pyproject.toml` — `[tool.setuptools.package-data]` declares `py.typed`
+- `.claude/skills/add-rag-filter.md` — Claude Code skill encoding conventions for adding new filter examples
+
+32 new tests. Total: **1265 passed, 2 skipped**.
+
+---
+
 ## [0.33.0] — 2026-04-13
 
 ### Added — US Telecommunications Regulatory RAG Pre-filter (`38_telecommunications_rag.py`)
