@@ -122,7 +122,7 @@ See the `examples/` directory for complete runnable pipelines.
 
 ---
 
-## Example catalog — 48 regulated sectors
+## Example catalog — 50 patterns
 
 | # | File | Sector | Regulations Enforced |
 |---|------|--------|---------------------|
@@ -174,6 +174,11 @@ See the `examples/` directory for complete runnable pipelines.
 | 46 | `46_nuclear_nrc_rag.py` | Nuclear Energy / NRC Compliance | 10 CFR Part 50 reactor operating license + Part 70 special nuclear material + Part 71 package certification (NRCLicensingFilter), 10 CFR §20.1201 occupational 5 rem/year + §20.1301 public 100 mrem/year + §20.1101 ALARA + Appendix B effluents (NRCRadiationProtectionFilter), 42 U.S.C. §2162 Restricted Data Q-clearance + FRD L-clearance + 10 CFR §73.21 Safeguards Info + SUNSI need-to-know (NDAClassifiedFilter), 10 CFR Part 110 export license + NPT Art. III IAEA safeguards + 42 U.S.C. §2153 123 Agreement CN/RU/KP/IR + NRC sensitive country dual-use review (NuclearCrossBorderFilter) |
 | 47 | `47_maritime_imo_rag.py` | Maritime / Shipping / IMO | SOLAS Chapter I Safety Certificate + ISM Code DOC/SMC + Chapter III LSA (IMOSafetyFilter), MARPOL Annex I IOPP + Oil Record Book Reg.17 + Annex VI Tier III NOx ECA post-2016 + sulfur 0.5% m/m (MARPOLFilter), ISPS ISSC + Ship Security Plan flag-state approval + Port Facility PFSP + Security Level 3 coastal comms (ISPSFilter), Paris/Tokyo MOU PSC deficient ports + OFAC SDN flag state KP/IR/SY/CU + OFAC crew nationality + CBP 96-hour NOA (MaritimeCrossBorderFilter) |
 | 48 | `48_telecom_fcc_cpni_rag.py` | Telecommunications / FCC CPNI | 47 CFR §64.2007 CPNI customer consent + §64.2005(b) marketing opt-in + §64.2011 third-party safeguards + 2-year retention (FCCCPNIFilter), TCPA 47 U.S.C. §227 prior express consent + 47 CFR §64.1200 DNC registry + California CPUC GO 107-B two-party recording + CTIA text marketing (TelecomPrivacyFilter), FCC Order 05-116 VoIP E911 + FCC 20-100 RAY BAUM'S Act dispatchable location + 47 U.S.C. §1471 Kari's Law MLTS + FCC 21-86 988 crisis line (FCC911Filter), OFAC telecom KP/IR/CU/SY + 47 U.S.C. §214 international carrier + §35 cable landing CN/RU + FCC Covered List equipment (TelecomCrossBorderFilter) |
+
+**Agentic & Runtime Security (2025–2026 Standards)**
+
+| 49 | `49_owasp_llm_rag_security.py` | Agentic / RAG Security | OWASP LLM Top 10 2025 — LLM01PromptInjectionFilter (direct + indirect injection pattern matching + instruction override detection), LLM08EmbeddingWeaknessFilter (poisoned vector payload + tampered embedding source blocking), LLM06SensitiveDisclosureFilter (PII + credentials + classification markers DLP before retrieval context), RAGOutputValidationFilter (structured output integrity + hallucination marker + citation format validation before delivery) |
+| 50 | `50_rag_security_auditor.py` | Enterprise Security Audit | Holistic RAG security gap-analysis framework — RAGSystemConfig (27-field configuration snapshot), RAGSecurityAuditor (22 controls across 6 domains: Input Validation, Vector Store Security, Retrieval Controls, Output Security, Action Gating, Observability), RAGAuditReport (scored 0–100, CSA ATF maturity: Sandbox/Controlled/Trusted/Autonomous), framework refs: OWASP LLM/ASI, NIST AI 600-1, ISO 42001, MITRE ATLAS v5.1, CSA ATF, SOC 2, HIPAA, GDPR, FERPA |
 
 ---
 
