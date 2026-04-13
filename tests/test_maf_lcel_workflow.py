@@ -56,7 +56,6 @@ from enterprise_rag_patterns.integrations.llama_index_workflow import (  # noqa:
 )
 from enterprise_rag_patterns.integrations.maf import FERPAAgentMiddleware  # noqa: E402
 
-
 # ---------------------------------------------------------------------------
 # Shared fixtures
 # ---------------------------------------------------------------------------
@@ -175,9 +174,7 @@ class TestFERPAWorkflowStep:
         result = asyncio.run(step(event))
         assert result.nodes == []
 
-    def test_scope_override(
-        self, scope_s1: StudentIdentityScope, scope_s2: StudentIdentityScope
-    ) -> None:
+    def test_scope_override(self, scope_s1: StudentIdentityScope, scope_s2: StudentIdentityScope) -> None:
         # Step configured for S-1, but override gives S-2 scope
         step = FERPAWorkflowStep(scope=scope_s1)
         nodes: list[Any] = [
@@ -213,9 +210,7 @@ class TestFERPAWorkflowStep:
         sink = MagicMock()
         step = FERPAWorkflowStep(scope=scope_s1, audit_sink=sink)
         nodes: list[Any] = [
-            _FakeNode(
-                {"student_id": "S-1", "institution_id": "inst-a", "category": "academic_record"}
-            ),
+            _FakeNode({"student_id": "S-1", "institution_id": "inst-a", "category": "academic_record"}),
         ]
         event = FERPAFilterEvent(nodes=nodes)
         result = asyncio.run(step(event))
@@ -242,9 +237,7 @@ class TestFERPAAgentMiddleware:
         assert m.policy.scope is scope_s1
         assert m.raise_on_violation is False
 
-    def test_filters_cross_student_documents(
-        self, middleware: FERPAAgentMiddleware
-    ) -> None:
+    def test_filters_cross_student_documents(self, middleware: FERPAAgentMiddleware) -> None:
         docs = [
             _FakeDoc({"student_id": "S-1", "institution_id": "inst-a"}),
             _FakeDoc({"student_id": "S-2", "institution_id": "inst-a"}),
@@ -254,23 +247,17 @@ class TestFERPAAgentMiddleware:
         assert len(message.payload["documents"]) == 1
         assert message.payload["documents"][0].metadata["student_id"] == "S-1"
 
-    def test_passes_through_no_documents(
-        self, middleware: FERPAAgentMiddleware
-    ) -> None:
+    def test_passes_through_no_documents(self, middleware: FERPAAgentMiddleware) -> None:
         message = _FakeMessage(payload={"text": "hello"})
         result = asyncio.run(middleware.on_message(message, _next))
         assert result is message
 
-    def test_passes_through_no_payload(
-        self, middleware: FERPAAgentMiddleware
-    ) -> None:
+    def test_passes_through_no_payload(self, middleware: FERPAAgentMiddleware) -> None:
         message = _FakeMessage(payload=None)
         result = asyncio.run(middleware.on_message(message, _next))
         assert result is message
 
-    def test_passes_shared_kb_document(
-        self, middleware: FERPAAgentMiddleware
-    ) -> None:
+    def test_passes_shared_kb_document(self, middleware: FERPAAgentMiddleware) -> None:
         docs = [
             _FakeDoc({"student_id": "S-1", "institution_id": "inst-a"}),
             _FakeDoc({}),  # no student_id → shared KB
@@ -329,25 +316,19 @@ class TestFERPAFilterRunnable:
         assert r.student_id_field == "student_id"
         assert r.institution_id_field == "institution_id"
 
-    def test_filters_cross_student(
-        self, runnable: FERPAFilterRunnable, mixed_docs: list[_FakeDoc]
-    ) -> None:
+    def test_filters_cross_student(self, runnable: FERPAFilterRunnable, mixed_docs: list[_FakeDoc]) -> None:
         result = runnable(mixed_docs)
         student_ids = [d.metadata.get("student_id") for d in result]
         assert "S-2" not in student_ids
 
-    def test_passes_shared_kb(
-        self, runnable: FERPAFilterRunnable, mixed_docs: list[_FakeDoc]
-    ) -> None:
+    def test_passes_shared_kb(self, runnable: FERPAFilterRunnable, mixed_docs: list[_FakeDoc]) -> None:
         result = runnable(mixed_docs)
         assert any(not d.metadata.get("student_id") for d in result)
 
     def test_empty_input(self, runnable: FERPAFilterRunnable) -> None:
         assert runnable([]) == []
 
-    def test_no_config_uses_default_scope(
-        self, runnable: FERPAFilterRunnable, scope_s1: StudentIdentityScope
-    ) -> None:
+    def test_no_config_uses_default_scope(self, runnable: FERPAFilterRunnable, scope_s1: StudentIdentityScope) -> None:
         resolved = runnable._resolve_scope(None)
         assert resolved is scope_s1
 
@@ -399,9 +380,7 @@ class TestFERPAFilterRunnable:
 
     def test_to_dict_maps_metadata(self, scope_s1: StudentIdentityScope) -> None:
         r = FERPAFilterRunnable(scope=scope_s1)
-        doc = _FakeDoc(
-            {"student_id": "S-1", "institution_id": "inst-a", "category": "academic_record"}
-        )
+        doc = _FakeDoc({"student_id": "S-1", "institution_id": "inst-a", "category": "academic_record"})
         d = r._to_dict(doc, 0)
         assert d["_idx"] == 0
         assert d["student_id"] == "S-1"
