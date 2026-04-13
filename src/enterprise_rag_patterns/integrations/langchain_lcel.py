@@ -39,6 +39,7 @@ Usage::
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import Any
 
@@ -170,6 +171,43 @@ class FERPAFilterRunnable:
             logger.info("FERPA audit (LCEL): %s", audit.to_log_entry())
 
         return filtered_docs
+
+    def invoke(self, input: Any, config: dict[str, Any] | None = None, **kwargs: Any) -> Any:
+        """
+        LangChain ``Runnable.invoke``-compatible entry point.
+
+        Allows ``FERPAFilterRunnable`` instances to be used directly in ``|``
+        chains without explicitly calling ``.as_runnable()``.  LangChain coerces
+        callables to ``RunnableLambda`` via ``__or__``/``__ror__``; exposing
+        ``invoke()`` also satisfies the duck-typed ``Runnable`` protocol for
+        frameworks that check for it.
+
+        Args:
+            input: List of ``Document``-like objects.
+            config: Optional LangChain ``RunnableConfig``.
+
+        Returns:
+            Filtered list of documents.
+        """
+        return self.__call__(input, config)
+
+    async def ainvoke(self, input: Any, config: dict[str, Any] | None = None, **kwargs: Any) -> Any:
+        """
+        Async LangChain ``Runnable.ainvoke``-compatible entry point.
+
+        Runs the synchronous filter in a thread pool via
+        ``asyncio.get_event_loop().run_in_executor`` so the event loop is not
+        blocked during filtering.
+
+        Args:
+            input: List of ``Document``-like objects.
+            config: Optional LangChain ``RunnableConfig``.
+
+        Returns:
+            Filtered list of documents.
+        """
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(None, self.__call__, input, config)
 
     def as_runnable(self) -> Any:
         """
