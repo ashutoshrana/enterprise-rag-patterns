@@ -6,6 +6,36 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.18.0] — 2026-04-13
+
+### Added — HR/Employment RAG (NYC Local Law 144 AEDT + EEOC 4/5 Rule + Illinois AIVIA)
+
+**`examples/23_hr_employment_rag.py`** — three-layer defense-in-depth retrieval pipeline
+for HR and talent-acquisition systems enforcing NYC Local Law 144 Automated Employment
+Decision Tool (AEDT) bias audit and candidate notice requirements, EEOC 4/5 (80%) adverse
+impact rule for protected-class HR analytics and AI-driven selection criteria, and Illinois
+Artificial Intelligence Video Interview Act (AIVIA) video interview AI consent, disclosure,
+and deletion-request obligations.
+
+**New classes:**
+- `HRDocumentCategory` — 15 categories covering AEDT outputs, video AI, protected class
+  analytics, and administrative HR documents
+- `CandidateAccessContext` (frozen) — employer jurisdiction, AEDT audit status, EEOC
+  selection rate ratio, AIVIA consent/disclosure/deletion state
+- `HRDocument` (frozen) — document with category, public-release flag, and metadata
+- `NYCLL144AuditRecord` — per-document access audit with AEDT block counts
+- `NYCLL144Filter` — blocks AEDT category documents for NYC employers missing bias audit,
+  acceptable impact ratios, or candidate notice; no-op for non-NYC jurisdictions
+- `EEOCFilter` — blocks protected-class analytics and AEDT outputs when selection rate
+  ratio < 0.80 with adequate sample; blocks when ratio is None or sample inadequate
+- `AIVIAFilter` — blocks all video categories on deletion request; requires prior disclosure
+  and consent for video AI; non-video documents unaffected
+- `HRRAGPipeline` — three-layer sequential pipeline with per-layer audit logs
+
+**New tests:** 40 tests across `tests/test_hr_employment_rag.py`
+
+---
+
 ## [0.17.0] — 2026-04-13
 
 ### Added — Government Contracting RAG (FAR/DFARS CUI + ITAR/EAR Export Control + DD Form 254)
