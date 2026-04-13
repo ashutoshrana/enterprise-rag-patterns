@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Downloads](https://img.shields.io/pypi/dm/enterprise-rag-patterns.svg)](https://pypi.org/project/enterprise-rag-patterns/)
 
-**Cross-industry compliance patterns for RAG pipelines — 47 regulated sector examples, 5 vector store adapters, 1722 tests.**
+**Cross-industry compliance patterns for RAG pipelines — 48 regulated sector examples, 5 vector store adapters, 1784 tests.**
 
 Defense-in-depth pre-filters that enforce regulatory requirements at the retrieval layer, before any document reaches the LLM context window.
 
@@ -122,7 +122,7 @@ See the `examples/` directory for complete runnable pipelines.
 
 ---
 
-## Example catalog — 47 regulated sectors
+## Example catalog — 48 regulated sectors
 
 | # | File | Sector | Regulations Enforced |
 |---|------|--------|---------------------|
@@ -173,6 +173,7 @@ See the `examples/` directory for complete runnable pipelines.
 | 45 | `45_pharma_clinical_trials_rag.py` | Pharma / Clinical Trials | FDA IND 21 CFR Part 312 + NDA 21 CFR Part 314 + BLA 21 CFR Part 601 + CGMP 21 CFR Parts 210/211 (FDADrugDevelopmentFilter), ICH E6 R2/R3 GCP IRB/IEC approval §3.1/21 CFR Part 56 + informed consent §4.8.10 + investigator qualifications §4.1 + SAE 15-day reporting §4.11.1/21 CFR §312.32 (ICHGCPFilter), EU CTR 536/2014 + EMA Pediatric Regulation 1901/2006 PIP + Regulation 726/2004 centralized procedure + GDPR Art. 9(2)(j) research exception (EMARegulationsFilter), ICH E6 §5.15 + GDPR Art. 46 SCC cross-border trial data + FDA Import Alert 66-40/66-66 + DEA Schedules 21 U.S.C. §812 + FDA/EMA parallel biosimilar review (PharmaCrossBorderFilter) |
 | 46 | `46_nuclear_nrc_rag.py` | Nuclear Energy / NRC Compliance | 10 CFR Part 50 reactor operating license + Part 70 special nuclear material + Part 71 package certification (NRCLicensingFilter), 10 CFR §20.1201 occupational 5 rem/year + §20.1301 public 100 mrem/year + §20.1101 ALARA + Appendix B effluents (NRCRadiationProtectionFilter), 42 U.S.C. §2162 Restricted Data Q-clearance + FRD L-clearance + 10 CFR §73.21 Safeguards Info + SUNSI need-to-know (NDAClassifiedFilter), 10 CFR Part 110 export license + NPT Art. III IAEA safeguards + 42 U.S.C. §2153 123 Agreement CN/RU/KP/IR + NRC sensitive country dual-use review (NuclearCrossBorderFilter) |
 | 47 | `47_maritime_imo_rag.py` | Maritime / Shipping / IMO | SOLAS Chapter I Safety Certificate + ISM Code DOC/SMC + Chapter III LSA (IMOSafetyFilter), MARPOL Annex I IOPP + Oil Record Book Reg.17 + Annex VI Tier III NOx ECA post-2016 + sulfur 0.5% m/m (MARPOLFilter), ISPS ISSC + Ship Security Plan flag-state approval + Port Facility PFSP + Security Level 3 coastal comms (ISPSFilter), Paris/Tokyo MOU PSC deficient ports + OFAC SDN flag state KP/IR/SY/CU + OFAC crew nationality + CBP 96-hour NOA (MaritimeCrossBorderFilter) |
+| 48 | `48_telecom_fcc_cpni_rag.py` | Telecommunications / FCC CPNI | 47 CFR §64.2007 CPNI customer consent + §64.2005(b) marketing opt-in + §64.2011 third-party safeguards + 2-year retention (FCCCPNIFilter), TCPA 47 U.S.C. §227 prior express consent + 47 CFR §64.1200 DNC registry + California CPUC GO 107-B two-party recording + CTIA text marketing (TelecomPrivacyFilter), FCC Order 05-116 VoIP E911 + FCC 20-100 RAY BAUM'S Act dispatchable location + 47 U.S.C. §1471 Kari's Law MLTS + FCC 21-86 988 crisis line (FCC911Filter), OFAC telecom KP/IR/CU/SY + 47 U.S.C. §214 international carrier + §35 cable landing CN/RU + FCC Covered List equipment (TelecomCrossBorderFilter) |
 
 ---
 
@@ -318,9 +319,9 @@ Read [CONTRIBUTING.md](./CONTRIBUTING.md) and [GOVERNANCE.md](./GOVERNANCE.md). 
 
 | Library | Focus | Coverage |
 |---------|-------|---------|
-| **enterprise-rag-patterns** | What to retrieve | 47 sectors · 64 regulations · 1722 tests |
+| **enterprise-rag-patterns** | What to retrieve | 48 sectors · 65 regulations · 1784 tests |
 | [regulated-ai-governance](https://github.com/ashutoshrana/regulated-ai-governance) | What agents may do | 38 governance examples · 25 jurisdictions · 2451 tests |
-| [integration-automation-patterns](https://github.com/ashutoshrana/integration-automation-patterns) | How data flows | 40 patterns · schema registry · GraphQL · 1780 tests |
+| [integration-automation-patterns](https://github.com/ashutoshrana/integration-automation-patterns) | How data flows | 41 patterns · schema registry · GraphQL · 1866 tests |
 
 ---
 

@@ -1,6 +1,6 @@
 """Reference patterns for enterprise retrieval and workflow-safe AI integration."""
 
-__version__ = "0.43.0"
+__version__ = "0.44.0"
 
 from .compliance import (
     AuditRecord,

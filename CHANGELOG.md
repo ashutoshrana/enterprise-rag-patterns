@@ -6,6 +6,21 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.44.0] — 2026-04-13
+
+### Added — Telecommunications / FCC CPNI RAG Pre-filter (`48_telecom_fcc_cpni_rag.py`)
+
+Four-layer retrieval access control for US telecommunications compliance:
+
+- `FCCCPNIFilter` (47 CFR Part 64) — CPNI without customer consent §64.2007 → DENIED; cross-category marketing without opt-in §64.2005(b) → DENIED; third-party disclosure without safeguards §64.2011 → DENIED; retention >2 years → REQUIRES_HUMAN_REVIEW
+- `TelecomPrivacyFilter` (TCPA + State) — automated calls/texts without prior express consent 47 U.S.C. §227 → DENIED; DNC registry call without exemption 47 CFR §64.1200 → DENIED; CA CPUC GO 107-B recording without two-party consent → DENIED; text marketing without CTIA compliance → REQUIRES_HUMAN_REVIEW
+- `FCC911Filter` (FCC Orders) — VoIP without E911 geographic routing (Order 05-116) → DENIED; wireless without RAY BAUM'S Act dispatchable location (FCC 20-100) → DENIED; MLTS without Kari's Law §1471 → DENIED; 988 routing without FCC 21-86 → REQUIRES_HUMAN_REVIEW
+- `TelecomCrossBorderFilter` — OFAC telecom sanctions (KP/IR/CU/SY/BY) → DENIED; international carrier without §214 authorization → DENIED; cable landing CN/RU without §35 approval → DENIED; FCC Covered List equipment without waiver → REQUIRES_HUMAN_REVIEW
+
+62 new tests. Total: **1784 passed, 2 skipped**.
+
+---
+
 ## [0.43.0] — 2026-04-13
 
 ### Added — Maritime / Shipping IMO Compliance RAG Pre-filter (`47_maritime_imo_rag.py`)
