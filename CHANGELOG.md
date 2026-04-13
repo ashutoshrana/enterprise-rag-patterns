@@ -6,6 +6,52 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.10.0] — 2026-04-13
+
+### Added — Federal/Government RAG Example (CUI + FedRAMP + NIST 800-53 AC-3)
+
+**`examples/15_government_federal_rag.py`** — three-layer defense-in-depth retrieval
+pipeline for a federal procurement knowledge-base assistant, covering CUI handling
+(32 CFR Part 2002), FedRAMP source authorization, and NIST 800-53 AC-3 role-based
+access enforcement.
+
+New classes (self-contained in the example):
+- `CUICategory` — enumeration of CUI categories (PROCUREMENT_AND_ACQUISITION, EXPORT_CONTROLLED,
+  LAW_ENFORCEMENT_SENSITIVE, CRITICAL_INFRASTRUCTURE, PRIVACY, CONTROLLED_TECHNICAL,
+  UNCLASSIFIED, PUBLIC)
+- `AgencyRole` — federal role hierarchy (PUBLIC_USER through CUI_AUTHORIZED_OFFICER)
+- `CUIAccessContext` — access boundary for a retrieval session: agency role, authorized
+  CUI categories, FedRAMP boundary flag; `may_access_cui()` enforces authorized-category
+  membership before any retrieval executes
+- `FederalComplianceAuditRecord` — per-query audit record capturing documents retrieved,
+  documents blocked, CUI categories blocked, FedRAMP sources blocked, AC-3 level violations,
+  and applicable regulations (32 CFR 2002, FedRAMP High Baseline, NIST 800-53 AC-3)
+- `CUIFilter` — Layer 1: enforces 32 CFR Part 2002 CUI handling; blocks documents whose
+  CUI category is not in the requester's `authorized_cui_categories`
+- `FedRAMPSourceFilter` — Layer 2: blocks documents sourced from non-FedRAMP-authorized
+  cloud providers; default authorized set: aws_govcloud, azure_government, gcp_assured_workloads,
+  oracle_cloud_government, ibm_cloud_for_government
+- `NIST80053AC3Filter` — Layer 3: role-hierarchy enforcement; `_ROLE_HIERARCHY` maps each
+  `AgencyRole` to a numeric level; `_LEVEL_REQUIREMENTS` maps document sensitivity levels
+  (PUBLIC/UNCLASSIFIED/SENSITIVE_BUT_UNCLASSIFIED/CONTROLLED/RESTRICTED) to minimum role
+  level; documents blocked when `role_level < required_level`
+
+Scenarios:
+- A: CMMC-certified contractor (role=CONTRACTOR_CUI_CLEARED, authorized CUI//PROC+CTI) —
+  FedRAMP blocks sam.gov/commercial sources; AC-3 blocks CONTROLLED documents (requires
+  Contracting Officer level 3, contractor is level 2); FOUO/SBU documents returned
+- B: Uncleared vendor (role=CONTRACTOR_UNCLEARED, no CUI authorization) — CUI layer
+  blocks all CUI//PROC documents; no documents reach LLM context
+- C: Contracting officer with partial CUI scope (authorized CUI//PROC only, not CTI) —
+  CUI//CTI documents blocked by Layer 1; CONTROLLED documents pass AC-3 (officer=level 3);
+  mixed retrieval result
+- D: Non-FedRAMP cloud source — FedRAMP layer blocks all commercial cloud documents
+  regardless of CUI category or role level; zero documents returned
+
+Closes #32.
+
+---
+
 ## [0.9.0] — 2026-04-13
 
 ### Added — Legal Sector RAG Example
