@@ -6,6 +6,21 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.42.0] — 2026-04-13
+
+### Added — Nuclear Energy / NRC Compliance RAG Pre-filter (`46_nuclear_nrc_rag.py`)
+
+Four-layer retrieval access control for US nuclear energy and non-proliferation compliance:
+
+- `NRCLicensingFilter` (10 CFR Parts 50/70/71) — reactor without Part 50 operating license → DENIED; nuclear fuel facility without Part 70 SNM license → DENIED; radioactive material transport without Part 71 package cert → DENIED; research reactor license type → REQUIRES_HUMAN_REVIEW
+- `NRCRadiationProtectionFilter` (10 CFR Part 20) — occupational dose exceeding 5 rem/year §20.1201 → DENIED; public dose exceeding 100 mrem/year §20.1301 → DENIED; ALARA program not documented §20.1101 → DENIED; Appendix B effluent limits → REQUIRES_HUMAN_REVIEW
+- `NDAClassifiedFilter` (42 U.S.C. §2162 + 10 CFR §73.21) — Restricted Data without Q clearance → DENIED; Formerly Restricted Data without L clearance → DENIED; Safeguards information without authorized access → DENIED; SUNSI without need-to-know → REQUIRES_HUMAN_REVIEW
+- `NuclearCrossBorderFilter` (10 CFR Part 110 + 42 U.S.C. §2153) — nuclear tech export to non-NPT country without export license → DENIED; fissile material without IAEA safeguards (NPT Art. III) → DENIED; nuclear cooperation with CN/RU/KP/IR without 123 Agreement → DENIED; dual-use items to NRC sensitive countries → REQUIRES_HUMAN_REVIEW
+
+56 new tests. Total: **1668 passed, 2 skipped**.
+
+---
+
 ## [0.41.0] — 2026-04-13
 
 ### Added — Pharma / Clinical Trials RAG Pre-filter (`45_pharma_clinical_trials_rag.py`)

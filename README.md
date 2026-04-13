@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Downloads](https://img.shields.io/pypi/dm/enterprise-rag-patterns.svg)](https://pypi.org/project/enterprise-rag-patterns/)
 
-**Cross-industry compliance patterns for RAG pipelines — 45 regulated sector examples, 5 vector store adapters, 1612 tests.**
+**Cross-industry compliance patterns for RAG pipelines — 46 regulated sector examples, 5 vector store adapters, 1668 tests.**
 
 Defense-in-depth pre-filters that enforce regulatory requirements at the retrieval layer, before any document reaches the LLM context window.
 
@@ -122,7 +122,7 @@ See the `examples/` directory for complete runnable pipelines.
 
 ---
 
-## Example catalog — 45 regulated sectors
+## Example catalog — 46 regulated sectors
 
 | # | File | Sector | Regulations Enforced |
 |---|------|--------|---------------------|
@@ -171,6 +171,7 @@ See the `examples/` directory for complete runnable pipelines.
 | 43 | `43_energy_nerc_cip_rag.py` | Energy / Utilities / NERC CIP | NERC CIP-007-6 (BES Cyber System security management: ports/services + patches + malicious code), CIP-005-7 (Electronic Security Perimeter access controls + remote access), CIP-006-6 (Physical Security Plans for BES Cyber Systems), CIP-008-6 (incident reporting to E-ISAC within 1 hour), FERC Order 888/889 OASIS (Open Access Transmission Tariff), 18 CFR §1c.2 Anti-Manipulation Rule, NGA §7 gas pipeline certificate, Part 12 dam safety, DOE 100-Day Plan OT monitoring, CISA ICS-CERT baseline, NIST AI RMF energy sector profile, DOE CESER/E-ISAC/CRISP, FPA §202(e) FERC export authorization, EO 13873/DOE ICTS adversarial nations (CN/RU/KP/IR), NGA §3 LNG authorization, EU NIS2 Art. 21 |
 | 44 | `44_defense_itar_ear_rag.py` | Defense / Aerospace / Export Controls | ITAR 22 CFR Parts 120-130 (USML technical data §120.6/§120.10 + defense services §120.9/§123.1 DSP-5 + electronic transmission §125.4 + classified data §120.11/NISPOM), EAR 15 CFR Parts 730-774 (CCL Military End Use §744.21 CN/RU/VE/MM/BY + Entity List §744.11 + Semiconductor §744.23 Oct 2023 rule + Huawei FDPR §734.9), CFIUS 50 U.S.C. §4565 + 31 CFR Part 800 (defense contractor acquisition + TID US Business CN/RU/KP + sensitive gov contract data + minority TID §800.401 mandatory declaration), NATO MC 0049/15 classified + UKUSA/FVEY bilateral protocols + NSPM-33 adversarial nations (CN/RU/KP/IR/CU/SY) + DoDD 5230.11 foreign disclosure |
 | 45 | `45_pharma_clinical_trials_rag.py` | Pharma / Clinical Trials | FDA IND 21 CFR Part 312 + NDA 21 CFR Part 314 + BLA 21 CFR Part 601 + CGMP 21 CFR Parts 210/211 (FDADrugDevelopmentFilter), ICH E6 R2/R3 GCP IRB/IEC approval §3.1/21 CFR Part 56 + informed consent §4.8.10 + investigator qualifications §4.1 + SAE 15-day reporting §4.11.1/21 CFR §312.32 (ICHGCPFilter), EU CTR 536/2014 + EMA Pediatric Regulation 1901/2006 PIP + Regulation 726/2004 centralized procedure + GDPR Art. 9(2)(j) research exception (EMARegulationsFilter), ICH E6 §5.15 + GDPR Art. 46 SCC cross-border trial data + FDA Import Alert 66-40/66-66 + DEA Schedules 21 U.S.C. §812 + FDA/EMA parallel biosimilar review (PharmaCrossBorderFilter) |
+| 46 | `46_nuclear_nrc_rag.py` | Nuclear Energy / NRC Compliance | 10 CFR Part 50 reactor operating license + Part 70 special nuclear material + Part 71 package certification (NRCLicensingFilter), 10 CFR §20.1201 occupational 5 rem/year + §20.1301 public 100 mrem/year + §20.1101 ALARA + Appendix B effluents (NRCRadiationProtectionFilter), 42 U.S.C. §2162 Restricted Data Q-clearance + FRD L-clearance + 10 CFR §73.21 Safeguards Info + SUNSI need-to-know (NDAClassifiedFilter), 10 CFR Part 110 export license + NPT Art. III IAEA safeguards + 42 U.S.C. §2153 123 Agreement CN/RU/KP/IR + NRC sensitive country dual-use review (NuclearCrossBorderFilter) |
 
 ---
 
@@ -316,9 +317,9 @@ Read [CONTRIBUTING.md](./CONTRIBUTING.md) and [GOVERNANCE.md](./GOVERNANCE.md). 
 
 | Library | Focus | Coverage |
 |---------|-------|---------|
-| **enterprise-rag-patterns** | What to retrieve | 45 sectors · 62 regulations · 1612 tests |
-| [regulated-ai-governance](https://github.com/ashutoshrana/regulated-ai-governance) | What agents may do | 36 governance examples · 22 jurisdictions · 2159 tests |
-| [integration-automation-patterns](https://github.com/ashutoshrana/integration-automation-patterns) | How data flows | 38 patterns · schema registry · GraphQL · 1592 tests |
+| **enterprise-rag-patterns** | What to retrieve | 46 sectors · 63 regulations · 1668 tests |
+| [regulated-ai-governance](https://github.com/ashutoshrana/regulated-ai-governance) | What agents may do | 37 governance examples · 23 jurisdictions · 2291 tests |
+| [integration-automation-patterns](https://github.com/ashutoshrana/integration-automation-patterns) | How data flows | 39 patterns · schema registry · GraphQL · 1704 tests |
 
 ---
 
