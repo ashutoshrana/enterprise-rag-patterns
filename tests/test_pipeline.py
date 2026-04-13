@@ -330,4 +330,4 @@ class TestPackageImport:
         import enterprise_rag_patterns
 
         assert hasattr(enterprise_rag_patterns, "__version__")
-        assert enterprise_rag_patterns.__version__ == "0.36.0"
+        assert enterprise_rag_patterns.__version__ == "0.37.0"

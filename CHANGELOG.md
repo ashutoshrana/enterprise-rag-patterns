@@ -6,6 +6,21 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.37.0] — 2026-04-13
+
+### Added — US Healthcare AI / FDA RAG Pre-filter (`41_healthcare_ai_fda_rag.py`)
+
+Four-layer retrieval access control for AI platforms subject to US healthcare regulations governing Software as a Medical Device, EHR interoperability, CMS payer rules, and cross-border PHI transfers:
+
+- `FDASaMDFilter` (21 CFR §814/§807.87/Part 820 + AI/ML Action Plan 2021) — Class III SaMD without PMA → DENIED; Class II SaMD without 510(k) → DENIED; AI/ML SaMD without PCCP → REQUIRES_HUMAN_REVIEW; SaMD without QMS → DENIED
+- `ONCInteroperabilityFilter` (45 CFR §170/§171 + ONC Cures Act Final Rule) — Information blocking EHR data → DENIED; FHIR R4 API access without ONC certification → DENIED; patient access without ONC compliant mechanism → DENIED; non-certified health IT software → REQUIRES_HUMAN_REVIEW
+- `CMSPriorAuthFilter` (CMS Final Rule 85 FR 25510 + 88 FR 82510) — CMS payer AI coverage determination without human review → DENIED; Medicare Advantage AI without coverage criteria disclosure → DENIED; prior authorization decision support without 72-hour expedited pathway → DENIED; value-based care AI without quality measure alignment → REQUIRES_HUMAN_REVIEW
+- `HealthcareCrossBorderFilter` (HIPAA 45 CFR §164 + EU Health Data Space Regulation 2024 + GDPR Art. 46) — PHI to non-HIPAA jurisdiction → DENIED; EU-US health data without EHDS adequacy → DENIED; PHI to OFAC sanctioned jurisdiction → DENIED; GDPR Art. 46 SCC for health data → REQUIRES_HUMAN_REVIEW
+
+55 new tests. Total: **1386 passed, 2 skipped**.
+
+---
+
 ## [0.36.0] — 2026-04-13
 
 ### Added — US Financial Services RAG Pre-filter (`40_financial_services_rag.py`)
