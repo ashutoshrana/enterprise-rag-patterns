@@ -6,6 +6,22 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.31.0] — 2026-04-13
+
+### Added — Latin America RAG Pre-filter (`36_latin_america_rag.py`)
+
+Argentina, Chile, and Colombia data protection laws as a four-layer RAG pre-filter:
+
+- `ArgentinaPersonalDataFilter` (LPDP 25.326) — sensitive data without written consent → DENIED (Art. 7); no consent/basis → DENIED (Art. 5); minor without parental auth → DENIED (Art. 12)
+- `ChilePersonalDataFilter` (Law 19.628 + Law 21.719) — sensitive data without consent → DENIED; automated decisions without human review → REQUIRES_HUMAN_REVIEW (Law 21.719 Art. 16)
+- `ColombiaHabeasDataFilter` (Law 1581/2012 + Decree 1377/2013) — sensitive data → DENIED (Art. 7); no consent → DENIED (Art. 4(c)); financial data without consent → DENIED (Decree 1377 Art. 10)
+- `LatAmCrossBorderFilter` — Ibero-American Data Protection Network adequacy (AR/CL/CO/MX/PE/UY/BR); jurisdiction-specific denials
+
+38 new tests. Total: **1145 passed, 2 skipped**.
+
+---
+
+
 ## [0.30.0] — 2026-04-13
 
 ### Added — Southeast Asia RAG Pre-filter (`35_southeast_asia_rag.py`)
