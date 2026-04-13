@@ -175,7 +175,7 @@ def main() -> None:
     e5 = ChannelEvent(
         channel=CHANNEL_EMAIL,
         event_type="action_taken",
-        content="email_scheduled: graduation_audit_PDF to s001@strayer.edu",
+        content="email_scheduled: graduation_audit_PDF to s001@acme-univ.edu",
         timestamp=datetime.now(timezone.utc),
     )
     log_event(session, e5)

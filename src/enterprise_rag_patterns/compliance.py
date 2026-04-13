@@ -80,7 +80,7 @@ class StudentIdentityScope:
     Attributes:
         student_id: Unique institutional identifier for the student.
         institution_id: Institution whose records are authorized for retrieval.
-            In a multi-institution deployment (e.g., Strayer + Capella),
+            In a multi-institution deployment (e.g., ACME University A + ACME University B),
             records from institution A must never appear in a session
             scoped to institution B.
         requesting_user_id: The agent, staff member, or system requesting access.
@@ -161,7 +161,7 @@ class FERPAContextPolicy:
         policy = FERPAContextPolicy(
             scope=StudentIdentityScope(
                 student_id="S-12345",
-                institution_id="strayer",
+                institution_id="acme-univ",
                 requesting_user_id="agent:enrollment_advisor",
                 authorized_categories={RecordCategory.ACADEMIC_RECORD},
                 disclosure_reason=DisclosureReason.SCHOOL_OFFICIAL,

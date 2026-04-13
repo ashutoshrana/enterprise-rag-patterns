@@ -63,7 +63,7 @@ from enterprise_rag_patterns.compliance import (
 
 scope = StudentIdentityScope(
     student_id="S-12345",
-    institution_id="strayer",
+    institution_id="acme-univ",
     requesting_user_id="agent:enrollment_advisor",
     authorized_categories={RecordCategory.ACADEMIC_RECORD},
     disclosure_reason=DisclosureReason.SCHOOL_OFFICIAL,

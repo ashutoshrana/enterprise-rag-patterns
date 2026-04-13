@@ -6,6 +6,27 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.28.0] — 2026-04-13
+
+### Added — US Insurance NAIC/FCRA RAG Pre-filter (`33_insurance_naic_rag.py`)
+
+US insurance sector compliance as a four-layer RAG retrieval pre-filter:
+
+- `NAICModelActFilter` (NAIC Model Privacy Protection Act §7/§13 + state AI bulletins) — consumer own-file → APPROVED; regulator exam request → APPROVED; consumer blocked from underwriting data; unregistered AI model in CA/CO/IL → REQUIRES_HUMAN_REVIEW
+- `FCRAInsuranceFilter` (FCRA 15 U.S.C. §1681) — credit score adverse action without notice → DENIED (§1681m); unauthorized permissible purpose → DENIED (§1681b(a)(3)(C))
+- `StateInsuranceAIFilter` (CA CDI Bulletin 2022-5, IL IDOI 2021-9, CA Prop 103) — unregistered AI in CA → REQUIRES_HUMAN_REVIEW; credit scoring under Prop 103 → REQUIRES_HUMAN_REVIEW
+- `InsuranceLoBFilter` — line-of-business authorization + actuarial data access control
+- Regulator-override: regulatory exam role bypasses consumer-restriction layers
+
+36 new tests. Total: **1033 passed, 2 skipped**.
+
+### Changed — No real organization names in any code or documentation
+
+Replaced all `strayer` / `capella` / `gwu` references with `acme-univ` / `acme-univ-b` across examples, src, tests, docs, and CONTRIBUTING.
+
+---
+
+
 ## [0.27.0] — 2026-04-13
 
 ### Added — South Korea PIPA RAG Pre-filter (`32_south_korea_rag.py`)
@@ -740,7 +761,7 @@ data sources (SIS, financial aid, knowledge base, policy docs, real-time data) w
 FERPA pre-filtering and freshness enforcement:
 - Scenario 1: enrollment advisor scope (ACADEMIC_RECORD only) — 2 financial docs filtered
 - Scenario 2: financial aid advisor scope (academic + financial) — all docs available
-- Scenario 3: cross-institution contamination test — `gwu` doc blocked despite correct student_id
+- Scenario 3: cross-institution contamination test — `acme-univ-b` doc blocked despite correct student_id
 - Freshness enforcement: SIS ≤ 1h, real-time ≤ 60s; stale sources excluded and logged
 - `ContextEnvelope` metadata tracks source count, pre/post filter counts, FERPA removals
 - LLM context string formatting via `to_llm_context()`

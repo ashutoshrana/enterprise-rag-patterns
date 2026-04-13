@@ -57,9 +57,7 @@ from enterprise_rag_patterns.compliance import (  # noqa: E402
 # Patch the langchain-core availability check so this example runs without
 # the optional SDK installed.  Remove this block in production where
 # langchain-core is in your dependency tree.
-_patch(
-    "enterprise_rag_patterns.integrations.langchain._check_langchain_available"
-).__enter__()
+_patch("enterprise_rag_patterns.integrations.langchain._check_langchain_available").__enter__()
 
 from enterprise_rag_patterns.integrations.langchain import (  # noqa: E402
     FERPAComplianceCallbackHandler,
@@ -68,9 +66,9 @@ from enterprise_rag_patterns.integrations.langchain import (  # noqa: E402
 # Scope: advisor session scoped to a single student at one institution.
 # FERPA § 99.31(a)(1): school official with legitimate educational interest.
 scope = StudentIdentityScope(
-    student_id="stu_alice",           # from authenticated session token
-    institution_id="univ_strayer",    # from authenticated session token
-    requesting_user_id="advisor_007", # staff or agent ID
+    student_id="stu_alice",  # from authenticated session token
+    institution_id="acme_univ",  # from authenticated session token
+    requesting_user_id="advisor_007",  # staff or agent ID
     authorized_categories={
         RecordCategory.ACADEMIC_RECORD,
         RecordCategory.DIRECTORY_INFORMATION,
@@ -166,29 +164,29 @@ class _MockRetriever:
 # Build a mock document store simulating a shared multi-tenant vector index.
 # In a real deployment this might be a Chroma, Pinecone, or pgvector collection.
 mock_documents = [
-    # Alice's authorized records at Strayer
+    # Alice's authorized records at ACME University
     _MockDocument(
         "Alice enrolled in Cloud Architecture Spring 2026. GPA: 3.8",
-        {"student_id": "stu_alice", "institution_id": "univ_strayer", "category": "academic_record"},
+        {"student_id": "stu_alice", "institution_id": "acme_univ", "category": "academic_record"},
     ),
     _MockDocument(
         "Alice Smith — enrolled, Computer Science, Class of 2027",
-        {"student_id": "stu_alice", "institution_id": "univ_strayer", "category": "directory_information"},
+        {"student_id": "stu_alice", "institution_id": "acme_univ", "category": "directory_information"},
     ),
     # Alice's health record — NOT authorized (health_record not in scope.authorized_categories)
     _MockDocument(
         "Alice Smith — campus health visit, 2026-01-10",
-        {"student_id": "stu_alice", "institution_id": "univ_strayer", "category": "health_record"},
+        {"student_id": "stu_alice", "institution_id": "acme_univ", "category": "health_record"},
     ),
     # Bob's record — CROSS-STUDENT leak, must be blocked
     _MockDocument(
         "Bob Jones — academic probation notice",
-        {"student_id": "stu_bob", "institution_id": "univ_strayer", "category": "academic_record"},
+        {"student_id": "stu_bob", "institution_id": "acme_univ", "category": "academic_record"},
     ),
     # Cross-institution record — must be blocked
     _MockDocument(
-        "Alice Smith enrollment record at Capella University",
-        {"student_id": "stu_alice", "institution_id": "univ_capella", "category": "academic_record"},
+        "Alice Smith enrollment record at ACME University B",
+        {"student_id": "stu_alice", "institution_id": "acme_univ_b", "category": "academic_record"},
     ),
     # General knowledge base (no FERPA metadata) — always passes through
     _MockDocument(
@@ -234,7 +232,7 @@ for record in audit_log:
 #   Blocked (silently dropped):
 #     - Alice's health_record (unauthorized category)
 #     - Bob Jones's record (cross-student)
-#     - Alice's Capella record (cross-institution)
+#     - Alice's ACME University B record (cross-institution)
 #
 # In production, pass `filtered_docs` as context to your LLM:
 #

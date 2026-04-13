@@ -140,7 +140,7 @@ def fetch_knowledge_base_documents(query: str) -> list[dict[str, Any]]:
         },
         {
             "doc_id": "kb-003",
-            "content": "Academic advisor appointments available Monday-Friday 9am-5pm. Book at advising.strayer.edu.",
+            "content": "Academic advisor appointments available Monday-Friday 9am-5pm. Book at advising.acme-univ.edu.",
         },
     ]
 
@@ -314,7 +314,7 @@ def assemble_context(
 
 def main() -> None:
     student_id = "S-001"
-    institution_id = "strayer"
+    institution_id = "acme-univ"
     query = "What courses do I need to complete my CS degree?"
 
     print("=" * 66)
@@ -415,16 +415,16 @@ def main() -> None:
     # Create docs that look like they came from a different institution
     contamination_doc = {
         "doc_id": "POISON-001",
-        "content": "GPA: 2.1 (WARNING: this belongs to a student at gwu, not strayer)",
+        "content": "GPA: 2.1 (WARNING: this belongs to a student at acme-univ-b, not acme-univ)",
         "student_id": student_id,  # correct student_id
-        "institution_id": "gwu",  # WRONG institution
+        "institution_id": "acme-univ-b",  # WRONG institution
         "record_category": RecordCategory.ACADEMIC_RECORD.value,
     }
 
     test_docs = [contamination_doc] + fetch_sis_documents(student_id, institution_id)
     filtered = policy_academic.filter_retrieved_documents(documents=test_docs)
 
-    print(f"\n  Input docs: {len(test_docs)} (including 1 with wrong institution_id='gwu')")
+    print(f"\n  Input docs: {len(test_docs)} (including 1 with wrong institution_id="acme-univ-b")")
     print(f"  After FERPA filter: {len(filtered)}")
     print()
     poison_survived = any(d["doc_id"] == "POISON-001" for d in filtered)

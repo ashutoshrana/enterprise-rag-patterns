@@ -17,7 +17,7 @@ from enterprise_rag_patterns.vector_stores.pgvector_adapter import (
 
 def _scope(
     student_id: str = "S-001",
-    institution_id: str = "strayer",
+    institution_id: str = "acme-univ",
     categories: set[str] | None = None,
 ) -> ComplianceFilter:
     return ComplianceFilter(
@@ -47,9 +47,9 @@ class TestPGVectorComplianceFilterJSONColumn:
         assert "S-002" in params
 
     def test_institution_id_clause_json(self) -> None:
-        where_sql, params = self._adapter().build_filter(_scope(institution_id="gwu"))
+        where_sql, params = self._adapter().build_filter(_scope(institution_id="acme-univ-b"))
         assert "metadata->>'institution_id'" in where_sql
-        assert "gwu" in params
+        assert "acme-univ-b" in params
 
     def test_no_category_clause_when_empty(self) -> None:
         where_sql, params = self._adapter().build_filter(_scope(categories=set()))
@@ -67,10 +67,10 @@ class TestPGVectorComplianceFilterJSONColumn:
 
     def test_params_order_student_institution_category(self) -> None:
         where_sql, params = self._adapter().build_filter(
-            _scope(student_id="S-001", institution_id="strayer", categories={"academic_record"})
+            _scope(student_id="S-001", institution_id="acme-univ", categories={"academic_record"})
         )
         assert params[0] == "S-001"
-        assert params[1] == "strayer"
+        assert params[1] == "acme-univ"
         assert params[2] == ["academic_record"]
 
     def test_exactly_two_params_no_category(self) -> None:
@@ -151,9 +151,9 @@ class TestPGVectorComplianceFilterAsyncpg:
         assert "%s" not in where_sql
 
     def test_asyncpg_params_list(self) -> None:
-        _, params = self._adapter().build_asyncpg_filter(_scope(student_id="S-001", institution_id="strayer"))
+        _, params = self._adapter().build_asyncpg_filter(_scope(student_id="S-001", institution_id="acme-univ"))
         assert params[0] == "S-001"
-        assert params[1] == "strayer"
+        assert params[1] == "acme-univ"
 
     def test_asyncpg_category_dollar_placeholder(self) -> None:
         where_sql, params = self._adapter().build_asyncpg_filter(_scope(categories={"academic_record"}))
@@ -281,7 +281,7 @@ class TestPGVectorQueryConstruction:
     def test_embeds_in_psycopg2_style_query(self) -> None:
         adapter = PGVectorComplianceFilter()
         where_sql, params = adapter.build_filter(
-            _scope(student_id="S-001", institution_id="strayer", categories={"academic_record"})
+            _scope(student_id="S-001", institution_id="acme-univ", categories={"academic_record"})
         )
         query = f"SELECT id, content FROM documents WHERE {where_sql} ORDER BY embedding <=> %s LIMIT 5"
         all_params = params + ["[0.1, 0.2, ...]"]
@@ -296,7 +296,7 @@ class TestPGVectorQueryConstruction:
     def test_cross_institution_isolation(self) -> None:
         """Filters for two different students / institutions produce different params."""
         adapter = PGVectorComplianceFilter()
-        _, params_a = adapter.build_filter(_scope(student_id="S-001", institution_id="strayer"))
-        _, params_b = adapter.build_filter(_scope(student_id="S-002", institution_id="gwu"))
+        _, params_a = adapter.build_filter(_scope(student_id="S-001", institution_id="acme-univ"))
+        _, params_b = adapter.build_filter(_scope(student_id="S-002", institution_id="acme-univ-b"))
         assert params_a[0] != params_b[0]
         assert params_a[1] != params_b[1]

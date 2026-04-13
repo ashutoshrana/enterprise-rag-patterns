@@ -44,33 +44,33 @@ MOCK_DOCUMENTS = [
     {
         "doc_id": "doc-001",
         "student_id": "S-12345",
-        "institution_id": "strayer",
+        "institution_id": "acme-univ",
         "record_category": "academic_record",
         "content": "Student S-12345 has completed 42 of 120 required credits. GPA: 3.4.",
     },
     {
         "doc_id": "doc-002",
-        "student_id": "S-99999",          # Different student — will be blocked
-        "institution_id": "strayer",
+        "student_id": "S-99999",  # Different student — will be blocked
+        "institution_id": "acme-univ",
         "record_category": "academic_record",
         "content": "Student S-99999 is on academic probation.",
     },
     {
         "doc_id": "doc-003",
         "student_id": "S-12345",
-        "institution_id": "capella",       # Different institution — will be blocked
+        "institution_id": "acme-univ-b",  # Different institution — will be blocked
         "record_category": "academic_record",
-        "content": "Capella program records for S-12345 (separate institution).",
+        "content": "ACME University B program records for S-12345 (separate institution).",
     },
     {
-        "doc_id": "doc-004",               # No student_id — shared knowledge base, safe to include
-        "institution_id": "strayer",
+        "doc_id": "doc-004",  # No student_id — shared knowledge base, safe to include
+        "institution_id": "acme-univ",
         "content": "The BS Business Administration program requires 120 total credits.",
     },
     {
         "doc_id": "doc-005",
         "student_id": "S-12345",
-        "institution_id": "strayer",
+        "institution_id": "acme-univ",
         "record_category": "financial_record",  # Not in authorized_categories — will be blocked
         "content": "Outstanding balance: $2,400.",
     },
@@ -91,9 +91,9 @@ def mock_vector_search(query: str, student_id: str, institution_id: str) -> list
     Apply the filter BEFORE semantic ranking — not as a post-processing step.
     """
     return [
-        doc for doc in MOCK_DOCUMENTS
-        if doc.get("student_id") in (student_id, None)
-        and doc.get("institution_id") == institution_id
+        doc
+        for doc in MOCK_DOCUMENTS
+        if doc.get("student_id") in (student_id, None) and doc.get("institution_id") == institution_id
     ]
 
 
@@ -123,6 +123,7 @@ def collect_audit(record: AuditRecord) -> None:
 # Pipeline
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class EnrollmentAdvisorPipeline:
     """
@@ -134,6 +135,7 @@ class EnrollmentAdvisorPipeline:
       3. Policy layer filter — category authorization + cross-institution block
       4. Audit logging — 34 CFR § 99.32 compliance
     """
+
     session: SessionState
     ferpa_policy: FERPAContextPolicy
 
@@ -154,11 +156,7 @@ class EnrollmentAdvisorPipeline:
         safe_docs = self.ferpa_policy.filter_retrieved_documents(raw_docs)
 
         # Step 4: Log the access (34 CFR § 99.32)
-        categories = list({
-            RecordCategory(doc["record_category"])
-            for doc in safe_docs
-            if "record_category" in doc
-        })
+        categories = list({RecordCategory(doc["record_category"]) for doc in safe_docs if "record_category" in doc})
         audit = self.ferpa_policy.record_access(
             categories_accessed=categories,
             workflow_context="enrollment_advisor: graduation status query",
@@ -190,6 +188,7 @@ class EnrollmentAdvisorPipeline:
 # Demo
 # ---------------------------------------------------------------------------
 
+
 def main() -> None:
     print("=== FERPA-Compliant RAG Pipeline — Reference Example ===\n")
 
@@ -205,7 +204,7 @@ def main() -> None:
     # Authorizes: academic_record + directory_information only
     policy = make_enrollment_advisor_policy(
         student_id="S-12345",
-        institution_id="strayer",
+        institution_id="acme-univ",
         advisor_id="agent:enrollment_advisor",
         audit_sink=collect_audit,
     )

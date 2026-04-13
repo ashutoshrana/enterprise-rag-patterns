@@ -56,13 +56,13 @@ class PineconeComplianceFilter(VectorStoreFilterAdapter):
         adapter = PineconeComplianceFilter()
         f = adapter.build_filter(ComplianceFilter(
             student_id="S-001",
-            institution_id="strayer",
+            institution_id="acme-univ",
             permitted_categories={"academic_record", "directory_information"},
         ))
         # f == {
         #     "$and": [
         #         {"student_id": {"$eq": "S-001"}},
-        #         {"institution_id": {"$eq": "strayer"}},
+        #         {"institution_id": {"$eq": "acme-univ"}},
         #         {"category": {"$in": ["academic_record", "directory_information"]}},
         #     ]
         # }
@@ -105,7 +105,7 @@ class PineconeNamespaceIsolation:
 
     * **Layer 1 — Namespace**: each institution maps to a dedicated Pinecone
       namespace (hardware isolation). Cross-institution queries are structurally
-      impossible — a query in namespace ``"strayer"`` never touches vectors in
+      impossible — a query in namespace ``"acme-univ"`` never touches vectors in
       namespace ``"purdue"``.
 
     * **Layer 2 — Metadata filter**: within the institution namespace, only vectors
@@ -133,7 +133,7 @@ class PineconeNamespaceIsolation:
 
         scope = StudentIdentityScope(
             student_id="stu-001",
-            institution_id="strayer",
+            institution_id="acme-univ",
             authorized_categories={RecordCategory.ACADEMIC_RECORD},
         )
         isolator = PineconeNamespaceIsolation(index_host="my-index.pinecone.io")

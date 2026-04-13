@@ -48,7 +48,7 @@ class FERPANodePostprocessor:
 
         scope = StudentIdentityScope(
             student_id="S-001",
-            institution_id="strayer",
+            institution_id="acme-univ",
             requesting_user_id="agent:advisor",
         )
         postprocessor = FERPANodePostprocessor(scope=scope)

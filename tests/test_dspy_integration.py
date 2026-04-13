@@ -29,9 +29,9 @@ from enterprise_rag_patterns.regulations.hipaa import (
 # ---------------------------------------------------------------------------
 
 _STUDENT_ID = "S-001"
-_INSTITUTION = "strayer"
+_INSTITUTION = "acme-univ"
 _OTHER_STUDENT = "S-999"
-_OTHER_INSTITUTION = "gwu"
+_OTHER_INSTITUTION = "acme-univ-b"
 
 
 def _scope(
@@ -112,7 +112,7 @@ class TestPassageToDict:
         class FakeNode:
             text = "node text"
             student_id = "S-001"
-            institution_id = "strayer"
+            institution_id = "acme-univ"
             record_category = None
             patient_id = None
             phi_category = None
@@ -240,12 +240,12 @@ class TestFERPADSPyRetrieverFiltering:
     def test_cross_institution_isolation(self) -> None:
         """Two policies for different students must produce different results."""
         docs = [
-            {"content": "alice-doc", "student_id": "S-001", "institution_id": "strayer"},
-            {"content": "bob-doc", "student_id": "S-002", "institution_id": "gwu"},
+            {"content": "alice-doc", "student_id": "S-001", "institution_id": "acme-univ"},
+            {"content": "bob-doc", "student_id": "S-002", "institution_id": "acme-univ-b"},
         ]
         retriever = FakeRetriever(docs)
-        policy_alice = _policy("S-001", "strayer")
-        policy_bob = _policy("S-002", "gwu")
+        policy_alice = _policy("S-001", "acme-univ")
+        policy_bob = _policy("S-002", "acme-univ-b")
 
         result_alice = FERPADSPyRetriever(retriever=retriever, policy=policy_alice)("q")
         result_bob = FERPADSPyRetriever(retriever=retriever, policy=policy_bob)("q")

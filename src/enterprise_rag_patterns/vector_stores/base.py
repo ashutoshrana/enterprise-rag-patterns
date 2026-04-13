@@ -65,7 +65,7 @@ class VectorStoreFilterAdapter(ABC):
         adapter = PineconeComplianceFilter()
         f = adapter.build_filter(ComplianceFilter(
             student_id="S-001",
-            institution_id="strayer",
+            institution_id="acme-univ",
             permitted_categories={"academic_record"},
         ))
         index.query(vector=embedding, filter=f, top_k=5)

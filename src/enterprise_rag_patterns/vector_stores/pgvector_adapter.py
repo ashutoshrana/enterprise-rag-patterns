@@ -49,7 +49,7 @@ Usage — psycopg2 (JSON metadata column)::
     adapter = PGVectorComplianceFilter()
     where_sql, params = adapter.build_filter(ComplianceFilter(
         student_id="S-001",
-        institution_id="strayer",
+        institution_id="acme-univ",
         permitted_categories={"academic_record", "directory_information"},
     ))
     cursor.execute(
@@ -70,7 +70,7 @@ Usage — SQLAlchemy::
     adapter = PGVectorSQLAlchemyFilter(metadata_column=Document.metadata)
     filter_expr = adapter.build_filter(ComplianceFilter(
         student_id="S-001",
-        institution_id="strayer",
+        institution_id="acme-univ",
         permitted_categories={"academic_record"},
     ))
     results = session.scalars(
@@ -154,7 +154,7 @@ class PGVectorComplianceFilter(VectorStoreFilterAdapter):
                 "AND metadata->>'institution_id' = %s "
                 "AND metadata->>'category' = ANY(%s)"
             )
-            params == ["S-001", "strayer", ["academic_record"]]
+            params == ["S-001", "acme-univ", ["academic_record"]]
         """
         clauses: list[str] = []
         params: list[Any] = []
@@ -246,7 +246,7 @@ class PGVectorSQLAlchemyFilter(VectorStoreFilterAdapter):
         adapter = PGVectorSQLAlchemyFilter(metadata_column=Document.metadata)
         filter_expr = adapter.build_filter(ComplianceFilter(
             student_id="S-001",
-            institution_id="strayer",
+            institution_id="acme-univ",
             permitted_categories={"academic_record"},
         ))
         results = session.scalars(

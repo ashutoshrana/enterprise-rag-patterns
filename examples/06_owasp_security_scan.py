@@ -46,7 +46,7 @@ RETRIEVED_DOCS = [
     # Contains PII in metadata and content
     {
         "doc_id": "profile_001",
-        "ssn": "123-45-6789",                          # sensitive field
+        "ssn": "123-45-6789",  # sensitive field
         "api_key": "DEMO_FAKE_KEY_xK9mN2pQ7rT4vW6yZ8aB3cD",  # sensitive field (demo only)
         "content": "Customer John Doe, email: john.doe@example.com, phone: 555-867-5309.",
     },

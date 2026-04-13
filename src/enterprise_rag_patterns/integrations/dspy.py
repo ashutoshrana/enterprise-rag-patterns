@@ -20,7 +20,7 @@ Usage — FERPA::
 
     scope = StudentIdentityScope(
         student_id="S-001",
-        institution_id="strayer",
+        institution_id="acme-univ",
         authorized_categories={RecordCategory.ACADEMIC_RECORD},
         disclosure_reason=DisclosureReason.SCHOOL_OFFICIAL,
     )

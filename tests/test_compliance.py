@@ -215,16 +215,16 @@ class TestFERPAContextPolicyAudit:
 
 class TestEnrollmentAdvisorFactory:
     def test_creates_policy_with_correct_scope(self):
-        policy = make_enrollment_advisor_policy("S-42", "strayer", "advisor:1")
+        policy = make_enrollment_advisor_policy("S-42", "acme-univ", "advisor:1")
         assert policy.scope.student_id == "S-42"
-        assert policy.scope.institution_id == "strayer"
+        assert policy.scope.institution_id == "acme-univ"
         assert RecordCategory.ACADEMIC_RECORD in policy.scope.authorized_categories
         assert RecordCategory.DIRECTORY_INFORMATION in policy.scope.authorized_categories
 
     def test_does_not_authorize_financial_by_default(self):
-        policy = make_enrollment_advisor_policy("S-42", "strayer", "advisor:1")
+        policy = make_enrollment_advisor_policy("S-42", "acme-univ", "advisor:1")
         assert RecordCategory.FINANCIAL_RECORD not in policy.scope.authorized_categories
 
     def test_disclosure_reason_is_school_official(self):
-        policy = make_enrollment_advisor_policy("S-42", "strayer", "advisor:1")
+        policy = make_enrollment_advisor_policy("S-42", "acme-univ", "advisor:1")
         assert policy.scope.disclosure_reason == DisclosureReason.SCHOOL_OFFICIAL

@@ -24,7 +24,7 @@ Usage::
 
     policy = make_enrollment_advisor_policy(
         student_id="S-001",
-        institution_id="strayer",
+        institution_id="acme-univ",
         advisor_id="agent:enrollment_advisor",
     )
 

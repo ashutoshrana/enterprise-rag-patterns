@@ -154,8 +154,10 @@ print("\n--- BLOCKED DOCS (NEVER REACHED LLM) ---")
 safe_ids = {d["doc_id"] for d in safe_docs}
 for doc in RETRIEVED_DOCS:
     if doc["doc_id"] not in safe_ids:
-        reason = "wrong patient" if doc.get("patient_id") != "PAT-0042" else (
-            "unauthorized purpose" if doc.get("data_purpose") == "payment" else "unauthorized PHI category"
+        reason = (
+            "wrong patient"
+            if doc.get("patient_id") != "PAT-0042"
+            else ("unauthorized purpose" if doc.get("data_purpose") == "payment" else "unauthorized PHI category")
         )
         print(f"  ❌  {doc['doc_id']}: blocked ({reason})")
 

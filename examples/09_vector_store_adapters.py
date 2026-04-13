@@ -40,13 +40,13 @@ from enterprise_rag_patterns.vector_stores import (
 # Scenario: Enrollment advisor querying academic records for one student
 # ---------------------------------------------------------------------------
 # The advisor is authorized to access ACADEMIC_RECORD and DIRECTORY_INFORMATION
-# for student S-001 at Strayer University.  Only documents with those exact
+# for student S-001 at ACME University.  Only documents with those exact
 # metadata values should be returned — all other students and institutions must
 # be excluded at the vector store query level.
 
 SCOPE = ComplianceFilter(
     student_id="S-001",
-    institution_id="strayer",
+    institution_id="acme-univ",
     permitted_categories={"academic_record", "directory_information"},
 )
 
@@ -96,7 +96,7 @@ Schema:
         metadata   JSONB NOT NULL DEFAULT '{}'
     );
     -- Each document has metadata:
-    --   {"student_id": "S-001", "institution_id": "strayer",
+    --   {"student_id": "S-001", "institution_id": "acme-univ",
     --    "category": "academic_record", "content": "..."}
 """
     )
@@ -244,7 +244,7 @@ def demo_pinecone() -> None:
         """  from enterprise_rag_patterns.vector_stores import PineconeNamespaceIsolation
   ns_adapter = PineconeNamespaceIsolation()
   namespace, filter_dict = ns_adapter.build_filter(scope)
-  # namespace == "strayer"  (institution-level hardware isolation)
+  # namespace == "acme-univ"  (institution-level hardware isolation)
   # filter_dict == {"student_id": {"$eq": "S-001"}} + optional category
   results = index.query(
       vector=embedding,
@@ -316,7 +316,7 @@ def demo_weaviate() -> None:
 
   f = (
       Filter.by_property("student_id").equal("S-001")
-      & Filter.by_property("institution_id").equal("strayer")
+      & Filter.by_property(.equal("acme-univ")
       & (
           Filter.by_property("category").equal("academic_record")
           | Filter.by_property("category").equal("directory_information")

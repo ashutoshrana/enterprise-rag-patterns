@@ -46,7 +46,7 @@ def main() -> None:
 
     scope = StudentIdentityScope(
         student_id="stu_007",
-        institution_id="strayer",
+        institution_id="acme-univ",
         requesting_user_id="advisor:enrollment_bot",
         authorized_categories={RecordCategory.ACADEMIC_RECORD},
         disclosure_reason=DisclosureReason.SCHOOL_OFFICIAL,
@@ -90,7 +90,7 @@ def main() -> None:
             "Enrolled in CSCI-401, grade: A",
             {
                 "student_id": "stu_007",
-                "institution_id": "strayer",
+                "institution_id": "acme-univ",
                 "category": RecordCategory.ACADEMIC_RECORD.value,
             },
         ),
@@ -98,7 +98,7 @@ def main() -> None:
             "Outstanding tuition balance: $1,800",
             {
                 "student_id": "stu_007",
-                "institution_id": "strayer",
+                "institution_id": "acme-univ",
                 "category": RecordCategory.FINANCIAL_RECORD.value,  # not authorized
             },
         ),
@@ -106,7 +106,7 @@ def main() -> None:
             "Different student's transcript",
             {
                 "student_id": "stu_999",  # wrong student
-                "institution_id": "strayer",
+                "institution_id": "acme-univ",
                 "category": RecordCategory.ACADEMIC_RECORD.value,
             },
         ),

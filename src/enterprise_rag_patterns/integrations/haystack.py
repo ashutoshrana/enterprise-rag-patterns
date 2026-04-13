@@ -52,7 +52,7 @@ class FERPAHaystackFilter:
         result = pipe.run({
             "ferpa_filter": {
                 "student_id": "S-001",
-                "institution_id": "strayer",
+                "institution_id": "acme-univ",
                 "permitted_categories": {"academic_record"},
             }
         })

@@ -26,7 +26,7 @@ from enterprise_rag_patterns.vector_stores.pinecone_adapter import PineconeNames
 def scope_with_categories() -> ComplianceFilter:
     return ComplianceFilter(
         student_id="stu-001",
-        institution_id="strayer",
+        institution_id="acme-univ",
         permitted_categories={"academic_record", "financial_record"},
         regulation="FERPA",
     )
@@ -54,7 +54,7 @@ def isolator() -> PineconeNamespaceIsolation:
 
 class TestNamespaceFor:
     def test_default_uses_institution_id(self, isolator: PineconeNamespaceIsolation) -> None:
-        assert isolator.namespace_for("strayer") == "strayer"
+        assert isolator.namespace_for("acme-univ") == "acme-univ"
 
     def test_default_uses_institution_id_purdue(self, isolator: PineconeNamespaceIsolation) -> None:
         assert isolator.namespace_for("purdue") == "purdue"
@@ -64,7 +64,7 @@ class TestNamespaceFor:
             index_host="host",
             namespace_resolver=lambda inst: f"ns_{inst.upper()}",
         )
-        assert isolator.namespace_for("strayer") == "ns_STRAYER"
+        assert isolator.namespace_for("acme-univ") == "ns_ACME-UNIV"
 
     def test_custom_resolver_normalization(self) -> None:
         isolator = PineconeNamespaceIsolation(
@@ -123,7 +123,7 @@ class TestBuildMetadataFilter:
 
         serialized = json.dumps(f)
         assert "institution_id" not in serialized
-        assert "strayer" not in serialized
+        assert "acme-univ" not in serialized
 
     def test_custom_field_names(self) -> None:
         isolator = PineconeNamespaceIsolation(
@@ -160,7 +160,7 @@ class TestQuerySync:
 
         mock_index.query.assert_called_once()
         call_kwargs = mock_index.query.call_args.kwargs
-        assert call_kwargs["namespace"] == "strayer"  # institution_id is namespace
+        assert call_kwargs["namespace"] == "acme-univ"  # institution_id is namespace
         assert call_kwargs["top_k"] == 5
         assert call_kwargs["include_metadata"] is True
         assert call_kwargs["vector"] == vec
@@ -224,7 +224,7 @@ class TestAsyncQuery:
         mock_pc.IndexAsyncio.assert_called_once_with(host="my-idx.svc.us-east1.pinecone.io")
         mock_idx.query.assert_called_once()
         call_kwargs = mock_idx.query.call_args.kwargs
-        assert call_kwargs["namespace"] == "strayer"
+        assert call_kwargs["namespace"] == "acme-univ"
         assert call_kwargs["top_k"] == 3
         assert call_kwargs["include_metadata"] is True
         assert result == mock_response

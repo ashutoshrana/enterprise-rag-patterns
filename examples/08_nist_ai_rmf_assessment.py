@@ -52,7 +52,7 @@ risk_log: list[AIRMFRetrievalRisk] = []
 
 policy = AIRMFRAGPolicy(
     system_id="enrollment-advisor-v3",
-    risk_level=AIRMFRiskLevel.HIGH,   # Categorise as HIGH because it handles student PII
+    risk_level=AIRMFRiskLevel.HIGH,  # Categorise as HIGH because it handles student PII
     data_sources=["student_information_system", "financial_aid_database", "course_catalog"],
     audit_sink=risk_log.append,
 )

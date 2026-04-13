@@ -119,7 +119,7 @@ class <StoreName>ComplianceFilter(VectorStoreFilterAdapter):
         adapter = <StoreName>ComplianceFilter()
         f = adapter.build_filter(ComplianceFilter(
             student_id="S-001",
-            institution_id="strayer",
+            institution_id="acme-univ",
             permitted_categories={"academic_record"},
         ))
         # Pass f to the store's query API
