@@ -6,6 +6,28 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.8.1] — 2026-04-13
+
+### Added — Vector Store Integration Examples
+
+**`examples/09_vector_store_adapters.py`** — end-to-end showcase of all four
+compliance filter adapters applied to the same `ComplianceFilter` input:
+
+- **pgvector / psycopg2 (JSONB column):** `metadata->>'student_id' = %s AND ... = ANY(%s)`
+- **pgvector / psycopg2 (normalised columns):** `student_id = %s AND ...`
+- **pgvector / asyncpg:** `$N`-style placeholders with `::text[]` cast
+- **Pinecone v8:** `{"$and": [{"student_id": {"$eq": "..."}}, ...]}`
+- **ChromaDB v1.5+:** `{"$and": [{"student_id": {"$eq": "..."}}, ...]}`
+- **Weaviate v4:** `Filter.by_property(...).equal(...) & ...` (lazy import)
+- **No-category-restriction variant** (HIPAA treatment authorization — no `$in` clause generated)
+
+Shows full usage patterns including FastAPI async (Pinecone `IndexAsyncio`),
+defense-in-depth namespace + metadata isolation, and correct query construction
+with the compliance filter appended to the embedding parameter tuple.
+Closes #5.
+
+---
+
 ## [0.8.0] — 2026-04-13
 
 ### Added
