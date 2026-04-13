@@ -6,6 +6,35 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.8.0] — 2026-04-13
+
+### Added
+
+- `integrations/dspy.py`: `FERPADSPyRetriever` and `HIPAADSPyRetriever` — DSPy
+  retriever wrappers that apply FERPA identity-scope filtering and HIPAA
+  minimum-necessary filtering respectively (DSPy ≥ 2.5.0, Pydantic v2).
+
+  **`FERPADSPyRetriever`**:
+  - Wraps any DSPy ``Retrieve`` module or compatible callable.
+  - Intercepts retrieved passages and runs them through
+    ``FERPAContextPolicy.filter_retrieved_documents()``.
+  - Passages tagged to a different student, institution, or unauthorized category
+    are silently removed — consistent with FERPA's prohibition on disclosing which
+    records were withheld (34 CFR § 99.12).
+  - ``__getattr__`` delegation — DSPy pipeline composition and introspection
+    work transparently through the wrapper.
+  - Used exactly like the original retriever in a DSPy ``Module.forward()`` method.
+
+  **`HIPAADSPyRetriever`**:
+  - Same pattern; applies ``HIPAAContextPolicy.filter_retrieved_documents()``
+    (45 CFR § 164.502(b) minimum-necessary) before passages reach the LLM.
+
+  Closes #14, #10. 31 new tests.
+
+- `integrations/__init__.py`: exports `FERPADSPyRetriever`, `HIPAADSPyRetriever`.
+
+---
+
 ## [0.7.0] — 2026-04-13
 
 ### Added
