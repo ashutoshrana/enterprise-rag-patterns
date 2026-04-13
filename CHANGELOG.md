@@ -6,6 +6,24 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.8.4] — 2026-04-13
+
+### Added — Cross-Channel Session Continuity Example
+
+**`examples/12_cross_channel_session.py`** — 6-step `SessionState` lifecycle across
+IVR voice → web chat → email → chat:
+- `register_channel` tracks the full interaction path (IVR → chat → email)
+- `add_checkpoint` records intents and actions; chat replays IVR context without
+  re-asking identity or intent
+- `escalated` flag set on withdrawal request — monotonically True, all channels
+  route to human thereafter
+- `ContextEnvelope` packages escalation handoff for human advisor with channel_path,
+  escalation_reason, and checkpoint count
+- Five session continuity design principles
+- Closes #1.
+
+---
+
 ## [0.8.3] — 2026-04-13
 
 ### Added — Multi-Source Context Assembly Example
