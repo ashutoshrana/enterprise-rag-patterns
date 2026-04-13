@@ -125,9 +125,7 @@ class TestLogRetrievalEvent:
         assert record.response_hash == expected
 
     def test_actor_id_and_session_id(self) -> None:
-        record = _make_logger().log_retrieval_event(
-            _QUERY, _DOCS_STR, actor_id="stu-alice", session_id="sess-123"
-        )
+        record = _make_logger().log_retrieval_event(_QUERY, _DOCS_STR, actor_id="stu-alice", session_id="sess-123")
         assert record.actor_id == "stu-alice"
         assert record.session_id == "sess-123"
 
