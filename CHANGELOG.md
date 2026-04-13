@@ -6,6 +6,46 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.19.0] — 2026-04-13
+
+### Added — Clinical Trials RAG (FDA 21 CFR Part 11 + GxP Tiers + ICH E6(R3) GCP + HIPAA)
+
+**`examples/24_clinical_trials_rag.py`** — four-layer defense-in-depth retrieval pipeline
+for clinical trial management systems enforcing FDA 21 CFR Part 11 electronic records and
+signatures validation requirements, GxP tier-based document access controls (GMP/GLP/GCP/GDP),
+ICH E6(R3) Good Clinical Practice blinding preservation and site-level access controls, and
+HIPAA minimum necessary for PHI across identified, limited dataset, and de-identified data.
+
+**New classes:**
+- `ClinicalTrialRole` — 8 roles: SPONSOR, MONITOR, INVESTIGATOR, DSMB, REGULATORY,
+  BIOSTATISTICIAN, QA, PHARMACIST
+- `GxPTier` — GMP / GLP / GCP / GDP / NON_GXP
+- `ClinicalDocumentType` — 16 types: BATCH_RECORD, DEVIATION_REPORT, CAPA_RECORD,
+  NONCLINICAL_STUDY_REPORT, RAW_STUDY_DATA, PROTOCOL, INVESTIGATOR_BROCHURE, CASE_REPORT_FORM,
+  INTERIM_ANALYSIS, FINAL_CLINICAL_STUDY_REPORT, SAE_REPORT, DISTRIBUTION_RECORD,
+  CHAIN_OF_CUSTODY, INFORMED_CONSENT_TEMPLATE, REGULATORY_SUBMISSION, IRB_APPROVAL
+- `PHIClassification` — IDENTIFIED / LIMITED_DATASET / DE_IDENTIFIED / NO_PHI
+- `ClinicalAccessContext` (frozen) — user role, assigned site IDs, system validation,
+  audit trail, e-signature binding, database lock, DSMB authorization, IRB waiver, DUA status
+- `ClinicalDocument` (frozen) — document type, GxP tier, PHI classification, site ID,
+  blinding flag, and public-access flag
+- `FDA21CFR11Filter` — Layer 1: blocks unvalidated, no-audit-trail, or unsigned systems;
+  public docs bypass
+- `GxPDocumentFilter` — Layer 2: GMP → QA/REGULATORY only; GLP → REGULATORY only;
+  GDP → PHARMACIST/QA/REGULATORY only; GCP passes
+- `ICHE6GCPFilter` — Layer 3: REGULATORY always passes; blinding check for blinded docs
+  or INTERIM_ANALYSIS type; site-level restriction for MONITOR/INVESTIGATOR vs assigned sites
+- `HIPAAFilter` — Layer 4: IDENTIFIED PHI requires PHI-authorized role + IRB waiver;
+  LIMITED_DATASET requires DUA; DE_IDENTIFIED/NO_PHI always pass
+- `ClinicalTrialRAGPipeline` — sequential four-layer pipeline returning `ClinicalRetrievalResult`
+  with per-document audit + block_reasons dict
+- `ClinicalAccessAuditRecord` — `to_audit_log()` returns structured dict with event type,
+  user, and per-document compliance outcomes
+
+**Test coverage:** 44 tests across all four filters and the pipeline integration.
+
+---
+
 ## [0.18.0] — 2026-04-13
 
 ### Added — HR/Employment RAG (NYC Local Law 144 AEDT + EEOC 4/5 Rule + Illinois AIVIA)
