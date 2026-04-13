@@ -6,6 +6,47 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.5.0] — 2026-04-12
+
+### Added — Cross-Industry Compliance Framework
+
+This release expands `enterprise-rag-patterns` from a single-regulation library
+(FERPA) into a **cross-industry compliance framework** for RAG pipelines. New
+regulation modules apply to healthcare, government, software, and any sector
+requiring governed AI.
+
+- `regulations/hipaa.py`: `HIPAAContextPolicy`, `HIPAAAccessScope`, `HIPAAPurpose`,
+  `HIPAAAuditRecord` — HIPAA minimum-necessary enforcement (45 CFR § 164.502(b))
+  for ePHI retrieval. Three-layer filter: patient identity, HIPAA purpose
+  (treatment/payment/operations/research), PHI category. SHA-256 tamper-evident
+  audit records per 45 CFR § 164.312(b). Closes #27.
+
+- `regulations/nist_ai_rmf.py`: `AIRMFRAGPolicy`, `AIRMFRetrievalRisk`,
+  `AIRMFAuditRecord`, `AIRMFRiskLevel`, `AIRMFFunction` — NIST AI RMF 1.0
+  (NIST AI 100-1) + Generative AI Profile (NIST AI 600-1) risk assessment for
+  RAG events. MAP/MEASURE/MANAGE function coverage: PII exposure scoring,
+  confabulation risk from relevance scores, incident tracking. Closes #28.
+
+- `regulations/owasp_llm.py`: `OWASPSensitiveDisclosureFilter` (LLM02:2025),
+  `OWASPPromptInjectionScanner` (LLM01:2025), `OWASPLLMRisk`, `OWASPAuditRecord`
+  — OWASP LLM Top 10 (2025 edition) security controls. Redact/block mode for
+  PII fields; pattern-based prompt injection detection with quarantine support.
+  Closes #29.
+
+- `regulations/__init__.py`: updated to export all 3 new modules alongside
+  existing GDPR patterns; compliance table in module docstring.
+
+- `py.typed` marker (PEP 561) — enables mypy/pyright type inference for consumers.
+
+### Fixed
+- `pyproject.toml`: `pinecone>=5.0.0` → `>=8.0.0` (IndexAsyncio requires v8).
+- `integrations/langchain_lcel.py`: `FERPAFilterRunnable` now exposes `invoke()`
+  and `ainvoke()` satisfying the LangChain duck-typed Runnable protocol.
+- GitHub Actions: `actions/checkout@v6` → `@v4`, `setup-python@v6` → `@v5`
+  (v6 does not exist; jobs silently failed on version resolution).
+
+---
+
 ## [0.4.2] — 2026-04-13
 
 ### Added

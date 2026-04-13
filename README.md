@@ -10,7 +10,11 @@
 
 ## The problem this solves
 
-Standard RAG implementations retrieve documents and pass them directly to an LLM — with no enforcement of who is allowed to see what. In regulated environments (higher education, healthcare, financial services), this creates a structural compliance failure: a student can receive another student's records, a financial aid record can leak into an enrollment query, and no disclosure log is produced. This library provides the missing layer — an identity-scoped pre-filter that restricts what enters the LLM context window based on verified session identity, authorized record categories, and institution, with every access producing a 34 CFR § 99.32-compliant audit record before any generation occurs.
+Standard RAG implementations retrieve documents and pass them directly to an LLM — with no enforcement of who is allowed to see what. In regulated environments (higher education, healthcare, financial services, government), this creates a structural compliance failure: a student receives another student's records, a patient's ePHI leaks into an unrelated clinical query, prompt injection hides in a retrieved document, and no audit log is produced.
+
+This library provides the **missing compliance layer** — a cross-industry framework of pre-filters, identity scopes, risk assessors, and audit records that enforce regulatory requirements at the retrieval layer, before any document reaches the LLM context window.
+
+**Regulations covered:** FERPA · HIPAA · GDPR · NIST AI RMF · OWASP LLM Top 10
 
 ---
 
@@ -111,14 +115,29 @@ See [`examples/ferpa_rag_pipeline.py`](./examples/ferpa_rag_pipeline.py) for a c
 
 ---
 
-## Regulations supported
+## Cross-industry compliance coverage
 
-| Regulation | Status | Scope |
-|------------|--------|-------|
-| FERPA (34 CFR § 99) | Implemented | Student education records, disclosure log |
-| GDPR Art. 17 | Implemented | Right to erasure, data subject scope |
-| HIPAA (45 CFR § 164) | Planned | PHI access control and audit |
-| GLBA (16 CFR § 314) | Planned | Customer financial record safeguards |
+| Regulation / Framework | Status | Primary Sector | RAG Controls |
+|------------------------|--------|----------------|--------------|
+| FERPA (34 CFR § 99) | ✅ Implemented | Education | Identity scoping, 34 CFR § 99.32 audit log |
+| GDPR (Articles 17, 32) | ✅ Implemented | EU / Global | Right-to-erasure, data subject rights |
+| HIPAA (45 CFR §§ 164.312, 164.502) | ✅ Implemented | Healthcare | ePHI minimum-necessary, audit controls |
+| NIST AI RMF 1.0 + AI 600-1 | ✅ Implemented | All sectors | MAP/MEASURE/MANAGE risk assessment |
+| OWASP LLM Top 10 (2025) | ✅ Implemented | Software / AI | LLM01 injection, LLM02 PII disclosure |
+| GLBA (16 CFR § 314) | 🗓 Planned | Financial services | Customer record safeguards |
+| SOC 2 Type II | 🗓 Planned | SaaS / Enterprise | Context-based access control |
+| EU AI Act | 🗓 Planned | EU / Global | Article 12 tamper-evident audit logs |
+
+### Four-layer defense-in-depth model
+
+```
+Layer 0: Query-time security    → OWASP (PII redaction, injection scanning)
+Layer 1: Identity scoping       → FERPA / HIPAA (namespace + metadata filter)
+Layer 2: Compliance filtering   → FERPA / HIPAA / GDPR (document-level rules)
+Layer 3: Risk assessment + audit→ NIST AI RMF / HIPAA (structured audit records)
+```
+
+See [`docs/architecture.md`](./docs/architecture.md) for the full layered model.
 
 ---
 
@@ -126,19 +145,33 @@ See [`examples/ferpa_rag_pipeline.py`](./examples/ferpa_rag_pipeline.py) for a c
 
 ```
 src/enterprise_rag_patterns/
-├── compliance.py        # FERPA-scoped pre-filter + 34 CFR § 99.32 audit log
-├── context.py           # Context envelope and source assembly patterns
-├── session.py           # Cross-channel session continuity scaffolding
-└── policy.py            # Escalation and action-boundary policy objects
+├── compliance.py               # FERPA identity scoping + 34 CFR § 99.32 audit
+├── context.py                  # Multi-source context envelope assembly
+├── session.py                  # Cross-channel session continuity
+├── policy.py                   # Escalation and action-boundary policy objects
+├── async_compliance.py         # Async wrappers for asyncio/FastAPI environments
+├── regulations/
+│   ├── gdpr.py                 # GDPR Article 17 right-to-erasure patterns
+│   ├── hipaa.py                # HIPAA ePHI minimum-necessary + audit (NEW)
+│   ├── nist_ai_rmf.py          # NIST AI RMF 1.0 + AI 600-1 risk assessment (NEW)
+│   └── owasp_llm.py            # OWASP LLM Top 10 (2025) — LLM01/LLM02 (NEW)
+├── vector_stores/
+│   ├── pinecone_adapter.py     # PineconeComplianceFilter + namespace isolation
+│   ├── weaviate_adapter.py     # WeaviateComplianceFilter
+│   ├── qdrant_adapter.py       # QdrantComplianceFilter
+│   └── chroma_adapter.py       # ChromaComplianceFilter
+└── integrations/
+    ├── langchain.py            # FERPAComplianceCallbackHandler (LangChain 0.3+)
+    ├── langchain_lcel.py       # FERPAFilterRunnable + make_ferpa_chain (LCEL)
+    ├── llama_index.py          # FERPANodePostprocessor (LlamaIndex)
+    ├── llama_index_workflow.py # FERPAWorkflowStep (LlamaIndex 0.12+ Workflows)
+    ├── haystack.py             # FERPAHaystackFilter (Haystack 2.x)
+    └── maf.py                  # FERPAAgentMiddleware (Microsoft Agent Framework)
 docs/
-├── architecture.md
-├── implementation-note-01.md   # Cross-channel continuity problem and solution
-├── implementation-note-02.md   # FERPA boundaries in retrieval-augmented generation
-├── articles/
+├── architecture.md             # Four-layer defense-in-depth model
 ├── adr/                        # Architecture decision records
-└── case-study-anonymized.md
+└── implementation-note-*.md    # Implementation notes
 examples/
-├── context-pipeline.yaml
 └── ferpa_rag_pipeline.py       # Complete runnable FERPA-compliant pipeline
 ```
 
@@ -154,11 +187,12 @@ examples/
 
 ## Near-term roadmap
 
-- Add architecture decision records for cross-channel continuity
-- Publish a reference event flow for system-of-record synchronization
-- Add policy examples for human escalation thresholds
-- Document anonymized implementation lessons from production-style operating environments
-- HIPAA and GLBA compliance module implementations
+- `regulations/soc2.py` — SOC 2 Type II context-based access control (CBAC)
+- `regulations/eu_ai_act.py` — EU AI Act Article 12 tamper-evident audit log with cryptographic signing
+- `regulations/glba.py` — GLBA Safeguards Rule financial record access controls
+- `integrations/crewai.py` — CrewAI policy-gated tool wrapper
+- Async vector store adapters for FastAPI/asyncio environments
+- ECOSYSTEM.md: compatibility matrix with current ecosystem versions
 
 ---
 
@@ -188,9 +222,9 @@ Or use GitHub's "Cite this repository" button above (reads `CITATION.cff`).
 
 ## Part of the enterprise AI patterns trilogy
 
-| Library | Focus | Regulation |
+| Library | Focus | Compliance |
 |---------|-------|-----------|
-| **enterprise-rag-patterns** | What to retrieve | FERPA identity-scoped RAG |
+| **enterprise-rag-patterns** | What to retrieve | FERPA, HIPAA, GDPR, NIST AI RMF, OWASP LLM |
 | [regulated-ai-governance](https://github.com/ashutoshrana/regulated-ai-governance) | What agents may do | FERPA, HIPAA, GLBA policy enforcement |
 | [integration-automation-patterns](https://github.com/ashutoshrana/integration-automation-patterns) | How data flows | Event-driven enterprise integration |
 

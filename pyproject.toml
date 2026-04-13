@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "enterprise-rag-patterns"
-version = "0.4.2"
-description = "Reference patterns for compliance-aware retrieval-augmented workflows, context continuity, and governed AI integration in enterprise environments."
+version = "0.5.0"
+description = "Cross-industry compliance patterns for RAG pipelines: FERPA, HIPAA, GDPR, NIST AI RMF, OWASP LLM Top 10, and more. Vector store adapters, framework integrations, and audit logging."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
@@ -16,13 +16,21 @@ keywords = [
   "rag",
   "retrieval-augmented-generation",
   "ferpa",
+  "hipaa",
+  "gdpr",
+  "nist-ai-rmf",
+  "owasp-llm",
   "enterprise-ai",
   "compliance",
   "llm",
   "higher-education",
+  "healthcare-ai",
   "regulated-ai",
   "agentic-ai",
   "enterprise-patterns",
+  "ai-governance",
+  "prompt-injection",
+  "pii-redaction",
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
