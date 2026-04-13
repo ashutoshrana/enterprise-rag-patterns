@@ -6,6 +6,50 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.20.0] — 2026-04-13
+
+### Added — Digital Health RAG (FDA SaMD + 42 CFR Part 2 SUD + HIPAA Special Categories + ONC Interoperability)
+
+**`examples/25_digital_health_rag.py`** — four-layer defense-in-depth retrieval pipeline
+for digital health and telehealth platforms enforcing FDA Software as a Medical Device (SaMD)
+classification requirements (Class I/II/III device clearance), 42 CFR Part 2 Substance Use
+Disorder records protections (no TPO exceptions — stricter than HIPAA), HIPAA Special Category
+access controls (psychotherapy notes, HIV/AIDS status, genetic information, domestic violence),
+and ONC 21st Century Cures Act information blocking prohibition with patient-directed access
+rights.
+
+**New classes:**
+- `DigitalHealthRole` — 9 roles: PRESCRIBER, CARE_MANAGER, PATIENT, PATIENT_ADVOCATE,
+  SUD_COUNSELOR, MENTAL_HEALTH_PROVIDER, DATA_ANALYST, RESEARCHER, ADMIN
+- `SaMDClass` — CLASS_I / CLASS_II / CLASS_III (FDA device classification)
+- `SpecialCategory` — PSYCHOTHERAPY_NOTES / HIV_STATUS / GENETIC_INFO /
+  DOMESTIC_VIOLENCE / NONE
+- `DigitalHealthContext` (frozen) — 9-field context: user role, device cleared status,
+  intended use documentation, explicit Part 2 consent, same SUD program indicator,
+  HIPAA authorization, information blocking exception, patient self-access flag
+- `DigitalHealthDocument` (frozen) — 5-field document: SaMD class, SUD record flag,
+  special category, public access flag
+- `DigitalHealthDecision` — PERMITTED / DENIED / REDACTED
+- `DigitalHealthResult` — per-layer result with decision, reason, and conditions
+- `FDASaMDFilter` — Class III requires device_cleared + intended_use_documented;
+  Class II requires intended_use_documented; Class I always permitted; public → bypass
+- `Part2SUDFilter` — SUD records blocked unless explicit_part2_consent OR
+  is_same_sud_program (no HIPAA Treatment/Payment/Operations exceptions)
+- `HIPAASpecialCategoryFilter` — psychotherapy notes: MENTAL_HEALTH_PROVIDER only
+  (patient blocked per 45 CFR 164.524(a)(1)(i)); HIV: authorized clinical roles or
+  hipaa_authorization; genetic info: DATA_ANALYST/RESEARCHER blocked without authorization;
+  domestic violence: MENTAL_HEALTH_PROVIDER or PRESCRIBER only
+- `ONCInteroperabilityFilter` — patient-directed roles (PATIENT, PATIENT_ADVOCATE) and
+  is_patient_self_access always permitted unless information_blocking_exception_applies;
+  clinical roles pass through
+- `DigitalHealthRAGPipeline` — sequential four-layer retrieval with per-document enforcement
+- `DigitalHealthAuditRecord` — structured audit with `to_audit_log()` returning dict with
+  event="DIGITAL_HEALTH_RAG_RETRIEVAL", permitted/denied/redacted counts, layer outcomes
+
+**Tests:** 36 tests in `tests/test_digital_health_rag.py`
+
+---
+
 ## [0.19.0] — 2026-04-13
 
 ### Added — Clinical Trials RAG (FDA 21 CFR Part 11 + GxP Tiers + ICH E6(R3) GCP + HIPAA)
