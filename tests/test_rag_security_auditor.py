@@ -19,9 +19,7 @@ import types
 # ---------------------------------------------------------------------------
 
 _MOD_NAME = "rag_security_auditor_50"
-_EXAMPLE_PATH = os.path.join(
-    os.path.dirname(__file__), "..", "examples", "50_rag_security_auditor.py"
-)
+_EXAMPLE_PATH = os.path.join(os.path.dirname(__file__), "..", "examples", "50_rag_security_auditor.py")
 
 spec = importlib.util.spec_from_file_location(_MOD_NAME, _EXAMPLE_PATH)
 mod = types.ModuleType(_MOD_NAME)
@@ -375,8 +373,6 @@ class TestCountConsistency:
         report = _audit(_all_off_config())
         for f in report.findings:
             assert isinstance(f.framework_refs, list)
-            assert len(f.framework_refs) > 0, (
-                f"{f.control_id} has empty framework_refs"
-            )
+            assert len(f.framework_refs) > 0, f"{f.control_id} has empty framework_refs"
             for ref in f.framework_refs:
                 assert isinstance(ref, str) and len(ref) > 0
