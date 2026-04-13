@@ -6,6 +6,28 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.5.3] — 2026-04-12
+
+### Added
+
+- `regulations/glba.py`: `GLBAContextPolicy`, `GLBAAccessContext`, `GLBAAccessScope`,
+  `GLBADataCategory`, `GLBAAuditRecord` — GLBA Safeguards Rule (16 CFR § 314) NPI access
+  control for RAG pipelines.  Three independent controls applied per document:
+  (1) **§ 314.3** institution isolation — documents from other financial institutions are
+  blocked unconditionally;
+  (2) **§ 314.4(e)** purpose limitation — NPI categories (`NONPUBLIC_PERSONAL`,
+  `ACCOUNT_DATA`, `TRANSACTION_HISTORY`, `CREDIT_INFORMATION`) require the actor's declared
+  purpose to be in their authorized purposes set;
+  (3) **§ 314.4(i)** marketing-role restriction — `CREDIT_INFORMATION` and
+  `TRANSACTION_HISTORY` are always blocked for marketing-role actors regardless of purpose.
+  `GLBAAccessScope.permits()` helper for pre-validated scope checks.
+  SHA-256 tamper-evident `GLBAAuditRecord` with `content_hash()` (§ 314.4(h) monitoring).
+  56 new tests.
+- `regulations/__init__.py`: exports all five GLBA symbols; updated cross-industry module
+  table and docstring with GLBA Safeguards Rule entry.
+
+---
+
 ## [0.5.2] — 2026-04-13
 
 ### Added

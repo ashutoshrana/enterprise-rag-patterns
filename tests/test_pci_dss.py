@@ -94,19 +94,19 @@ class TestPCIAccessScope:
 
     def test_authorized_category_permitted(self) -> None:
         scope = _scope(
-            authorized_data_categories=frozenset({
-                PCIDataCategory.CARDHOLDER_DATA,
-                PCIDataCategory.TRANSACTION_DATA,
-            })
+            authorized_data_categories=frozenset(
+                {
+                    PCIDataCategory.CARDHOLDER_DATA,
+                    PCIDataCategory.TRANSACTION_DATA,
+                }
+            )
         )
         assert scope.may_access_category(PCIDataCategory.CARDHOLDER_DATA) is True
         assert scope.may_access_category(PCIDataCategory.TRANSACTION_DATA) is True
 
     def test_sad_not_authorized_even_with_chd(self) -> None:
         """SENSITIVE_AUTH_DATA must be separately authorized (Req 7.2.1)."""
-        scope = _scope(
-            authorized_data_categories=frozenset({PCIDataCategory.CARDHOLDER_DATA})
-        )
+        scope = _scope(authorized_data_categories=frozenset({PCIDataCategory.CARDHOLDER_DATA}))
         assert scope.may_access_category(PCIDataCategory.SENSITIVE_AUTH_DATA) is False
 
 
@@ -171,9 +171,7 @@ class TestPCICategoryNeedToKnow:
         assert result == []
 
     def test_chd_accessible_with_authorization(self) -> None:
-        scope = _scope(
-            authorized_data_categories=frozenset({PCIDataCategory.CARDHOLDER_DATA})
-        )
+        scope = _scope(authorized_data_categories=frozenset({PCIDataCategory.CARDHOLDER_DATA}))
         docs = _docs({"data_category": "cardholder_data", "content": "ok"})
         result = PCIContextPolicy(scope).filter_retrieved_documents(docs)
         assert len(result) == 1
@@ -237,10 +235,12 @@ class TestPCIPANMasking:
             merchant_id="merchant_acme",
             authorized_data_categories=frozenset(),
         )
-        docs = _docs({
-            "merchant_id": "merchant_other",
-            "content": "4111 1111 1111 1111",
-        })
+        docs = _docs(
+            {
+                "merchant_id": "merchant_other",
+                "content": "4111 1111 1111 1111",
+            }
+        )
         policy = PCIContextPolicy(scope)
         result = policy.filter_retrieved_documents(docs)
         assert result == []
@@ -250,9 +250,7 @@ class TestPCIPANMasking:
         scope = _scope()
         policy = PCIContextPolicy(scope)
         assert policy.last_pan_masked_count == 0
-        policy.filter_retrieved_documents(
-            _docs({"content": "4111 1111 1111 1111 and 5500 0000 0000 0004"})
-        )
+        policy.filter_retrieved_documents(_docs({"content": "4111 1111 1111 1111 and 5500 0000 0000 0004"}))
         assert policy.last_pan_masked_count == 2
 
     def test_last_pan_masked_count_accumulates_across_docs(self) -> None:
@@ -334,9 +332,7 @@ class TestPCIAuditEmission:
         scope = _scope()
         records: list[PCIAuditRecord] = []
         policy = PCIContextPolicy(scope, audit_sink=records.append)
-        policy.filter_retrieved_documents(
-            _docs({"content": "4111 1111 1111 1111"})
-        )
+        policy.filter_retrieved_documents(_docs({"content": "4111 1111 1111 1111"}))
         assert records[0].pan_masked_count == 1
 
     def test_session_id_propagated_to_audit(self) -> None:

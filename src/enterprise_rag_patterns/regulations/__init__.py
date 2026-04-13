@@ -10,6 +10,8 @@ Available modules
 Regulatory / statutory:
 - ``ferpa``       — FERPA 34 CFR § 99 (in parent: ``enterprise_rag_patterns.compliance``).
 - ``gdpr``        — GDPR Articles 17, 32: right-to-erasure, data subject rights.
+- ``glba``        — GLBA 15 U.S.C. § 6801 / Safeguards Rule 16 CFR § 314: NPI isolation,
+  purpose limitation, marketing-role restriction (§ 314.3, § 314.4(e), § 314.4(i)).
 - ``hipaa``       — HIPAA 45 CFR §§ 164.312(b), 164.502(b): ePHI minimum-necessary + audit.
 
 IT audit / security frameworks:
@@ -27,19 +29,21 @@ AI / technology governance:
 Cross-industry applicability
 -----------------------------
 
-| Regulation / Framework | Category         | Primary Sector       | RAG-Specific Control                       |
-|------------------------|------------------|----------------------|--------------------------------------------|
-| FERPA                  | Regulatory       | Education            | Student identity scoping, audit logging    |
-| GDPR                   | Regulatory       | EU / Global          | Erasure, data subject rights, lineage      |
-| HIPAA                  | Regulatory       | Healthcare           | ePHI minimum-necessary, audit controls     |
-| ISO/IEC 27001:2022     | IT Audit         | All sectors          | ISMS classification, org isolation, CBAC   |
-| NIST AI RMF 1.0        | AI Governance    | All sectors          | Risk assessment, confabulation scoring     |
-| OWASP LLM Top 10       | AI Security      | Software / AI        | PII redaction, prompt injection scanning   |
-| PCI DSS v4.0           | IT Audit         | Payments / Finance   | Merchant isolation, CHD CBAC, PAN masking  |
-| SOC 2 Type II          | IT Audit         | SaaS / Enterprise    | Tenant isolation, CBAC, CC7.2 audit log    |
+| Regulation / Framework | Category         | Primary Sector       | RAG-Specific Control                             |
+|------------------------|------------------|----------------------|--------------------------------------------------|
+| FERPA                  | Regulatory       | Education            | Student identity scoping, audit logging          |
+| GDPR                   | Regulatory       | EU / Global          | Erasure, data subject rights, lineage            |
+| GLBA Safeguards Rule   | Regulatory       | Finance / Insurance  | NPI isolation, purpose limitation, role restrict |
+| HIPAA                  | Regulatory       | Healthcare           | ePHI minimum-necessary, audit controls           |
+| ISO/IEC 27001:2022     | IT Audit         | All sectors          | ISMS classification, org isolation, CBAC         |
+| NIST AI RMF 1.0        | AI Governance    | All sectors          | Risk assessment, confabulation scoring           |
+| OWASP LLM Top 10       | AI Security      | Software / AI        | PII redaction, prompt injection scanning         |
+| PCI DSS v4.0           | IT Audit         | Payments / Finance   | Merchant isolation, CHD CBAC, PAN masking        |
+| SOC 2 Type II          | IT Audit         | SaaS / Enterprise    | Tenant isolation, CBAC, CC7.2 audit log          |
 """
 
 from .gdpr import ErasureAuditRecord, ErasureRequest, GDPRRAGPolicy
+from .glba import GLBAAccessContext, GLBAAccessScope, GLBAAuditRecord, GLBAContextPolicy, GLBADataCategory
 from .hipaa import HIPAAAccessScope, HIPAAAuditRecord, HIPAAContextPolicy, HIPAAPurpose
 from .iso27001 import ISMSAccessContext, ISMSAuditRecord, ISMSClassification, ISMSContextPolicy
 from .nist_ai_rmf import (
@@ -68,6 +72,12 @@ __all__ = [
     "ErasureRequest",
     "ErasureAuditRecord",
     "GDPRRAGPolicy",
+    # GLBA Safeguards Rule
+    "GLBADataCategory",
+    "GLBAAccessContext",
+    "GLBAAccessScope",
+    "GLBAAuditRecord",
+    "GLBAContextPolicy",
     # HIPAA
     "HIPAAAccessScope",
     "HIPAAAuditRecord",
