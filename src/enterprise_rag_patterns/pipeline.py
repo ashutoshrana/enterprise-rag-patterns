@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +55,7 @@ class FilterPipeline:
 
     def __init__(
         self,
-        filters: list[Callable],
+        filters: list[Callable[..., Any]],
         *,
         stop_on_requires_review: bool = False,
     ) -> None:
@@ -70,7 +71,7 @@ class FilterPipeline:
         self._filters = filters
         self._stop_on_requires_review = stop_on_requires_review
 
-    def run(self, document: dict) -> PipelineResult:
+    def run(self, document: dict[str, Any]) -> PipelineResult:
         """
         Run all filters against document. Returns the first blocking result, or
         APPROVED if all filters pass.
@@ -104,11 +105,11 @@ class FilterPipeline:
             requires_logging=False,
         )
 
-    def filter_batch(self, documents: list[dict]) -> list[PipelineResult]:
+    def filter_batch(self, documents: list[dict[str, Any]]) -> list[PipelineResult]:
         """Run pipeline against a list of documents. Returns result for each."""
         return [self.run(doc) for doc in documents]
 
-    def approved_only(self, documents: list[dict]) -> list[dict]:
+    def approved_only(self, documents: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Filter a list of documents, returning only those that pass all filters."""
         return [doc for doc in documents if self.run(doc).is_approved]
 
