@@ -6,6 +6,55 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.11.0] — 2026-04-13
+
+### Added — Energy/Utilities Sector RAG Example (FERC CEII + NERC CIP + NRC SUNSI)
+
+**`examples/16_energy_utilities_rag.py`** — three-layer defense-in-depth retrieval
+pipeline for a bulk electric system (BES) operator's grid operations knowledge base:
+
+New classes (self-contained in the example):
+- `CEIICategory` — FERC CEII categories (CRITICAL_ASSET_LOCATION, GRID_VULNERABILITY,
+  PROTECTION_SYSTEM, CONTROL_SYSTEM, CAPACITY_SENSITIVE, NON_CEII, PUBLIC)
+- `NERCCIPTier` — NERC CIP reliability standard tiers (HIGH_IMPACT, MEDIUM_IMPACT,
+  LOW_IMPACT, NOT_APPLICABLE); HIGH = transmission ≥ 500kV control centers, MEDIUM =
+  substations ≥ 200kV and generation ≥ 1500 MW, LOW = distribution-level systems
+- `OperatorRole` — utility roles (SYSTEM_OPERATOR, CIP_COMPLIANCE_ANALYST,
+  FIELD_ENGINEER, THIRD_PARTY_CONTRACTOR, NRC_AUTHORIZED, PUBLIC)
+- `SUNSIType` — NRC SUNSI types (SAFEGUARDS_INFORMATION, SECURITY_RELATED_INFO,
+  EXPORT_CONTROLLED, NON_SUNSI)
+- `EnergyAccessContext` — session boundary: authorized CEII categories, NERC CIP
+  training completion status, authorized CIP tiers, NRC SUNSI authorization
+- `EnergyComplianceAuditRecord` — per-query record: CEII blocked, NERC CIP blocked,
+  NRC SUNSI blocked, documents returned, applicable regulations
+- `CEIIFilter` — Layer 1: enforces FERC 18 CFR Part 388.113; blocks documents whose
+  CEII category is not in the requester's authorized set
+- `NERCCIPFilter` — Layer 2: enforces CIP-004-7 (personnel training) and CIP-011-3
+  (information protection); blocks BCSI when training is not complete or tier is not
+  in the requester's authorized tier set
+- `SUNSIFilter` — Layer 3: enforces NRC 10 CFR Part 2.390; blocks safeguards
+  information from non-NRC-authorized personnel
+- `EnergyRAGPipeline` — three-layer orchestrator
+
+Design note: CEII authorization (FERC-granted), NERC CIP authorization (utility-internal
+training + access management), and NRC SUNSI authorization (NRC-granted) are three
+independent authorization hierarchies. A CIP compliance analyst with all-tier CIP
+training does not automatically have CEII authorization — and vice versa.
+
+Scenarios:
+- A: Certified system operator (CEII HIGH+MEDIUM+VULNERABILITY authorized, CIP HIGH+MEDIUM
+  trained) — NRC SUNSI blocks nuclear safeguards; NERC CIP LOW-tier blocked (operator
+  authorized for HIGH+MEDIUM only); CEII infrastructure docs returned
+- B: Third-party contractor (no CEII authorization, CIP training not complete) — CEII
+  blocks all critical infrastructure docs; CIP blocks BCSI; only PUBLIC docs returned
+- C: CIP Compliance Analyst (all tiers trained, no CEII authorization) — CEII blocks
+  critical asset/vulnerability docs; LOW-tier BCSI (distribution automation) returns
+- D: Public information request — all three layers pass; pricing and tariff docs returned
+
+Closes #33.
+
+---
+
 ## [0.10.0] — 2026-04-13
 
 ### Added — Federal/Government RAG Example (CUI + FedRAMP + NIST 800-53 AC-3)
