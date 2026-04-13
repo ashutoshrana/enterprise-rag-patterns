@@ -6,6 +6,24 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.8.2] — 2026-04-13
+
+### Added — Human Escalation Policy Example
+
+**`examples/10_escalation_policy.py`** — `ActionPolicy` and `EscalationRule` applied to an
+enrollment advisor agent with three escalation trigger types:
+- **Regulatory triggers**: `submit_withdrawal`, `process_financial_aid_change`, `override_academic_hold`,
+  `release_pii_export` — always route to human regardless of confidence
+- **Content-based triggers**: `disciplinary`, `financial hardship`, `legal dispute`, `grievance`, `deceased`
+  keywords in retrieved context trigger required human handoff
+- **Confidence thresholds**: `REQUIRED` < 50% (agent cannot respond), `SOFT` < 75%
+  (agent may attempt with human available)
+- **Audit trail**: `EscalationEvent` records which rule triggered each escalation
+- **FERPA-correct message**: agent never discloses escalation reason to user (34 CFR § 99.12)
+- Closes #3.
+
+---
+
 ## [0.8.1] — 2026-04-13
 
 ### Added — Vector Store Integration Examples
