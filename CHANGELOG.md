@@ -6,6 +6,21 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.41.0] — 2026-04-13
+
+### Added — Pharma / Clinical Trials RAG Pre-filter (`45_pharma_clinical_trials_rag.py`)
+
+Four-layer retrieval access control for pharmaceutical drug development and clinical trial compliance:
+
+- `FDADrugDevelopmentFilter` (21 CFR Parts 312/314/601/210/211) — IND non-compliance → DENIED (Part 312); NDA non-compliance → DENIED (Part 314); BLA non-compliance → DENIED (Part 601); CGMP unverified → REQUIRES_HUMAN_REVIEW (Parts 210/211)
+- `ICHGCPFilter` (ICH E6 R2/R3) — no IRB/IEC approval → DENIED (E6 §3.1 + 21 CFR Part 56); incomplete informed consent elements → DENIED (E6 §4.8.10); unqualified investigator → DENIED (E6 §4.1); SAE without 15-day expedited reporting → REQUIRES_HUMAN_REVIEW (E6 §4.11.1 + 21 CFR §312.32)
+- `EMARegulationsFilter` (EU CTR 536/2014 + EMA Pediatric Regulation 1901/2006 + Regulation 726/2004 + GDPR) — no EU CTR authorization → DENIED; no PIP compliance → DENIED (Art. 7); EU MAA without centralized procedure → DENIED (Art. 3); GDPR Art. 9 health data without Art. 9(2)(j) research safeguards → REQUIRES_HUMAN_REVIEW
+- `PharmaCrossBorderFilter` — cross-border trial data without ICH E6 §5.15 DTA + GDPR Art. 46 SCC → DENIED; manufacturing from FDA import-alert country without review → DENIED (Import Alert 66-40/66-66); controlled substance to non-DEA-compliant jurisdiction → DENIED (21 U.S.C. §812); biosimilar without FDA/EMA parallel review → REQUIRES_HUMAN_REVIEW
+
+64 new tests. Total: **1612 passed, 2 skipped**.
+
+---
+
 ## [0.40.0] — 2026-04-13
 
 ### Added — Defense / Aerospace / Export Controls RAG Pre-filter (`44_defense_itar_ear_rag.py`)
