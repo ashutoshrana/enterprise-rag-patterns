@@ -6,6 +6,23 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.30.0] — 2026-04-13
+
+### Added — Southeast Asia RAG Pre-filter (`35_southeast_asia_rag.py`)
+
+Thailand, Indonesia, and Vietnam data protection laws as a four-layer RAG pre-filter:
+
+- `ThailandPDPAFilter` (PDPA B.E. 2562) — sensitive data without consent → DENIED (§19); collection without basis → DENIED (§24); minor without parental consent → DENIED (§20); data subject self-access bypass
+- `IndonesiaPDPFilter` (UU PDP No. 27/2022) — sensitive data without consent → DENIED (Art. 20); no legal basis → DENIED (Art. 16); automated decision without human review → REQUIRES_HUMAN_REVIEW (Art. 34)
+- `VietnamCybersecurityFilter` (Cybersecurity Law + Decree 13/2023) — sensitive data → DENIED (Art. 8); no consent → DENIED (Art. 5); regulator bypass
+- `SEAsiaCrossBorderFilter` — ASEAN adequate jurisdictions (TH/ID/VN/SG/MY/PH); no safeguards → DENIED with jurisdiction-specific citation
+- `SEAsiaRAGPipeline` + `SEAsiaAuditRecord`
+
+38 new tests. Total: **1107 passed, 2 skipped**.
+
+---
+
+
 ## [0.29.0] — 2026-04-13
 
 ### Added — US Real Estate / Proptech RAG Pre-filter (`34_real_estate_rag.py`)
