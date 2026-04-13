@@ -6,6 +6,60 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.15.0] — 2026-04-13
+
+### Added — Real Estate / Mortgage Lending RAG Example (Fair Housing Act + HMDA + CFPB UDAAP + RESPA)
+
+**`examples/20_real_estate_mortgage_rag.py`** — four-layer defense-in-depth retrieval pipeline
+for mortgage lending knowledge base systems, enforcing the Fair Housing Act (42 U.S.C. §§ 3604–3606),
+Home Mortgage Disclosure Act (12 U.S.C. § 2801; Reg C), CFPB UDAAP adverse action explainability
+(12 U.S.C. § 5531; Reg B 12 CFR 1002.9), and RESPA/SAFE Act state licensing requirements
+(12 U.S.C. §§ 2607, 5104) independently and simultaneously.
+
+New classes (self-contained in the example):
+- `ProtectedCharacteristic` — 10 FHA/ECOA protected classes: RACE, COLOR, NATIONAL_ORIGIN,
+  RELIGION, SEX, FAMILIAL_STATUS, DISABILITY (FHA), AGE, MARITAL_STATUS, RECEIPT_OF_PUBLIC_ASSISTANCE (ECOA)
+- `MortgageDocumentCategory` — 18 document categories spanning underwriting credit file (CREDIT_REPORT,
+  INCOME_VERIFICATION, ASSET_STATEMENT, DEBT_OBLIGATIONS), property docs (APPRAISAL_REPORT,
+  COMPARABLE_SALES, PROPERTY_ASSESSMENT), demographic data (NEIGHBORHOOD_DEMOGRAPHIC, CENSUS_TRACT_DATA),
+  HMDA data (HMDA_LAR_DATA, HMDA_DEMOGRAPHIC), decision docs (APPROVAL_NOTICE, DENIAL_NOTICE,
+  RATE_SHEET, COUNTER_OFFER), settlement (CLOSING_DISCLOSURE, SETTLEMENT_STATEMENT, TITLE_COMMITMENT),
+  and internal policy (UNDERWRITING_GUIDELINES, COMPLIANCE_PROCEDURE)
+- `LoanPurpose` — HOME_PURCHASE, REFINANCE, HOME_IMPROVEMENT, CASH_OUT_REFINANCE, HELOC
+- `QueryContext` — UNDERWRITING_DECISION, APPRAISAL_REVIEW, ADVERSE_ACTION, HMDA_REPORTING,
+  COMPLIANCE_AUDIT, SERVICING, GENERAL_QUERY
+- `MortgageAccessContext` — frozen dataclass: loan_officer_id, license_state, property_state,
+  query_context, adverse_action_notice_required, hmda_reporting_context, loan_purpose
+- `MortgageDocument` — frozen dataclass: doc_id, category, title, contains_protected_class_data,
+  contains_hmda_demographic_fields, property_state, adverse_action_factors, is_public_disclosure
+- `FHADisparateImpactFilter` — Layer 1: blocks NEIGHBORHOOD_DEMOGRAPHIC and CENSUS_TRACT_DATA in
+  underwriting/appraisal/adverse action contexts (Texas Dept. of Housing v. Inclusive Communities,
+  576 U.S. 519, 2015); blocks any document with protected class data in restricted contexts;
+  COMPLIANCE_AUDIT and public disclosures exempt
+- `HMDAComplianceFilter` — Layer 2: blocks HMDA_DEMOGRAPHIC and HMDA_LAR_DATA in underwriting/
+  appraisal/adverse action contexts per 12 CFR 1002.5(d); permits HMDA data in hmda_reporting_context;
+  blocks any document with HMDA demographic fields in underwriting per FFIEC guidance
+- `CFPBUDAAPFilter` — Layer 3: in ADVERSE_ACTION contexts with adverse_action_notice_required=True,
+  blocks DENIAL_NOTICE documents with empty adverse_action_factors (CFPB Circular 2022-03) and blocks
+  adverse action documents citing protected class attributes as denial reasons (ECOA §1691);
+  blocks demographic categories from serving as adverse action basis
+- `RESPALicensingFilter` — Layer 4: blocks documents where license_state ≠ property_state per
+  SAFE Act 12 U.S.C. § 5104; COMPLIANCE_AUDIT and HMDA_REPORTING contexts exempt; public
+  disclosures exempt; case-insensitive state matching
+- `MortgageComplianceAuditRecord` — fair lending audit log capturing all filter decisions per
+  required HMDA/ECOA/BSA record-keeping; `to_fair_lending_log()` returns dict for examination
+
+4 end-to-end scenarios: (A) loan officer appraisal review with FHA/HMDA/RESPA enforcement,
+(B) compliance analyst HMDA reporting query permitting HMDA data access, (C) cross-state
+officer blocked by RESPA/SAFE Act licensing, (D) adverse action notice with CFPB UDAAP
+explainability gate (valid factors permitted, missing factors / protected class factors blocked)
+
+Tests: 37 new tests in `tests/test_mortgage_rag.py` — TestFHADisparateImpactFilter (8),
+TestHMDAComplianceFilter (6), TestCFPBUDAAPFilter (7), TestRESPALicensingFilter (6),
+TestMortgageRAGPipeline (6), TestScenarios (4)
+
+---
+
 ## [0.14.0] — 2026-04-13
 
 ### Added — Pharmaceutical/Clinical Trial RAG Example (FDA 21 CFR Part 11 + ICH E6(R3) GCP + HIPAA)
