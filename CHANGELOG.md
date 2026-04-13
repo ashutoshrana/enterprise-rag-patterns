@@ -6,6 +6,34 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.24.0] — 2026-04-13
+
+### Added — Government/Public Sector RAG (FedRAMP + FISMA + NIST SP 800-53 + CUI 32 CFR Part 2002)
+
+**`examples/29_government_public_sector_rag.py`** — four-layer defense-in-depth retrieval pipeline
+for U.S. federal and state government platforms enforcing FedRAMP authorization levels,
+FISMA/NIST SP 800-53 security controls, Controlled Unclassified Information (CUI) handling
+requirements under 32 CFR Part 2002, and government audit log protection under NIST AU-9.
+
+**New classes:**
+- `FedRAMPImpactLevel` — HIGH / MODERATE / LOW / NOT_FEDRAMP
+- `CUICategory` — UNCONTROLLED_PUBLIC / FOUO / LAW_ENFORCEMENT_SENSITIVE / PRIVACY_ACT / EXPORT_CONTROLLED
+- `GovernmentRole` — FEDERAL_EMPLOYEE / CONTRACTOR / CLEARED_CONTRACTOR / IG_AUDITOR / CONGRESSIONAL_STAFF / STATE_GOVERNMENT / PUBLIC / SYSTEM_ADMIN
+- `GovernmentDecision` — PERMITTED / DENIED / REDACTED
+- `GovernmentRAGContext` — frozen dataclass (16 fields): FedRAMP level, background investigation, security clearance, need-to-know, Privacy Act training, ATO, FISMA categorization
+- `GovernmentDocument` — frozen dataclass (8 fields): FedRAMP required level, CUI category, PII, export control, classification flags
+- `GovernmentFilterResult` — filter output with `is_denied` property
+- `FedRAMPAuthorizationFilter` — FedRAMP impact level authorization + ATO + authorized system enforcement
+- `FISMASecurityControlFilter` — NIST SP 800-53 AC-3/AC-4 access enforcement, AC-3(7) need-to-know, PS-3 personnel screening
+- `CUIMarkingFilter` — 32 CFR Part 2002 CUI categories; EAR/ITAR US person requirement; Privacy Act 5 USC §552a training gate; FAR 52.204-21 contractor agreement
+- `GovernmentAuditFilter` — NIST AU-9 audit protection; Inspector General Act §6 independent access override; Congressional oversight override
+- `GovernmentRAGPipeline` — orchestrates all four layers; `retrieve()` and `retrieve_with_audit()`
+- `GovernmentAuditRecord` — structured audit log with `to_audit_log()` producing GOVERNMENT_RAG_RETRIEVAL events
+
+**Tests:** 36 tests — all passing.
+
+---
+
 ## [0.23.0] — 2026-04-13
 
 ### Added — Energy & Utilities RAG (NERC CIP + FERC CEII + DOE Cybersecurity + NRC Nuclear Safeguards)
