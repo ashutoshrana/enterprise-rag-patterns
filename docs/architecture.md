@@ -20,9 +20,9 @@ does not compromise the others.
 └─────────────────────────────────────────┬──────────────────────────────────┘
                                           │ scoped results
 ┌─────────────────────────────────────────▼──────────────────────────────────┐
-│  Layer 2: COMPLIANCE FILTERING (GDPR / HIPAA / FERPA)                      │
+│  Layer 2: COMPLIANCE FILTERING (GDPR / HIPAA / FERPA / SOC 2)              │
 │  GDPRRAGPolicy · HIPAAContextPolicy.filter_retrieved_documents             │
-│  FERPAContextPolicy.filter_retrieved_documents                             │
+│  FERPAContextPolicy.filter_retrieved_documents · SOC2ContextPolicy         │
 └─────────────────────────────────────────┬──────────────────────────────────┘
                                           │ authorized documents
 ┌─────────────────────────────────────────▼──────────────────────────────────┐
@@ -46,6 +46,7 @@ does not compromise the others.
 | GDPR (Articles 17, 32)   | `regulations/gdpr.py`         | EU / Global         | Right-to-erasure, data subject rights     |
 | NIST AI RMF 1.0          | `regulations/nist_ai_rmf.py`  | All sectors         | MAP/MEASURE/MANAGE risk assessment        |
 | OWASP LLM Top 10 (2025)  | `regulations/owasp_llm.py`    | Software / AI       | LLM01 injection, LLM02 PII disclosure     |
+| SOC 2 Type II (AICPA)    | `regulations/soc2.py`         | SaaS / Enterprise   | Tenant isolation, CBAC, CC7.2 audit log   |
 
 ---
 
@@ -135,3 +136,5 @@ Every retrieval event produces structured audit records:
 | Custom injection patterns | `OWASPPromptInjectionScanner(custom_patterns=[...])` | Sector-specific attack patterns |
 | Custom PHI categories     | `HIPAAAccessScope(authorized_phi_categories={"lab_results"})` | Specialty clinic scope |
 | Custom RMF data sources   | `AIRMFRAGPolicy(data_sources=["ehr", "pacs"])` | Healthcare system risk mapping |
+| Custom SOC 2 TSC controls | `SOC2ContextPolicy(tsc_controls=["CC6.1", "C1.1"])` | Audit only CC6.1 + C1.1 |
+| Custom confidentiality tiers | `SOC2ConfidentialityTier` subclass or label mapping | Non-standard data classification schemes |

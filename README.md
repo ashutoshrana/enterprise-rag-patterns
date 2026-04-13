@@ -124,8 +124,8 @@ See [`examples/ferpa_rag_pipeline.py`](./examples/ferpa_rag_pipeline.py) for a c
 | HIPAA (45 CFR §§ 164.312, 164.502) | ✅ Implemented | Healthcare | ePHI minimum-necessary, audit controls |
 | NIST AI RMF 1.0 + AI 600-1 | ✅ Implemented | All sectors | MAP/MEASURE/MANAGE risk assessment |
 | OWASP LLM Top 10 (2025) | ✅ Implemented | Software / AI | LLM01 injection, LLM02 PII disclosure |
+| SOC 2 Type II | ✅ Implemented | SaaS / Enterprise | Tenant isolation, CBAC, CC7.2 audit log |
 | GLBA (16 CFR § 314) | 🗓 Planned | Financial services | Customer record safeguards |
-| SOC 2 Type II | 🗓 Planned | SaaS / Enterprise | Context-based access control |
 | EU AI Act | 🗓 Planned | EU / Global | Article 12 tamper-evident audit logs |
 
 ### Four-layer defense-in-depth model
@@ -153,8 +153,9 @@ src/enterprise_rag_patterns/
 ├── regulations/
 │   ├── gdpr.py                 # GDPR Article 17 right-to-erasure patterns
 │   ├── hipaa.py                # HIPAA ePHI minimum-necessary + audit (NEW)
-│   ├── nist_ai_rmf.py          # NIST AI RMF 1.0 + AI 600-1 risk assessment (NEW)
-│   └── owasp_llm.py            # OWASP LLM Top 10 (2025) — LLM01/LLM02 (NEW)
+│   ├── nist_ai_rmf.py          # NIST AI RMF 1.0 + AI 600-1 risk assessment
+│   ├── owasp_llm.py            # OWASP LLM Top 10 (2025) — LLM01/LLM02
+│   └── soc2.py                 # SOC 2 Type II CBAC — CC6.1/CC6.6/C1.1/CC7.2 (NEW)
 ├── vector_stores/
 │   ├── pinecone_adapter.py     # PineconeComplianceFilter + namespace isolation
 │   ├── weaviate_adapter.py     # WeaviateComplianceFilter
@@ -187,7 +188,6 @@ examples/
 
 ## Near-term roadmap
 
-- `regulations/soc2.py` — SOC 2 Type II context-based access control (CBAC)
 - `regulations/eu_ai_act.py` — EU AI Act Article 12 tamper-evident audit log with cryptographic signing
 - `regulations/glba.py` — GLBA Safeguards Rule financial record access controls
 - `integrations/crewai.py` — CrewAI policy-gated tool wrapper

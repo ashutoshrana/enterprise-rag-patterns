@@ -6,6 +6,24 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.5.1] — 2026-04-13
+
+### Added
+
+- `regulations/soc2.py`: `SOC2ContextPolicy`, `SOC2AccessContext`, `SOC2ConfidentialityTier`,
+  `SOC2AuditRecord` — SOC 2 Type II context-based access control (CBAC) for RAG pipelines.
+  Three-layer defense-in-depth:
+  (1) **CC6.1** tenant isolation — documents outside the authorized tenant boundary are blocked
+  unconditionally;
+  (2) **C1.1/C1.2** confidentiality tier — PUBLIC/INTERNAL/CONFIDENTIAL/RESTRICTED label
+  enforcement with fail-safe unknown-tier blocking;
+  (3) **CC6.6** role-based access — role intersection check on per-document `required_roles`
+  fields.  SHA-256 tamper-evident `SOC2AuditRecord` with `content_hash()`. 28 new tests. Closes #27.
+- `regulations/__init__.py`: exports all four SOC 2 symbols; updated cross-industry table
+  in module docstring.
+
+---
+
 ## [0.5.0] — 2026-04-12
 
 ### Added — Cross-Industry Compliance Framework

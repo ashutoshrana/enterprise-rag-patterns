@@ -7,23 +7,26 @@ context-assembly layer — they are not general-purpose compliance engines.
 
 Available modules
 -----------------
-- ``ferpa``    — FERPA 34 CFR § 99 patterns (in parent: ``enterprise_rag_patterns.compliance``).
-- ``gdpr``     — GDPR Article 17 right-to-erasure patterns.
-- ``hipaa``    — HIPAA 45 CFR §§ 164.312(b), 164.502(b) ePHI access control + audit.
+- ``ferpa``       — FERPA 34 CFR § 99 patterns (in parent: ``enterprise_rag_patterns.compliance``).
+- ``gdpr``        — GDPR Article 17 right-to-erasure patterns.
+- ``hipaa``       — HIPAA 45 CFR §§ 164.312(b), 164.502(b) ePHI access control + audit.
 - ``nist_ai_rmf`` — NIST AI RMF 1.0 + AI 600-1 GenAI Profile risk assessment.
 - ``owasp_llm``   — OWASP LLM Top 10 (2025): LLM01 prompt injection, LLM02 sensitive
   disclosure prevention.
+- ``soc2``        — SOC 2 Type II CBAC: tenant isolation, confidentiality tier enforcement,
+  role-based access (TSC CC6.1, CC6.6, C1.1, CC7.2).
 
 Cross-industry applicability
 -----------------------------
 
-| Regulation      | Primary Sector       | RAG-Specific Control                      |
-|-----------------|----------------------|-------------------------------------------|
-| FERPA           | Education            | Student identity scoping, audit logging   |
-| GDPR            | EU / Global          | Erasure, data subject rights, lineage     |
-| HIPAA           | Healthcare           | ePHI minimum-necessary, audit controls    |
-| NIST AI RMF     | All sectors          | Risk assessment, confabulation scoring    |
-| OWASP LLM Top 10| Software / AI        | PII redaction, prompt injection scanning  |
+| Regulation        | Primary Sector       | RAG-Specific Control                       |
+|-------------------|----------------------|--------------------------------------------|
+| FERPA             | Education            | Student identity scoping, audit logging    |
+| GDPR              | EU / Global          | Erasure, data subject rights, lineage      |
+| HIPAA             | Healthcare           | ePHI minimum-necessary, audit controls     |
+| NIST AI RMF       | All sectors          | Risk assessment, confabulation scoring     |
+| OWASP LLM Top 10  | Software / AI        | PII redaction, prompt injection scanning   |
+| SOC 2 Type II     | SaaS / Enterprise    | Tenant isolation, CBAC, CC7.2 audit log    |
 """
 
 from .gdpr import ErasureAuditRecord, ErasureRequest, GDPRRAGPolicy
@@ -40,6 +43,12 @@ from .owasp_llm import (
     OWASPLLMRisk,
     OWASPPromptInjectionScanner,
     OWASPSensitiveDisclosureFilter,
+)
+from .soc2 import (
+    SOC2AccessContext,
+    SOC2AuditRecord,
+    SOC2ConfidentialityTier,
+    SOC2ContextPolicy,
 )
 
 __all__ = [
@@ -63,4 +72,9 @@ __all__ = [
     "OWASPAuditRecord",
     "OWASPSensitiveDisclosureFilter",
     "OWASPPromptInjectionScanner",
+    # SOC 2 Type II
+    "SOC2ConfidentialityTier",
+    "SOC2AccessContext",
+    "SOC2AuditRecord",
+    "SOC2ContextPolicy",
 ]
