@@ -139,10 +139,7 @@ class FERPAWorkflowStep:
 
         if removed > 0:
             if self._raise_on_violation:
-                raise PermissionError(
-                    f"FERPA: {removed} unauthorized node(s) blocked "
-                    f"for student={scope.student_id!r}"
-                )
+                raise PermissionError(f"FERPA: {removed} unauthorized node(s) blocked for student={scope.student_id!r}")
             logger.warning(
                 "[FERPA_AUDIT] llama_index_workflow student=%s removed=%d retained=%d",
                 scope.student_id,
