@@ -6,6 +6,21 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.38.0] — 2026-04-13
+
+### Added — IoT/OT Cybersecurity RAG Pre-filter (`42_iot_ot_security_rag.py`)
+
+Four-layer retrieval access control for IoT/OT security compliance:
+
+- `NISTIoTFilter` (NIST SP 800-213) — IoT without device identity management → DENIED (§3.1); without configuration management → DENIED (§3.3); critical IoT without network access controls → DENIED (§3.5); data without cryptographic protection → REQUIRES_HUMAN_REVIEW (§3.6)
+- `IEC62443OTFilter` (IEC 62443 IACS) — OT/SCADA without Security Level assessment → DENIED (62443-3-3 SL-C(1)); no zone/conduit model → DENIED (62443-3-2 §4.3); remote access without defense-in-depth → DENIED (62443-2-4 §SP.04.01); no patch management plan → REQUIRES_HUMAN_REVIEW (62443-2-3 §5.2)
+- `TSAOTSecurityFilter` (TSA Security Directives) — critical pipeline without incident reporting → DENIED (Pipeline-2021-02C §I); aviation OT without IT/OT segmentation → DENIED (SD 1580/82-2022-01 §E.2); rail without cybersecurity coordinator → DENIED (§B); critical infrastructure without CISA CPG v2.0 goals → REQUIRES_HUMAN_REVIEW
+- `OTCrossBorderFilter` — OFAC sanctioned jurisdictions (RU/IR/KP/CU/SY) → DENIED; ECCN 5E002 export without EAR license → DENIED (15 CFR §774); OT data to CN without CFIUS review → DENIED (50 U.S.C. §4565); NIS2 essential entity without NCA notification → REQUIRES_HUMAN_REVIEW (Directive 2022/2555 Art. 26)
+
+52 new tests. Total: **1438 passed, 2 skipped**.
+
+---
+
 ## [0.37.0] — 2026-04-13
 
 ### Added — US Healthcare AI / FDA RAG Pre-filter (`41_healthcare_ai_fda_rag.py`)
