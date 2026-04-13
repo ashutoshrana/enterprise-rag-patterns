@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "enterprise-rag-patterns"
-version = "0.44.0"
+version = "0.45.0"
 description = "Cross-industry compliance patterns for RAG pipelines: FERPA, HIPAA, GDPR, NIST AI RMF, OWASP LLM Top 10, and more. Vector store adapters, framework integrations, and audit logging."
 readme = "README.md"
 requires-python = ">=3.10"
