@@ -6,6 +6,42 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.21.0] — 2026-04-13
+
+### Added — Legal Services RAG (Attorney-Client Privilege + Conflict of Interest + Work Product Doctrine + State Bar Ethics)
+
+**`examples/26_legal_services_rag.py`** — four-layer defense-in-depth retrieval pipeline
+for legal services platforms enforcing ABA Model Rule 1.6 attorney-client confidentiality,
+ABA Model Rules 1.7/1.9 conflict of interest screening, FRCP Rule 26(b)(3) work product
+doctrine (ordinary vs. opinion work product), and state bar ethics compliance including
+jurisdiction-specific bar admission verification and unauthorized practice of law prevention.
+
+**New classes:**
+- `LegalRole` — 6 roles: ATTORNEY, PARALEGAL, CLIENT, OPPOSING_COUNSEL, EXPERT_WITNESS, ADMIN
+- `WorkProductType` — ORDINARY / OPINION / NOT_WORK_PRODUCT (FRCP Rule 26(b)(3) classification)
+- `LegalDecision` — PERMITTED / DENIED / REDACTED
+- `LegalServicesContext` (frozen) — 14-field context: user role, matter/client IDs, bar
+  admission jurisdiction, conflict cleared status, adverse former client flag, privilege
+  waiver, substantial need, and audit access designation
+- `LegalDocument` (frozen) — 6-field document: privilege flag, work product type, owning
+  client ID, matter jurisdiction, and public filing flag
+- `LegalFilterResult` — per-layer result with decision, reason, conditions; `is_denied` property
+- `AttorneyClientPrivilegeFilter` — ABA Rule 1.6: role-by-role privilege enforcement;
+  opposing counsel denied; privilege waiver path; client/attorney/paralegal/admin branches
+- `ConflictOfInterestFilter` — ABA Rule 1.7 (current client conflicts) + Rule 1.9 (former
+  client adversity); written consent exception; public document bypass
+- `WorkProductDoctrineFilter` — FRCP Rule 26(b)(3)(B): absolute opinion work product
+  protection; Rule 26(b)(3)(A): substantial need exception for ordinary work product
+- `StateBarEthicsFilter` — bar admission jurisdiction verification; pro hac vice requirement;
+  paralegal supervision; admin audit designation; UPL prevention
+- `LegalServicesRAGPipeline` — sequential four-layer retrieval with `retrieve()` and
+  `retrieve_with_audit()` methods
+- `LegalAuditRecord` — structured audit with `to_audit_log()` event serialization
+
+**Tests:** 36 tests in `tests/test_legal_services_rag.py`
+
+---
+
 ## [0.20.0] — 2026-04-13
 
 ### Added — Digital Health RAG (FDA SaMD + 42 CFR Part 2 SUD + HIPAA Special Categories + ONC Interoperability)
