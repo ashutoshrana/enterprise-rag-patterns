@@ -6,6 +6,32 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.5.2] — 2026-04-13
+
+### Added
+
+- `regulations/iso27001.py`: `ISMSContextPolicy`, `ISMSAccessContext`, `ISMSClassification`,
+  `ISMSAuditRecord` — ISO/IEC 27001:2022 ISMS context-based access control (CBAC) for RAG
+  pipelines.  Three independent controls applied per document:
+  (1) **A.5.15** organization isolation — tenant boundary enforcement;
+  (2) **A.5.12 / A.8.12** classification enforcement — PUBLIC/INTERNAL/CONFIDENTIAL/SECRET
+  label hierarchy with fail-safe unknown-label blocking;
+  (3) **A.8.2** role-based access — per-document `required_roles` intersection check.
+  SHA-256 tamper-evident `ISMSAuditRecord` (A.8.15). 44 new tests.
+- `regulations/pci_dss.py`: `PCIContextPolicy`, `PCIAccessScope`, `PCIDataCategory`,
+  `PCIAuditRecord` — PCI DSS v4.0 access control and PAN masking for RAG pipelines.
+  Three controls:
+  (1) **Req 7.2** merchant isolation — per-merchant tenant boundary;
+  (2) **Req 7.2.1** category need-to-know — CARDHOLDER_DATA and SENSITIVE_AUTH_DATA require
+  explicit authorization; unknown categories default to NON_CHD (permissive, outside PCI scope);
+  (3) **Req 3.4** PAN masking — `\\b(?:\\d{{4}}[- ]?){{3}}\\d{{4}}\\b` → `[PAN-MASKED]` in all
+  string-valued document fields.  `last_pan_masked_count` property tracks aggregate substitution
+  count.  SHA-256 tamper-evident `PCIAuditRecord` (Req 10.3). 37 new tests.
+- `regulations/__init__.py`: exports all ISO 27001 and PCI DSS symbols; updated cross-industry
+  module table with IT audit / security framework categorisation.
+
+---
+
 ## [0.5.1] — 2026-04-13
 
 ### Added

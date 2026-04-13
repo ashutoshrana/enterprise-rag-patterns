@@ -133,6 +133,8 @@ See the `examples/` directory for complete runnable pipelines:
 | NIST AI RMF 1.0 + AI 600-1 | ✅ Implemented | All sectors | MAP/MEASURE/MANAGE risk assessment |
 | OWASP LLM Top 10 (2025) | ✅ Implemented | Software / AI | LLM01 injection, LLM02 PII disclosure |
 | SOC 2 Type II | ✅ Implemented | SaaS / Enterprise | Tenant isolation, CBAC, CC7.2 audit log |
+| ISO/IEC 27001:2022 | ✅ Implemented | All sectors | ISMS classification, org isolation, CBAC (Annex A.5.12/A.5.15/A.8.2) |
+| PCI DSS v4.0 | ✅ Implemented | Payments / Finance | Merchant isolation, CHD CBAC, PAN masking (Req 3.4/7.2/7.2.1) |
 | GLBA (16 CFR § 314) | 🗓 Planned | Financial services | Customer record safeguards |
 | EU AI Act | 🗓 Planned | EU / Global | Article 12 tamper-evident audit logs |
 
@@ -161,9 +163,11 @@ src/enterprise_rag_patterns/
 ├── regulations/
 │   ├── gdpr.py                 # GDPR Article 17 right-to-erasure patterns
 │   ├── hipaa.py                # HIPAA ePHI minimum-necessary + audit (NEW)
+│   ├── iso27001.py             # ISO/IEC 27001:2022 ISMS CBAC — A.5.12/A.5.15/A.8.2/A.8.15
 │   ├── nist_ai_rmf.py          # NIST AI RMF 1.0 + AI 600-1 risk assessment
 │   ├── owasp_llm.py            # OWASP LLM Top 10 (2025) — LLM01/LLM02
-│   └── soc2.py                 # SOC 2 Type II CBAC — CC6.1/CC6.6/C1.1/CC7.2 (NEW)
+│   ├── pci_dss.py              # PCI DSS v4.0 — Req 3.4/7.2/7.2.1/10.2.1 + PAN masking
+│   └── soc2.py                 # SOC 2 Type II CBAC — CC6.1/CC6.6/C1.1/CC7.2
 ├── vector_stores/
 │   ├── pinecone_adapter.py     # PineconeComplianceFilter + namespace isolation
 │   ├── weaviate_adapter.py     # WeaviateComplianceFilter
