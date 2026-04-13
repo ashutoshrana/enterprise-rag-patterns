@@ -97,7 +97,15 @@ print(audit.to_log_entry())
 #    "categories": ["academic_record"], "permitted": true, "timestamp": "..."}
 ```
 
-See [`examples/ferpa_rag_pipeline.py`](./examples/ferpa_rag_pipeline.py) for a complete runnable pipeline.
+See the `examples/` directory for complete runnable pipelines:
+
+| Example | Regulation | What it shows |
+|---------|------------|---------------|
+| [`ferpa_rag_pipeline.py`](./examples/ferpa_rag_pipeline.py) | FERPA | Four-layer FERPA-compliant pipeline |
+| [`05_hipaa_rag_pipeline.py`](./examples/05_hipaa_rag_pipeline.py) | HIPAA | Minimum-necessary ePHI filter + SHA-256 tamper-evidence |
+| [`06_owasp_security_scan.py`](./examples/06_owasp_security_scan.py) | OWASP LLM01/LLM02 | PII redaction + prompt injection scan |
+| [`07_soc2_cbac_pipeline.py`](./examples/07_soc2_cbac_pipeline.py) | SOC 2 Type II | Multi-tenant CBAC: tenant isolation, confidentiality tiers, role-based access |
+| [`08_nist_ai_rmf_assessment.py`](./examples/08_nist_ai_rmf_assessment.py) | NIST AI RMF | MAP/MEASURE/MANAGE risk assessment + incident recording |
 
 ---
 
