@@ -6,6 +6,44 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.17.0] — 2026-04-13
+
+### Added — Government Contracting RAG (FAR/DFARS CUI + ITAR/EAR Export Control + DD Form 254)
+
+**`examples/22_government_contracting_rag.py`** — three-layer defense-in-depth retrieval pipeline
+for government contractor knowledge base systems, enforcing FAR 52.204-21 / DFARS 252.204-7012
+Controlled Unclassified Information (CUI) access control and personnel/facility security clearance
+requirements, ITAR (22 CFR Parts 120-130) USML technical data access restriction for non-US
+Persons (deemed-export license check), EAR (15 CFR Parts 730-774) CCL NS/MT domestic-recipient
+restriction, and DD Form 254 contract-specific need-to-know enforcement per NISPOM Rule
+(32 CFR Part 117).
+
+**New classes:**
+- `SecurityClearanceLevel` — six-level enum (UNCLASSIFIED through TOP_SECRET_SCI) with `rank` and
+  `authorizes()` for clearance comparison
+- `CUICategory` — CUI Registry categories: CTI, EXPORT_CONTROLLED, PRIVACY, PBI, LES, NUCLEAR,
+  SPECIFIED_BASIC, UNCONTROLLED
+- `ITARCategory` — USML categories I–XXII (9 categories) plus EAR CCL tiers (AT_ONLY, NS_MT,
+  DUAL_USE, EAR99, NOT_SUBJECT_EAR)
+- `ContractorAccessContext` (frozen dataclass) — contractor identity: US Person status, clearance
+  levels, authorized CUI categories, active contract IDs (DD 254), deemed-export license flag,
+  domestic recipient flag
+- `GovContractDocument` (frozen dataclass) — document with minimum clearance, CUI category,
+  ITAR/EAR classification, required contract IDs, facility clearance requirement, public release flag
+- `GovContractComplianceAuditRecord` — per-layer access control statistics and block reasons list
+  with `to_audit_log()` for DCSA compliance reporting
+- `FARDFARSFilter` — Layer 1: facility clearance, personnel clearance, CUI category authorization;
+  publicly releasable documents pass all checks
+- `ITAREARFilter` — Layer 2: USML categories blocked for non-US Persons without deemed-export
+  license; CCL NS/MT + DUAL_USE blocked for non-domestic recipients; EAR99/NOT_SUBJECT_EAR unrestricted
+- `DD254NeedToKnowFilter` — Layer 3: intersection check between document required_contract_ids and
+  contractor authorized_contract_ids; open documents (empty required set) pass all cleared personnel
+- `GovContractRAGPipeline` — orchestrates FAR/DFARS → ITAR/EAR → DD 254; returns (permitted, audit)
+
+**Tests:** 40 new tests in `tests/test_government_contracting_rag.py`
+
+---
+
 ## [0.16.0] — 2026-04-13
 
 ### Added — Energy / Utilities RAG Example (NERC CIP + FERC Order 2222 + NRC 10 CFR Part 73)
