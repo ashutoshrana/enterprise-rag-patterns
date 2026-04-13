@@ -8,6 +8,8 @@ layer — they are not general-purpose compliance engines.
 Available modules
 -----------------
 Regulatory / statutory:
+- ``eu_ai_act``   — EU AI Act 2024/1689 Art. 12 tamper-evident audit log, Annex III risk
+  classification, Art. 13 transparency disclosure.  HMAC-SHA256 signed records + hash chain.
 - ``ferpa``       — FERPA 34 CFR § 99 (in parent: ``enterprise_rag_patterns.compliance``).
 - ``gdpr``        — GDPR Articles 17, 32: right-to-erasure, data subject rights.
 - ``glba``        — GLBA 15 U.S.C. § 6801 / Safeguards Rule 16 CFR § 314: NPI isolation,
@@ -29,19 +31,28 @@ AI / technology governance:
 Cross-industry applicability
 -----------------------------
 
-| Regulation / Framework | Category         | Primary Sector       | RAG-Specific Control                             |
-|------------------------|------------------|----------------------|--------------------------------------------------|
-| FERPA                  | Regulatory       | Education            | Student identity scoping, audit logging          |
-| GDPR                   | Regulatory       | EU / Global          | Erasure, data subject rights, lineage            |
-| GLBA Safeguards Rule   | Regulatory       | Finance / Insurance  | NPI isolation, purpose limitation, role restrict |
-| HIPAA                  | Regulatory       | Healthcare           | ePHI minimum-necessary, audit controls           |
-| ISO/IEC 27001:2022     | IT Audit         | All sectors          | ISMS classification, org isolation, CBAC         |
-| NIST AI RMF 1.0        | AI Governance    | All sectors          | Risk assessment, confabulation scoring           |
-| OWASP LLM Top 10       | AI Security      | Software / AI        | PII redaction, prompt injection scanning         |
-| PCI DSS v4.0           | IT Audit         | Payments / Finance   | Merchant isolation, CHD CBAC, PAN masking        |
-| SOC 2 Type II          | IT Audit         | SaaS / Enterprise    | Tenant isolation, CBAC, CC7.2 audit log          |
+| Regulation / Framework | Category      | Primary Sector      | RAG-Specific Control                        |
+|------------------------|---------------|---------------------|---------------------------------------------|
+| EU AI Act 2024/1689    | Regulatory    | EU / Global (AI)    | Art. 12 audit log, Annex III, transparency  |
+| FERPA                  | Regulatory    | Education           | Student identity scoping, audit logging     |
+| GDPR                   | Regulatory    | EU / Global         | Erasure, data subject rights, lineage       |
+| GLBA Safeguards Rule   | Regulatory    | Finance / Insurance | NPI isolation, purpose / role restriction   |
+| HIPAA                  | Regulatory    | Healthcare          | ePHI minimum-necessary, audit controls      |
+| ISO/IEC 27001:2022     | IT Audit      | All sectors         | ISMS classification, org isolation, CBAC    |
+| NIST AI RMF 1.0        | AI Governance | All sectors         | Risk assessment, confabulation scoring      |
+| OWASP LLM Top 10       | AI Security   | Software / AI       | PII redaction, prompt injection scanning    |
+| PCI DSS v4.0           | IT Audit      | Payments / Finance  | Merchant isolation, CHD CBAC, PAN masking   |
+| SOC 2 Type II          | IT Audit      | SaaS / Enterprise   | Tenant isolation, CBAC, CC7.2 audit log     |
 """
 
+from .eu_ai_act import (
+    SYSTEM_AI_DISCLOSURE,
+    AnnexIIICategory,
+    EUAIActAuditLogger,
+    EUAIActRetrievalRecord,
+    EUAIActRiskTier,
+    classify_annex_iii_risk,
+)
 from .gdpr import ErasureAuditRecord, ErasureRequest, GDPRRAGPolicy
 from .glba import GLBAAccessContext, GLBAAccessScope, GLBAAuditRecord, GLBAContextPolicy, GLBADataCategory
 from .hipaa import HIPAAAccessScope, HIPAAAuditRecord, HIPAAContextPolicy, HIPAAPurpose
@@ -68,6 +79,13 @@ from .soc2 import (
 )
 
 __all__ = [
+    # EU AI Act
+    "EUAIActRiskTier",
+    "AnnexIIICategory",
+    "EUAIActRetrievalRecord",
+    "EUAIActAuditLogger",
+    "classify_annex_iii_risk",
+    "SYSTEM_AI_DISCLOSURE",
     # GDPR
     "ErasureRequest",
     "ErasureAuditRecord",
