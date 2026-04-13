@@ -6,7 +6,23 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [0.24.0] — 2026-04-13
+## [0.26.0] — 2026-04-13
+
+### Added — Brazil LGPD RAG Pre-filter (`31_brazil_lgpd_rag.py`)
+
+LGPD Law 13.709/2018 as a four-layer RAG retrieval pre-filter:
+
+- `LGPDDataSubjectFilter` (Art. 7/11/18) — data subject self-access always APPROVED; denies retrieval without legal basis; denies sensitive data without explicit consent unless legal obligation
+- `LGPDMinimizationFilter` (Art. 6(I)/(III)) — denies documents containing data categories outside `authorized_data_categories`; denies incompatible processing purposes
+- `LGPDDataRetentionFilter` (Art. 15/18(VI)) — DENIED for expired retention without legal hold; REDACTED for deletion-requested documents without legal override
+- `LGPDCrossBorderFilter` (Art. 33) — adequate jurisdictions (BR/EU/UK/CH) pass freely; non-adequate require `has_lgpd_transfer_mechanism=True`; non-personal data bypasses
+- `BrazilLGPDRAGPipeline` + `BrazilRAGAuditRecord` emitting `event="BRAZIL_LGPD_RAG_RETRIEVAL"`
+
+36 new tests. Total: **960 passed, 2 skipped**.
+
+---
+
+## [0.25.0] — 2026-04-13
 
 ### Added — Government/Public Sector RAG (FedRAMP + FISMA + NIST SP 800-53 + CUI 32 CFR Part 2002)
 

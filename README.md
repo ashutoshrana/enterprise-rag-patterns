@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Downloads](https://img.shields.io/pypi/dm/enterprise-rag-patterns.svg)](https://pypi.org/project/enterprise-rag-patterns/)
 
-**Cross-industry compliance patterns for RAG pipelines — 30 regulated sector examples, 5 vector store adapters, 924 tests.**
+**Cross-industry compliance patterns for RAG pipelines — 31 regulated sector examples, 5 vector store adapters, 960 tests.**
 
 Defense-in-depth pre-filters that enforce regulatory requirements at the retrieval layer, before any document reaches the LLM context window.
 
@@ -122,7 +122,7 @@ See the `examples/` directory for complete runnable pipelines.
 
 ---
 
-## Example catalog — 30 regulated sectors
+## Example catalog — 31 regulated sectors
 
 | # | File | Sector | Regulations Enforced |
 |---|------|--------|---------------------|
@@ -156,6 +156,7 @@ See the `examples/` directory for complete runnable pipelines.
 | 28 | `28_energy_utilities_rag.py` | Energy & Utilities | NERC CIP-004/005/011/013 + FERC CEII 18 CFR §388.113 + DOE + NRC 10 CFR 73.21 |
 | 29 | `29_government_public_sector_rag.py` | Government / Public Sector | FedRAMP + FISMA + NIST SP 800-53 + CUI 32 CFR Part 2002 + AU-9 |
 | 30 | `30_telecom_cpni_rag.py` | Telecommunications | CPNI 47 CFR §64.2005/§64.2007, CALEA 47 USC §1002, FCC Broadband Privacy Part 64 Subpart U, CalOPPA + CCPA §1798.100 |
+| 31 | `31_brazil_lgpd_rag.py` | Brazil / LGPD | LGPD Law 13.709/2018 Art. 7/11/15/18/33 — data subject access, legal basis, minimization, retention, cross-border transfer |
 
 ---
 
@@ -193,6 +194,7 @@ See the `examples/` directory for complete runnable pipelines.
 | Privacy Act | 5 USC §552a | Government | 29 |
 | CPNI | 47 CFR Part 64 §§64.2005/64.2007/64.2009 | Telecom | 30 |
 | CALEA | 47 USC §1002 | Telecom | 30 |
+| LGPD | Law 13.709/2018 Art. 7/11/15/18/33 | Brazil | 31 |
 
 ---
 
@@ -295,9 +297,9 @@ Read [CONTRIBUTING.md](./CONTRIBUTING.md) and [GOVERNANCE.md](./GOVERNANCE.md). 
 
 | Library | Focus | Coverage |
 |---------|-------|---------|
-| **enterprise-rag-patterns** | What to retrieve | 30 sectors · 29 regulations · 924 tests |
-| [regulated-ai-governance](https://github.com/ashutoshrana/regulated-ai-governance) | What agents may do | 22 governance examples · 10 jurisdictions · 983 tests |
-| [integration-automation-patterns](https://github.com/ashutoshrana/integration-automation-patterns) | How data flows | 23 patterns · service mesh · event sourcing · 614 tests |
+| **enterprise-rag-patterns** | What to retrieve | 31 sectors · 30 regulations · 960 tests |
+| [regulated-ai-governance](https://github.com/ashutoshrana/regulated-ai-governance) | What agents may do | 23 governance examples · 11 jurisdictions · 1027 tests |
+| [integration-automation-patterns](https://github.com/ashutoshrana/integration-automation-patterns) | How data flows | 24 patterns · distributed tracing · event sourcing · 657 tests |
 
 ---
 
