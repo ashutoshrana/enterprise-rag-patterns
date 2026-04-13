@@ -6,6 +6,21 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.33.0] — 2026-04-13
+
+### Added — US Telecommunications Regulatory RAG Pre-filter (`38_telecommunications_rag.py`)
+
+FCC, TCPA, CALEA, and Section 214 cross-border controls as a four-layer RAG pre-filter:
+
+- `FCCCPNIFilter` (47 U.S.C. §222; 47 CFR Part 64 Subpart U) — CPNI restricted to billing/repair/support without opt-in (§222(c)(1)); third-party sharing → DENIED; marketing use → REQUIRES_HUMAN_REVIEW (§222(c)(3))
+- `TCPAComplianceFilter` (47 U.S.C. §227; 47 CFR Part 64 Subpart L) — autodialer/SMS without prior express consent → DENIED (§227(b)(1)(A)); DNC Registry → DENIED (§227(c)(5)); calls outside 8 AM–9 PM → DENIED (47 CFR §64.1200(c)(1))
+- `CALEAWiretapFilter` (47 U.S.C. §§1001-1010) — content/call-record intercept without court order → DENIED (18 U.S.C. §2511); pen register without order → DENIED (18 U.S.C. §3121); non-CALEA-certified carrier → REQUIRES_HUMAN_REVIEW
+- `TelecoCrossBorderFilter` — CN/RU/IR/KP routing → DENIED (FCC 21-114 + OFAC); lawful-intercept data export → DENIED (CALEA §1004); no Section 214 license → REQUIRES_HUMAN_REVIEW (47 U.S.C. §214)
+
+40 new tests. Total: **1233 passed, 2 skipped**.
+
+---
+
 ## [0.32.0] — 2026-04-13
 
 ### Added — Canada PIPEDA/Quebec Law 25 RAG Pre-filter (`37_canada_pipeda_rag.py`)
