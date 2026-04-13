@@ -219,7 +219,7 @@ class OWASPSensitiveDisclosureFilter:
                 for pii_name, pattern in self._pii_patterns:
                     if pattern.search(value):
                         if self._mode == "redact":
-                            new_doc[key] = pattern.sub("[REDACTED:PII]", new_doc[key])  # type: ignore[index]
+                            new_doc[key] = pattern.sub("[REDACTED:PII]", new_doc[key])
                         redacted_fields.append(f"{key}:{pii_name}")
 
             if redacted_fields:
