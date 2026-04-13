@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Downloads](https://img.shields.io/pypi/dm/enterprise-rag-patterns.svg)](https://pypi.org/project/enterprise-rag-patterns/)
 
-**Cross-industry compliance patterns for RAG pipelines — 42 regulated sector examples, 5 vector store adapters, 1438 tests.**
+**Cross-industry compliance patterns for RAG pipelines — 43 regulated sector examples, 5 vector store adapters, 1492 tests.**
 
 Defense-in-depth pre-filters that enforce regulatory requirements at the retrieval layer, before any document reaches the LLM context window.
 
@@ -122,7 +122,7 @@ See the `examples/` directory for complete runnable pipelines.
 
 ---
 
-## Example catalog — 42 regulated sectors
+## Example catalog — 43 regulated sectors
 
 | # | File | Sector | Regulations Enforced |
 |---|------|--------|---------------------|
@@ -168,6 +168,7 @@ See the `examples/` directory for complete runnable pipelines.
 | 40 | `40_financial_services_rag.py` | US Financial Services | Dodd-Frank §728 (swap data regulatory authorization) + §619 Volcker Rule (12 CFR §248 compliance program), SEC Regulation S-P 17 CFR §248 (NPI privacy notice + opt-out + cyber disclosure 8-K), FINRA Rules 4370/2210/3110 (BCP filing + principal approval + supervisory procedures), FATCA 26 U.S.C. §1471 + FinCEN SAR 31 CFR §1010.320 + OFAC sanctions cross-border |
 | 41 | `41_healthcare_ai_fda_rag.py` | US Healthcare AI / FDA | FDA SaMD 21 CFR §814 (PMA Class III) + §807.87 (510(k) Class II) + AI/ML Action Plan 2021 (PCCP adaptive algorithms) + 21 CFR Part 820 (QMS design controls), ONC 21st Century Cures Act 45 CFR §170 (EHR information blocking + FHIR API access) + §171 (information blocking exceptions + patient access), CMS Final Rule 85 FR 25510 (payer coverage AI + value-based care) + 88 FR 82510 (prior authorization decision support), HIPAA 45 CFR §164 (PHI cross-border) + EU Health Data Space Regulation 2024 + GDPR Art. 46 SCC |
 | 42 | `42_iot_ot_security_rag.py` | IoT/OT Cybersecurity | NIST SP 800-213 §3.1 (device identity management) + §3.3 (configuration management) + §3.5 (logical access controls) + §3.6 (data protection in transit), IEC 62443-3-3 SL-C(1) (OT security level assessment) + IEC 62443-3-2 §4.3 (zone and conduit model) + IEC 62443-2-4 §SP.04.01 (remote access defense-in-depth) + IEC 62443-2-3 §5.2 (patch management), TSA Pipeline-2021-02C §I (incident reporting) + TSA SD 1580/82-2022-01 §E.2 (network segmentation) + §B (cybersecurity coordinator) + CISA CPG v2.0 OT controls, EAR ECCN 5E002 export controls (15 CFR §774) + CFIUS 50 U.S.C. §4565 + OFAC sanctions (RU/IR/KP/CU/SY) + EU NIS2 Art. 26 (essential entity cross-border notification) |
+| 43 | `43_energy_nerc_cip_rag.py` | Energy / Utilities / NERC CIP | NERC CIP-007-6 (BES Cyber System security management: ports/services + patches + malicious code), CIP-005-7 (Electronic Security Perimeter access controls + remote access), CIP-006-6 (Physical Security Plans for BES Cyber Systems), CIP-008-6 (incident reporting to E-ISAC within 1 hour), FERC Order 888/889 OASIS (Open Access Transmission Tariff), 18 CFR §1c.2 Anti-Manipulation Rule, NGA §7 gas pipeline certificate, Part 12 dam safety, DOE 100-Day Plan OT monitoring, CISA ICS-CERT baseline, NIST AI RMF energy sector profile, DOE CESER/E-ISAC/CRISP, FPA §202(e) FERC export authorization, EO 13873/DOE ICTS adversarial nations (CN/RU/KP/IR), NGA §3 LNG authorization, EU NIS2 Art. 21 |
 
 ---
 
@@ -313,9 +314,9 @@ Read [CONTRIBUTING.md](./CONTRIBUTING.md) and [GOVERNANCE.md](./GOVERNANCE.md). 
 
 | Library | Focus | Coverage |
 |---------|-------|---------|
-| **enterprise-rag-patterns** | What to retrieve | 42 sectors · 50 regulations · 1438 tests |
-| [regulated-ai-governance](https://github.com/ashutoshrana/regulated-ai-governance) | What agents may do | 33 governance examples · 19 jurisdictions · 1884 tests |
-| [integration-automation-patterns](https://github.com/ashutoshrana/integration-automation-patterns) | How data flows | 35 patterns · schema registry · GraphQL · 1359 tests |
+| **enterprise-rag-patterns** | What to retrieve | 43 sectors · 54 regulations · 1492 tests |
+| [regulated-ai-governance](https://github.com/ashutoshrana/regulated-ai-governance) | What agents may do | 34 governance examples · 20 jurisdictions · 1973 tests |
+| [integration-automation-patterns](https://github.com/ashutoshrana/integration-automation-patterns) | How data flows | 36 patterns · schema registry · GraphQL · 1429 tests |
 
 ---
 

@@ -6,6 +6,21 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.39.0] — 2026-04-13
+
+### Added — Energy / Utilities / NERC CIP RAG Pre-filter (`43_energy_nerc_cip_rag.py`)
+
+Four-layer retrieval access control for energy sector and bulk electric system compliance:
+
+- `NERCCIPFilter` — CIP-007-6 BES Cyber System security management (ports/patches/malicious code) → DENIED; CIP-005-7 ESP access controls → DENIED; CIP-006-6 Physical Security Plans → DENIED; CIP-008-6 E-ISAC 1-hour incident reporting → REQUIRES_HUMAN_REVIEW
+- `FERCEnergyFilter` — Order 888/889 OASIS compliance → DENIED; Anti-Manipulation 18 CFR §1c.2 → DENIED; NGA §7 gas pipeline certificate → DENIED; Part 12 dam safety review → REQUIRES_HUMAN_REVIEW
+- `DOECybersecurityFilter` — DOE 100-Day Plan OT monitoring → DENIED; CISA ICS-CERT baseline → DENIED; NIST AI RMF energy sector profile → DENIED; DOE CESER/E-ISAC/CRISP threat sharing → REQUIRES_HUMAN_REVIEW
+- `EnergyCrossBorderFilter` — FPA §202(e) non-NAFTA electricity export → DENIED; EO 13873/DOE ICTS adversarial nations (CN/RU/KP/IR) → DENIED; NGA §3 LNG export authorization → DENIED; EU NIS2 Art. 21 essential entity → REQUIRES_HUMAN_REVIEW
+
+54 new tests. Total: **1492 passed, 2 skipped**.
+
+---
+
 ## [0.38.0] — 2026-04-13
 
 ### Added — IoT/OT Cybersecurity RAG Pre-filter (`42_iot_ot_security_rag.py`)
