@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Downloads](https://img.shields.io/pypi/dm/enterprise-rag-patterns.svg)](https://pypi.org/project/enterprise-rag-patterns/)
 
-**Cross-industry compliance patterns for RAG pipelines — 29 regulated sector examples, 5 vector store adapters, 888 tests.**
+**Cross-industry compliance patterns for RAG pipelines — 30 regulated sector examples, 5 vector store adapters, 924 tests.**
 
 Defense-in-depth pre-filters that enforce regulatory requirements at the retrieval layer, before any document reaches the LLM context window.
 
@@ -122,7 +122,7 @@ See the `examples/` directory for complete runnable pipelines.
 
 ---
 
-## Example catalog — 29 regulated sectors
+## Example catalog — 30 regulated sectors
 
 | # | File | Sector | Regulations Enforced |
 |---|------|--------|---------------------|
@@ -155,6 +155,7 @@ See the `examples/` directory for complete runnable pipelines.
 | 27 | `27_financial_services_rag.py` | Financial Services | GLBA §§6801-6809 + SEC Reg S-P + FINRA Rule 3110 + BSA/AML |
 | 28 | `28_energy_utilities_rag.py` | Energy & Utilities | NERC CIP-004/005/011/013 + FERC CEII 18 CFR §388.113 + DOE + NRC 10 CFR 73.21 |
 | 29 | `29_government_public_sector_rag.py` | Government / Public Sector | FedRAMP + FISMA + NIST SP 800-53 + CUI 32 CFR Part 2002 + AU-9 |
+| 30 | `30_telecom_cpni_rag.py` | Telecommunications | CPNI 47 CFR §64.2005/§64.2007, CALEA 47 USC §1002, FCC Broadband Privacy Part 64 Subpart U, CalOPPA + CCPA §1798.100 |
 
 ---
 
@@ -190,6 +191,8 @@ See the `examples/` directory for complete runnable pipelines.
 | NIST SP 800-53 Rev. 5 | AC-3/AC-4/PS-3/AU-9 | Government | 29 |
 | CUI 32 CFR Part 2002 | FOUO/LES/Privacy Act/EAR | Government | 29 |
 | Privacy Act | 5 USC §552a | Government | 29 |
+| CPNI | 47 CFR Part 64 §§64.2005/64.2007/64.2009 | Telecom | 30 |
+| CALEA | 47 USC §1002 | Telecom | 30 |
 
 ---
 
@@ -236,8 +239,8 @@ src/enterprise_rag_patterns/
     ├── llama_index.py
     ├── haystack.py
     └── maf.py
-examples/                       # 29 runnable sector examples (see catalog above)
-tests/                          # 888 passing tests (2 skipped)
+examples/                       # 30 runnable sector examples (see catalog above)
+tests/                          # 924 passing tests (2 skipped)
 docs/
 ├── architecture.md
 ├── adr/                        # Architecture Decision Records
@@ -259,9 +262,9 @@ docs/
 
 ## Near-term roadmap
 
-- `30_telecom_cpni_rag.py` — Telecommunications CPNI 47 CFR Part 64 + CALEA
-- `31_brazil_lgpd_rag.py` — LGPD + Brazilian AI Bill PL 2338/2023
-- `32_insurance_naic_rag.py` — NAIC Model Law + FCRA §615 + state insurance data
+- `31_india_ai_rag.py` — DPDP Act 2023 + MEITY AI Advisory
+- `32_south_korea_rag.py` — AI Basic Act + PIPA
+- `33_insurance_naic_rag.py` — NAIC Model Law + FCRA §615 + state insurance data
 - Async vector store adapters for FastAPI/asyncio
 - PyPI download and star count badges
 
@@ -280,7 +283,7 @@ Read [CONTRIBUTING.md](./CONTRIBUTING.md) and [GOVERNANCE.md](./GOVERNANCE.md). 
   author  = {Rana, Ashutosh},
   title   = {enterprise-rag-patterns: Cross-industry compliance patterns for RAG pipelines},
   year    = {2026},
-  version = {0.24.0},
+  version = {0.25.0},
   url     = {https://github.com/ashutoshrana/enterprise-rag-patterns},
   license = {MIT}
 }
@@ -292,9 +295,9 @@ Read [CONTRIBUTING.md](./CONTRIBUTING.md) and [GOVERNANCE.md](./GOVERNANCE.md). 
 
 | Library | Focus | Coverage |
 |---------|-------|---------|
-| **enterprise-rag-patterns** | What to retrieve | 29 sectors · 27 regulations · 888 tests |
-| [regulated-ai-governance](https://github.com/ashutoshrana/regulated-ai-governance) | What agents may do | 21 governance examples · 9 jurisdictions · 934 tests |
-| [integration-automation-patterns](https://github.com/ashutoshrana/integration-automation-patterns) | How data flows | 22 patterns · event sourcing · API gateway · 580 tests |
+| **enterprise-rag-patterns** | What to retrieve | 30 sectors · 29 regulations · 924 tests |
+| [regulated-ai-governance](https://github.com/ashutoshrana/regulated-ai-governance) | What agents may do | 22 governance examples · 10 jurisdictions · 983 tests |
+| [integration-automation-patterns](https://github.com/ashutoshrana/integration-automation-patterns) | How data flows | 23 patterns · service mesh · event sourcing · 614 tests |
 
 ---
 
