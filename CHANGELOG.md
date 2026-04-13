@@ -6,6 +6,23 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.8.3] — 2026-04-13
+
+### Added — Multi-Source Context Assembly Example
+
+**`examples/11_context_assembly.py`** — assembles `ContextEnvelope` from five enterprise
+data sources (SIS, financial aid, knowledge base, policy docs, real-time data) with
+FERPA pre-filtering and freshness enforcement:
+- Scenario 1: enrollment advisor scope (ACADEMIC_RECORD only) — 2 financial docs filtered
+- Scenario 2: financial aid advisor scope (academic + financial) — all docs available
+- Scenario 3: cross-institution contamination test — `gwu` doc blocked despite correct student_id
+- Freshness enforcement: SIS ≤ 1h, real-time ≤ 60s; stale sources excluded and logged
+- `ContextEnvelope` metadata tracks source count, pre/post filter counts, FERPA removals
+- LLM context string formatting via `to_llm_context()`
+- Closes #2.
+
+---
+
 ## [0.8.2] — 2026-04-13
 
 ### Added — Human Escalation Policy Example
