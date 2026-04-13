@@ -6,6 +6,22 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.27.0] — 2026-04-13
+
+### Added — South Korea PIPA RAG Pre-filter (`32_south_korea_rag.py`)
+
+PIPA (Personal Information Protection Act) and Korea AI Framework Act as a four-layer RAG retrieval pre-filter:
+
+- `KoreaPIPADataSubjectFilter` (PIPA Art. 15-18, Art. 23) — data subject self-access → immediate APPROVED; no legal basis → DENIED; sensitive info without explicit consent → DENIED
+- `KoreaPIPAMinimizationFilter` (PIPA Art. 3, Art. 16) — unauthorized data categories → DENIED; incompatible purpose → DENIED
+- `KoreaAIActFilter` (Korea AI Framework Act Art. 6, Jan 2024) — high-impact AI without transparency disclosure → REQUIRES_HUMAN_REVIEW; high-impact with disclosure → APPROVED
+- `KoreaCrossBorderFilter` (PIPA Art. 39-3) — adequate jurisdictions (KR/EU/UK/CH/JP/NZ/CA) → APPROVED; BCRs/SCCs → APPROVED; otherwise → DENIED
+- `KoreaPIPARAGPipeline` + `KoreaRAGAuditRecord` emitting `event="KOREA_PIPA_RAG_RETRIEVAL"`
+
+37 new tests. Total: **997 passed, 2 skipped**.
+
+---
+
 ## [0.26.0] — 2026-04-13
 
 ### Added — Brazil LGPD RAG Pre-filter (`31_brazil_lgpd_rag.py`)
