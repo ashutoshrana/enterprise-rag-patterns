@@ -6,43 +6,66 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Downloads](https://img.shields.io/pypi/dm/enterprise-rag-patterns.svg)](https://pypi.org/project/enterprise-rag-patterns/)
 
+**Cross-industry compliance patterns for RAG pipelines — 29 regulated sector examples, 5 vector store adapters, 888 tests.**
+
+Defense-in-depth pre-filters that enforce regulatory requirements at the retrieval layer, before any document reaches the LLM context window.
+
 ---
 
 ## The problem this solves
 
-Standard RAG implementations retrieve documents and pass them directly to an LLM — with no enforcement of who is allowed to see what. In regulated environments (higher education, healthcare, financial services, government), this creates a structural compliance failure: a student receives another student's records, a patient's ePHI leaks into an unrelated clinical query, prompt injection hides in a retrieved document, and no audit log is produced.
+Standard RAG implementations retrieve documents and pass them directly to an LLM — with no enforcement of who is allowed to see what. In regulated environments this creates a structural compliance failure: a student receives another student's financial aid record; a patient's ePHI surfaces in an unrelated clinical query; a grid operator's chatbot leaks BES Cyber System documentation to an unauthorized contractor.
 
-This library provides the **missing compliance layer** — a cross-industry framework of pre-filters, identity scopes, risk assessors, and audit records that enforce regulatory requirements at the retrieval layer, before any document reaches the LLM context window.
-
-**Regulations covered:** FERPA · HIPAA · GDPR · NIST AI RMF · OWASP LLM Top 10
+This library provides the **missing compliance layer**: identity-scoped pre-filters, layered regulatory enforcement, and structured audit records. Documents that fail any compliance layer never reach the LLM.
 
 ---
 
-## Architecture
+## Architecture: Defense-in-Depth
 
 ```
-Session Token
-     │
-     ▼
-StudentIdentityScope
-(student_id + institution_id + authorized_categories + disclosure_reason)
-     │
-     ├─ Vector Store Pre-filter ──────────────────────────────────┐
-     │   student_id + institution_id + categories checked here   │
-     │   Only authorized documents enter the ranking stage       │
-     │                                                            │
-     ├─ Policy Layer Filter (defense-in-depth) ──────────────────┤
-     │   Application-level identity re-check                     │
-     │   Blocks any document that escaped the vector filter      │
-     │                                                            │
-     ├─ Audit Record ─────────────────────────────────────────────┤
-     │   34 CFR § 99.32 Disclosure Log                           │
-     │   Emitted before LLM sees any document                    │
-     │                                                            │
-     └─ LLM Context (authorized documents only) ─────────────────┘
+User Query
+    │
+    ▼
+┌─────────────────────────────────────────────────┐
+│         Vector Store Retrieval (candidate docs)  │
+└────────────────────┬────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────┐
+│  LAYER 1 — Identity / Access Gate               │
+│  Who is the user? What are their clearances?    │
+└────────────────────┬────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────┐
+│  LAYER 2 — Regulatory Domain Gate               │
+│  Does this document belong to this regulation?  │
+└────────────────────┬────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────┐
+│  LAYER 3 — Contextual Policy Gate               │
+│  Is this access appropriate in this context?    │
+└────────────────────┬────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────┐
+│  LAYER 4 — Sector-Specific Gate                 │
+│  Are there additional domain requirements?      │
+└────────────────────┬────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────┐
+│  Audit Record (written before LLM sees docs)    │
+│  user_id · document_id · regulation_citation    │
+│  layers_passed · layers_denied · timestamp      │
+└────────────────────┬────────────────────────────┘
+                     │
+                     ▼
+                 LLM Context
 ```
 
-**Why pre-filter, not post-filter?** Post-filtering is a UI concern, not a compliance control — the LLM has already processed the unauthorized record. FERPA and HIPAA require that disclosure not occur, not that unauthorized data be hidden after the fact. See [docs/adr/](./docs/adr/) for the full architecture decision record.
+**Why pre-filter, not post-filter?** Post-filtering is a UI concern — the LLM has already processed the unauthorized record. FERPA, HIPAA, and NERC CIP require that disclosure not occur, not that unauthorized data be hidden after the fact. See [docs/adr/001-pre-filter-not-post-filter.md](./docs/adr/001-pre-filter-not-post-filter.md).
 
 ---
 
@@ -52,27 +75,28 @@ StudentIdentityScope
 pip install enterprise-rag-patterns
 ```
 
-With framework extras:
+With vector store or framework extras:
 
 ```bash
 pip install 'enterprise-rag-patterns[langchain]'
-pip install 'enterprise-rag-patterns[llama-index]'
 pip install 'enterprise-rag-patterns[haystack]'
+pip install 'enterprise-rag-patterns[llama-index]'
+pip install 'enterprise-rag-patterns[pinecone]'
+pip install 'enterprise-rag-patterns[weaviate]'
+pip install 'enterprise-rag-patterns[qdrant]'
+pip install 'enterprise-rag-patterns[chromadb]'
 ```
 
 ---
 
-## 60-second example
+## Quick start
 
 ```python
 from enterprise_rag_patterns.compliance import (
-    StudentIdentityScope,
-    RecordCategory,
-    FERPAContextPolicy,
-    DisclosureReason,
+    StudentIdentityScope, RecordCategory,
+    FERPAContextPolicy, DisclosureReason,
 )
 
-# Build a verified scope from your session token — never from user input
 scope = StudentIdentityScope(
     student_id="stu_001",
     institution_id="univ_abc",
@@ -82,7 +106,7 @@ scope = StudentIdentityScope(
 )
 policy = FERPAContextPolicy(scope=scope)
 
-# Your retriever returns docs — filter before the LLM sees them
+# Filter before the LLM sees any document
 safe_docs = policy.filter_retrieved_documents(
     retrieved_docs,
     student_id_field="student_id",
@@ -90,29 +114,89 @@ safe_docs = policy.filter_retrieved_documents(
     category_field="category",
 )
 
-# Emit a 34 CFR § 99.32 disclosure log entry
+# Emit a 34 CFR §99.32 disclosure log entry
 audit = policy.record_access(categories_accessed={RecordCategory.ACADEMIC_RECORD})
-print(audit.to_log_entry())
-# → {"record_id": "...", "student_id": "stu_001", "regulation": "FERPA",
-#    "categories": ["academic_record"], "permitted": true, "timestamp": "..."}
 ```
 
-See the `examples/` directory for complete runnable pipelines:
-
-| Example | Regulation | What it shows |
-|---------|------------|---------------|
-| [`ferpa_rag_pipeline.py`](./examples/ferpa_rag_pipeline.py) | FERPA | Four-layer FERPA-compliant pipeline |
-| [`05_hipaa_rag_pipeline.py`](./examples/05_hipaa_rag_pipeline.py) | HIPAA | Minimum-necessary ePHI filter + SHA-256 tamper-evidence |
-| [`06_owasp_security_scan.py`](./examples/06_owasp_security_scan.py) | OWASP LLM01/LLM02 | PII redaction + prompt injection scan |
-| [`07_soc2_cbac_pipeline.py`](./examples/07_soc2_cbac_pipeline.py) | SOC 2 Type II | Multi-tenant CBAC: tenant isolation, confidentiality tiers, role-based access |
-| [`08_nist_ai_rmf_assessment.py`](./examples/08_nist_ai_rmf_assessment.py) | NIST AI RMF | MAP/MEASURE/MANAGE risk assessment + incident recording |
+See the `examples/` directory for complete runnable pipelines.
 
 ---
 
-## Framework integrations
+## Example catalog — 29 regulated sectors
 
-| Framework | Integration Class | Install Extra |
-|-----------|------------------|---------------|
+| # | File | Sector | Regulations Enforced |
+|---|------|--------|---------------------|
+| 01 | `01_basic_ferpa_filter.py` | Higher Education | FERPA 34 CFR §99 — StudentIdentityScope, cross-institution blocking |
+| 02 | `02_multi_student_isolation.py` | Multi-Institution | FERPA §99.31 — cross-institution and cross-student isolation |
+| 03 | `03_langchain_handler.py` | LangChain | FERPA + LangChain LCEL — FERPACallbackHandler |
+| 04 | `04_lcel_ferpa_chain.py` | LCEL Chains | FERPA retriever integration — FERPALCELChain |
+| 05 | `05_hipaa_rag_pipeline.py` | Healthcare | HIPAA 45 CFR §164.502 — PHI minimum necessary, ePHI audit |
+| 06 | `06_owasp_security_scan.py` | Cybersecurity | OWASP LLM Top 10 (2025) — LLM01 injection, LLM02 PII |
+| 07 | `07_soc2_cbac_pipeline.py` | Regulated SaaS | SOC 2 Type II CC6.1/C1.1 — tenant isolation, CBAC |
+| 08 | `08_nist_ai_rmf_assessment.py` | AI Risk | NIST AI RMF 1.0 + AI 600-1 — MAP/MEASURE/MANAGE |
+| 09 | `09_vector_store_adapters.py` | Vector Stores | Pinecone / Weaviate / Qdrant / ChromaDB compliance filters |
+| 10 | `10_escalation_policy.py` | All Sectors | Escalation policy + action boundary enforcement |
+| 11 | `11_context_assembly.py` | Enterprise RAG | Multi-source ContextEnvelope — CRM + ERP + KB assembly |
+| 12 | `12_cross_channel_session.py` | Omnichannel | Cross-channel session continuity with compliance scope |
+| 13 | `13_financial_services_rag.py` | Financial (early) | Dodd-Frank, CCAR — basic financial services filtering |
+| 14 | `14_legal_sector_rag.py` | Legal (early) | Attorney-client privilege — basic privilege filter |
+| 15 | `15_government_federal_rag.py` | Government (early) | FedRAMP, FISMA — basic federal filtering |
+| 16 | `16_energy_utilities_rag.py` | Energy (early) | NERC CIP basics |
+| 17 | `17_telecom_rag.py` | Telecommunications | CPNI 47 CFR Part 64 — customer proprietary network info |
+| 18 | `18_state_consumer_privacy_rag.py` | State Privacy | CCPA/CPRA, VCDPA, CPA — multi-state privacy |
+| 19 | `19_pharma_clinical_rag.py` | Pharma/Clinical | 21 CFR Part 11, ICH-GCP, GxP — regulated trial data |
+| 20 | `20_real_estate_mortgage_rag.py` | Real Estate | RESPA, Fair Housing Act — mortgage record access |
+| 21 | `21_energy_utilities_rag.py` | Energy (extended) | NERC CIP + FERC + multi-site |
+| 22 | `22_government_contracting_rag.py` | Gov Contracting | FAR/DFARS, CUI, contractor access |
+| 23 | `23_hr_employment_rag.py` | HR / Employment | EEOC, Title VII, ADA — personnel record access |
+| 24 | `24_clinical_trials_rag.py` | Clinical Trials | FDA IND, IRB, HIPAA — trial data access |
+| 25 | `25_digital_health_rag.py` | Digital Health | FDA SaMD + 42 CFR Part 2 + HIPAA special categories + ONC |
+| 26 | `26_legal_services_rag.py` | Legal Services | ABA Rules 1.6/1.7/1.9 + FRCP Rule 26(b)(3) + State Bar Ethics |
+| 27 | `27_financial_services_rag.py` | Financial Services | GLBA §§6801-6809 + SEC Reg S-P + FINRA Rule 3110 + BSA/AML |
+| 28 | `28_energy_utilities_rag.py` | Energy & Utilities | NERC CIP-004/005/011/013 + FERC CEII 18 CFR §388.113 + DOE + NRC 10 CFR 73.21 |
+| 29 | `29_government_public_sector_rag.py` | Government / Public Sector | FedRAMP + FISMA + NIST SP 800-53 + CUI 32 CFR Part 2002 + AU-9 |
+
+---
+
+## Regulation coverage matrix
+
+| Regulation | Citation | Sector | Example |
+|------------|----------|--------|---------|
+| FERPA | 34 CFR Part 99 | Higher Education | 01–04 |
+| HIPAA | 45 CFR §§164.312, 164.502 | Healthcare | 05, 24, 25 |
+| OWASP LLM Top 10 (2025) | LLM01–LLM10 | All sectors | 06 |
+| SOC 2 Type II | CC6.1/CC6.6/C1.1/CC7.2 | SaaS | 07 |
+| NIST AI RMF 1.0 | AI 600-1 GenAI Profile | All sectors | 08 |
+| ISO/IEC 27001:2022 | Annex A.5.12/A.5.15/A.8.2 | Enterprise | 07–08 |
+| CCPA / CPRA | Cal. Civ. Code §1798 | Consumer | 18 |
+| VCDPA, CPA | State privacy laws | Consumer | 18 |
+| 21 CFR Part 11 | FDA GxP e-records | Pharma | 19, 24 |
+| Fair Housing Act | 42 USC §3604 | Real Estate | 20 |
+| EEOC / Title VII / ADA | 42 USC §2000e | HR | 23 |
+| FDA SaMD | AI/ML Action Plan | Digital Health | 25 |
+| 42 CFR Part 2 | SUDs records | Digital Health | 25 |
+| ONC Interoperability | 21st Cen. Cures Act | Digital Health | 25 |
+| ABA Model Rules | 1.6/1.7/1.9 | Legal Services | 26 |
+| FRCP Rule 26(b)(3) | Work product doctrine | Legal Services | 26 |
+| GLBA Title V | 15 USC §§6801–6809 | Financial | 27 |
+| SEC Regulation S-P | 17 CFR Part 248 | Financial | 27 |
+| FINRA Rule 3110 | Written supervisory procedures | Financial | 27 |
+| BSA / AML | 31 USC §5318(g)(2) | Financial | 27 |
+| NERC CIP | CIP-004/005/011/013 | Energy | 28 |
+| FERC CEII | 18 CFR §388.113 | Energy | 28 |
+| NRC 10 CFR 73.21 | SGI tipping-off prohibition | Nuclear | 28 |
+| FedRAMP | HIGH/MODERATE/LOW | Government | 29 |
+| FISMA | 44 USC §3541 | Government | 29 |
+| NIST SP 800-53 Rev. 5 | AC-3/AC-4/PS-3/AU-9 | Government | 29 |
+| CUI 32 CFR Part 2002 | FOUO/LES/Privacy Act/EAR | Government | 29 |
+| Privacy Act | 5 USC §552a | Government | 29 |
+
+---
+
+## Framework and vector store integrations
+
+| Integration | Class | Install |
+|-------------|-------|---------|
 | LangChain | `FERPAComplianceCallbackHandler` | `[langchain]` |
 | LlamaIndex | `FERPANodePostprocessor` | `[llama-index]` |
 | Haystack 2.x | `FERPAHaystackFilter` | `[haystack]` |
@@ -120,34 +204,7 @@ See the `examples/` directory for complete runnable pipelines:
 | Weaviate | `WeaviateComplianceFilter` | `[weaviate]` |
 | Qdrant | `QdrantComplianceFilter` | `[qdrant]` |
 | ChromaDB | `ChromaComplianceFilter` | `[chromadb]` |
-
----
-
-## Cross-industry compliance coverage
-
-| Regulation / Framework | Status | Primary Sector | RAG Controls |
-|------------------------|--------|----------------|--------------|
-| FERPA (34 CFR § 99) | ✅ Implemented | Education | Identity scoping, 34 CFR § 99.32 audit log |
-| GDPR (Articles 17, 32) | ✅ Implemented | EU / Global | Right-to-erasure, data subject rights |
-| HIPAA (45 CFR §§ 164.312, 164.502) | ✅ Implemented | Healthcare | ePHI minimum-necessary, audit controls |
-| NIST AI RMF 1.0 + AI 600-1 | ✅ Implemented | All sectors | MAP/MEASURE/MANAGE risk assessment |
-| OWASP LLM Top 10 (2025) | ✅ Implemented | Software / AI | LLM01 injection, LLM02 PII disclosure |
-| SOC 2 Type II | ✅ Implemented | SaaS / Enterprise | Tenant isolation, CBAC, CC7.2 audit log |
-| ISO/IEC 27001:2022 | ✅ Implemented | All sectors | ISMS classification, org isolation, CBAC (Annex A.5.12/A.5.15/A.8.2) |
-| PCI DSS v4.0 | ✅ Implemented | Payments / Finance | Merchant isolation, CHD CBAC, PAN masking (Req 3.4/7.2/7.2.1) |
-| GLBA (16 CFR § 314) | 🗓 Planned | Financial services | Customer record safeguards |
-| EU AI Act | 🗓 Planned | EU / Global | Article 12 tamper-evident audit logs |
-
-### Four-layer defense-in-depth model
-
-```
-Layer 0: Query-time security    → OWASP (PII redaction, injection scanning)
-Layer 1: Identity scoping       → FERPA / HIPAA (namespace + metadata filter)
-Layer 2: Compliance filtering   → FERPA / HIPAA / GDPR (document-level rules)
-Layer 3: Risk assessment + audit→ NIST AI RMF / HIPAA (structured audit records)
-```
-
-See [`docs/architecture.md`](./docs/architecture.md) for the full layered model.
+| Microsoft Agent Framework | `FERPAAgentMiddleware` | `[maf]` |
 
 ---
 
@@ -155,90 +212,89 @@ See [`docs/architecture.md`](./docs/architecture.md) for the full layered model.
 
 ```
 src/enterprise_rag_patterns/
-├── compliance.py               # FERPA identity scoping + 34 CFR § 99.32 audit
-├── context.py                  # Multi-source context envelope assembly
+├── compliance.py               # FERPA identity scoping + 34 CFR §99.32 audit
+├── context.py                  # Multi-source ContextEnvelope assembly
 ├── session.py                  # Cross-channel session continuity
-├── policy.py                   # Escalation and action-boundary policy objects
-├── async_compliance.py         # Async wrappers for asyncio/FastAPI environments
+├── policy.py                   # Escalation + action-boundary policy objects
+├── async_compliance.py         # Async wrappers (asyncio / FastAPI)
 ├── regulations/
-│   ├── gdpr.py                 # GDPR Article 17 right-to-erasure patterns
-│   ├── hipaa.py                # HIPAA ePHI minimum-necessary + audit (NEW)
-│   ├── iso27001.py             # ISO/IEC 27001:2022 ISMS CBAC — A.5.12/A.5.15/A.8.2/A.8.15
-│   ├── nist_ai_rmf.py          # NIST AI RMF 1.0 + AI 600-1 risk assessment
-│   ├── owasp_llm.py            # OWASP LLM Top 10 (2025) — LLM01/LLM02
-│   ├── pci_dss.py              # PCI DSS v4.0 — Req 3.4/7.2/7.2.1/10.2.1 + PAN masking
-│   └── soc2.py                 # SOC 2 Type II CBAC — CC6.1/CC6.6/C1.1/CC7.2
+│   ├── gdpr.py                 # GDPR Article 17 right-to-erasure
+│   ├── hipaa.py                # HIPAA ePHI minimum-necessary + audit
+│   ├── iso27001.py             # ISO/IEC 27001:2022 ISMS CBAC
+│   ├── nist_ai_rmf.py          # NIST AI RMF 1.0 + AI 600-1
+│   ├── owasp_llm.py            # OWASP LLM Top 10 (2025) LLM01/LLM02
+│   ├── pci_dss.py              # PCI DSS v4.0 CHD/PAN masking
+│   └── soc2.py                 # SOC 2 Type II CC6.1/CC6.6/C1.1
 ├── vector_stores/
-│   ├── pinecone_adapter.py     # PineconeComplianceFilter + namespace isolation
-│   ├── weaviate_adapter.py     # WeaviateComplianceFilter
-│   ├── qdrant_adapter.py       # QdrantComplianceFilter
-│   └── chroma_adapter.py       # ChromaComplianceFilter
+│   ├── pinecone_adapter.py
+│   ├── weaviate_adapter.py
+│   ├── qdrant_adapter.py
+│   └── chroma_adapter.py
 └── integrations/
-    ├── langchain.py            # FERPAComplianceCallbackHandler (LangChain 0.3+)
-    ├── langchain_lcel.py       # FERPAFilterRunnable + make_ferpa_chain (LCEL)
-    ├── llama_index.py          # FERPANodePostprocessor (LlamaIndex)
-    ├── llama_index_workflow.py # FERPAWorkflowStep (LlamaIndex 0.12+ Workflows)
-    ├── haystack.py             # FERPAHaystackFilter (Haystack 2.x)
-    └── maf.py                  # FERPAAgentMiddleware (Microsoft Agent Framework)
+    ├── langchain.py
+    ├── langchain_lcel.py
+    ├── llama_index.py
+    ├── haystack.py
+    └── maf.py
+examples/                       # 29 runnable sector examples (see catalog above)
+tests/                          # 888 passing tests (2 skipped)
 docs/
-├── architecture.md             # Four-layer defense-in-depth model
-├── adr/                        # Architecture decision records
-└── implementation-note-*.md    # Implementation notes
-examples/
-└── ferpa_rag_pipeline.py       # Complete runnable FERPA-compliant pipeline
+├── architecture.md
+├── adr/                        # Architecture Decision Records
+│   ├── 001-pre-filter-not-post-filter.md
+│   └── 002-two-layer-enforcement.md
+└── implementation-note-*.md
 ```
 
 ---
 
-## Published notes
+## Published notes and articles
 
-- [Implementation Note 01](./docs/implementation-note-01.md) — Cross-channel continuity problem and solution
+- [Implementation Note 01](./docs/implementation-note-01.md) — Cross-channel continuity and compliance scope
 - [Implementation Note 02](./docs/implementation-note-02.md) — FERPA boundaries in retrieval-augmented generation
-- [Production-Grade RAG in Regulated Enterprise Environments](./docs/articles/production-grade-rag-in-regulated-enterprise-environments.md)
+- [ADR 001](./docs/adr/001-pre-filter-not-post-filter.md) — Why pre-filter, not post-filter
+- [ADR 002](./docs/adr/002-two-layer-enforcement.md) — Two-layer enforcement: vector store + policy
 
 ---
 
 ## Near-term roadmap
 
-- `regulations/eu_ai_act.py` — EU AI Act Article 12 tamper-evident audit log with cryptographic signing
-- `regulations/glba.py` — GLBA Safeguards Rule financial record access controls
-- `integrations/crewai.py` — CrewAI policy-gated tool wrapper
-- Async vector store adapters for FastAPI/asyncio environments
-- ECOSYSTEM.md: compatibility matrix with current ecosystem versions
+- `30_telecom_cpni_rag.py` — Telecommunications CPNI 47 CFR Part 64 + CALEA
+- `31_brazil_lgpd_rag.py` — LGPD + Brazilian AI Bill PL 2338/2023
+- `32_insurance_naic_rag.py` — NAIC Model Law + FCRA §615 + state insurance data
+- Async vector store adapters for FastAPI/asyncio
+- PyPI download and star count badges
 
 ---
 
 ## Contributing
 
-Contributions are welcome. Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines and [GOVERNANCE.md](./GOVERNANCE.md) for the governance model. Run `pytest tests/ -v` to verify your changes before opening a pull request.
+Read [CONTRIBUTING.md](./CONTRIBUTING.md) and [GOVERNANCE.md](./GOVERNANCE.md). Run `pytest tests/ -v` before opening a pull request.
 
 ---
 
 ## Citation
 
-If you use these patterns in research or production, please cite:
-
 ```bibtex
 @software{rana2026erp,
-  author    = {Rana, Ashutosh},
-  title     = {enterprise-rag-patterns: FERPA-compliant retrieval-augmented generation patterns},
-  year      = {2026},
-  url       = {https://github.com/ashutoshrana/enterprise-rag-patterns},
-  license   = {MIT}
+  author  = {Rana, Ashutosh},
+  title   = {enterprise-rag-patterns: Cross-industry compliance patterns for RAG pipelines},
+  year    = {2026},
+  version = {0.24.0},
+  url     = {https://github.com/ashutoshrana/enterprise-rag-patterns},
+  license = {MIT}
 }
 ```
-
-Or use GitHub's "Cite this repository" button above (reads `CITATION.cff`).
 
 ---
 
 ## Part of the enterprise AI patterns trilogy
 
-| Library | Focus | Compliance |
-|---------|-------|-----------|
-| **enterprise-rag-patterns** | What to retrieve | FERPA, HIPAA, GDPR, NIST AI RMF, OWASP LLM |
-| [regulated-ai-governance](https://github.com/ashutoshrana/regulated-ai-governance) | What agents may do | FERPA, HIPAA, GLBA policy enforcement |
-| [integration-automation-patterns](https://github.com/ashutoshrana/integration-automation-patterns) | How data flows | Event-driven enterprise integration |
+| Library | Focus | Coverage |
+|---------|-------|---------|
+| **enterprise-rag-patterns** | What to retrieve | 29 sectors · 27 regulations · 888 tests |
+| [regulated-ai-governance](https://github.com/ashutoshrana/regulated-ai-governance) | What agents may do | 21 governance examples · 9 jurisdictions · 934 tests |
+| [integration-automation-patterns](https://github.com/ashutoshrana/integration-automation-patterns) | How data flows | 22 patterns · event sourcing · API gateway · 580 tests |
 
 ---
 
