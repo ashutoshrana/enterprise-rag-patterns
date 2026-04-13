@@ -17,6 +17,7 @@ Available integrations
 
 from .haystack import FERPAHaystackFilter
 from .langchain import FERPAComplianceCallbackHandler
+from .langchain_lcel import FERPAFilterRunnable, make_ferpa_chain
 from .llama_index import FERPANodePostprocessor
 from .llama_index_workflow import FERPAFilterEvent, FERPAWorkflowStep
 from .maf import FERPAAgentMiddleware
@@ -27,5 +28,7 @@ __all__ = [
     "FERPAFilterEvent",
     "FERPAHaystackFilter",
     "FERPAComplianceCallbackHandler",
+    "FERPAFilterRunnable",
+    "make_ferpa_chain",
     "FERPAAgentMiddleware",
 ]

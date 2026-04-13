@@ -6,6 +6,18 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.4.1] — 2026-04-13
+
+### Added
+- `integrations/langchain_lcel.py`: `FERPAFilterRunnable` — LangChain LCEL step that makes FERPA filtering an explicit `Runnable` in the `|` pipe chain. Supports per-request scope injection via `RunnableConfig["metadata"]["ferpa_scope"]`. Closes #25.
+- `integrations/langchain_lcel.py`: `make_ferpa_chain()` — factory that wires `retriever | FERPAFilterRunnable | prompt | llm [| output_parser]` in one call.
+- `integrations/__init__.py`: exports `FERPAFilterRunnable`, `make_ferpa_chain`
+
+### Fixed
+- `integrations/llama_index_workflow.py`: ruff format fix (whitespace normalization)
+
+---
+
 ## [0.4.0] — 2026-04-12
 
 ### Added
