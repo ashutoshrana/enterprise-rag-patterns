@@ -10,7 +10,7 @@ sub-package can be imported without any vector store client installed.
 
 Supported stores
 ----------------
-- Pinecone v8     → ``PineconeComplianceFilter``
+- Pinecone v8     → ``PineconeComplianceFilter``, ``PineconeNamespaceIsolation``
 - Weaviate v4     → ``WeaviateComplianceFilter``
 - Qdrant v1.17+   → ``QdrantComplianceFilter``
 - ChromaDB v1.5+  → ``ChromaComplianceFilter``
@@ -18,7 +18,7 @@ Supported stores
 
 from .base import ComplianceFilter, VectorStoreFilterAdapter
 from .chroma_adapter import ChromaComplianceFilter
-from .pinecone_adapter import PineconeComplianceFilter
+from .pinecone_adapter import PineconeComplianceFilter, PineconeNamespaceIsolation
 from .qdrant_adapter import QdrantComplianceFilter
 from .weaviate_adapter import WeaviateComplianceFilter
 
@@ -26,6 +26,7 @@ __all__ = [
     "ComplianceFilter",
     "VectorStoreFilterAdapter",
     "PineconeComplianceFilter",
+    "PineconeNamespaceIsolation",
     "WeaviateComplianceFilter",
     "QdrantComplianceFilter",
     "ChromaComplianceFilter",

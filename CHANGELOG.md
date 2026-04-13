@@ -6,6 +6,14 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.4.2] — 2026-04-13
+
+### Added
+- `vector_stores/pinecone_adapter.py`: `PineconeNamespaceIsolation` — defense-in-depth adapter for Pinecone v8 multi-institution deployments. Layer 1: maps `institution_id` → Pinecone namespace (hardware isolation, cross-institution queries structurally impossible). Layer 2: adds `student_id` metadata filter (software isolation). Supports both sync (`query_sync`) and async (`async_query` via `IndexAsyncio`) Pinecone v8 clients. Custom `namespace_resolver` callable for institution-ID-to-namespace mapping. Closes #26.
+- `vector_stores/__init__.py`: exports `PineconeNamespaceIsolation`
+
+---
+
 ## [0.4.1] — 2026-04-13
 
 ### Added
