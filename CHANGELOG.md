@@ -6,6 +6,21 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.32.0] — 2026-04-13
+
+### Added — Canada PIPEDA/Quebec Law 25 RAG Pre-filter (`37_canada_pipeda_rag.py`)
+
+Canada federal and provincial privacy laws as a four-layer RAG pre-filter:
+
+- `PIPEDAConsentFilter` (PIPEDA S.C. 2000, c. 5) — personal info without consent → DENIED (Sch. 1 Principle 3); sensitive data without explicit consent → DENIED (Principle 3.3); cross-border transfer without safeguards → DENIED (Principle 4.1.3)
+- `QuebecLaw25Filter` (Law 25 / Bill 64, 2021) — profiling without consent → DENIED (§9); automated decision without transparency → REQUIRES_HUMAN_REVIEW (§12.1); data outside Quebec without equivalent protection → DENIED (§17)
+- `HealthcarePrivacyFilter` (PHIPA O. Reg. 329/04, HIA RSA 2000, FOIPPA RSBC 1996) — patient data to non-covered entity → DENIED; secondary use without consent → DENIED; mental health/substance use without explicit consent → DENIED
+- `CanadaCrossBorderFilter` — EU adequacy confirmed; provincial health data restrictions; US transfers requiring contractual safeguards; Five Eyes derogation for intelligence
+
+48 new tests. Total: **1193 passed, 2 skipped**.
+
+---
+
 ## [0.31.0] — 2026-04-13
 
 ### Added — Latin America RAG Pre-filter (`36_latin_america_rag.py`)
