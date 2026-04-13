@@ -1,4 +1,5 @@
 """Tests for 20_real_estate_mortgage_rag.py — Fair Housing Act + HMDA + CFPB UDAAP + RESPA"""
+
 from __future__ import annotations
 
 import importlib.util
@@ -86,16 +87,18 @@ class TestFHADisparateImpactFilter:
 
     def test_protected_class_data_blocked_in_underwriting(self, m):
         f = m.FHADisparateImpactFilter()
-        doc = _make_doc(m, doc_id="D3", category=m.MortgageDocumentCategory.CREDIT_REPORT,
-                        contains_protected_class_data=True)
+        doc = _make_doc(
+            m, doc_id="D3", category=m.MortgageDocumentCategory.CREDIT_REPORT, contains_protected_class_data=True
+        )
         ctx = _make_context(m, query_context=m.QueryContext.UNDERWRITING_DECISION)
         permitted, reasons = f.filter([doc], ctx)
         assert len(permitted) == 0
 
     def test_public_disclosure_not_blocked(self, m):
         f = m.FHADisparateImpactFilter()
-        doc = _make_doc(m, doc_id="D4", category=m.MortgageDocumentCategory.NEIGHBORHOOD_DEMOGRAPHIC,
-                        is_public_disclosure=True)
+        doc = _make_doc(
+            m, doc_id="D4", category=m.MortgageDocumentCategory.NEIGHBORHOOD_DEMOGRAPHIC, is_public_disclosure=True
+        )
         ctx = _make_context(m, query_context=m.QueryContext.UNDERWRITING_DECISION)
         permitted, reasons = f.filter([doc], ctx)
         assert len(permitted) == 1
@@ -110,8 +113,12 @@ class TestFHADisparateImpactFilter:
 
     def test_compliance_audit_context_not_restricted(self, m):
         f = m.FHADisparateImpactFilter()
-        doc = _make_doc(m, doc_id="D6", category=m.MortgageDocumentCategory.NEIGHBORHOOD_DEMOGRAPHIC,
-                        contains_protected_class_data=True)
+        doc = _make_doc(
+            m,
+            doc_id="D6",
+            category=m.MortgageDocumentCategory.NEIGHBORHOOD_DEMOGRAPHIC,
+            contains_protected_class_data=True,
+        )
         ctx = _make_context(m, query_context=m.QueryContext.COMPLIANCE_AUDIT)
         permitted, reasons = f.filter([doc], ctx)
         assert len(permitted) == 1
@@ -162,16 +169,16 @@ class TestHMDAComplianceFilter:
     def test_hmda_reporting_context_permits_hmda_data(self, m):
         f = m.HMDAComplianceFilter()
         doc = _make_doc(m, doc_id="H3", category=m.MortgageDocumentCategory.HMDA_DEMOGRAPHIC)
-        ctx = _make_context(m, query_context=m.QueryContext.HMDA_REPORTING,
-                            hmda_reporting_context=True)
+        ctx = _make_context(m, query_context=m.QueryContext.HMDA_REPORTING, hmda_reporting_context=True)
         permitted, reasons = f.filter([doc], ctx)
         assert len(permitted) == 1
         assert len(reasons) == 0
 
     def test_doc_with_hmda_fields_blocked_in_underwriting(self, m):
         f = m.HMDAComplianceFilter()
-        doc = _make_doc(m, doc_id="H4", category=m.MortgageDocumentCategory.CREDIT_REPORT,
-                        contains_hmda_demographic_fields=True)
+        doc = _make_doc(
+            m, doc_id="H4", category=m.MortgageDocumentCategory.CREDIT_REPORT, contains_hmda_demographic_fields=True
+        )
         ctx = _make_context(m, query_context=m.QueryContext.UNDERWRITING_DECISION)
         permitted, reasons = f.filter([doc], ctx)
         assert len(permitted) == 0
@@ -200,11 +207,8 @@ class TestHMDAComplianceFilter:
 class TestCFPBUDAAPFilter:
     def test_denial_without_factors_blocked(self, m):
         f = m.CFPBUDAAPFilter()
-        doc = _make_doc(m, doc_id="U1",
-                        category=m.MortgageDocumentCategory.DENIAL_NOTICE,
-                        adverse_action_factors=())
-        ctx = _make_context(m, query_context=m.QueryContext.ADVERSE_ACTION,
-                            adverse_action_notice_required=True)
+        doc = _make_doc(m, doc_id="U1", category=m.MortgageDocumentCategory.DENIAL_NOTICE, adverse_action_factors=())
+        ctx = _make_context(m, query_context=m.QueryContext.ADVERSE_ACTION, adverse_action_notice_required=True)
         permitted, reasons = f.filter([doc], ctx)
         assert len(permitted) == 0
         assert any("U1" in r for r in reasons)
@@ -212,65 +216,63 @@ class TestCFPBUDAAPFilter:
 
     def test_denial_with_protected_class_factor_blocked(self, m):
         f = m.CFPBUDAAPFilter()
-        doc = _make_doc(m, doc_id="U2",
-                        category=m.MortgageDocumentCategory.DENIAL_NOTICE,
-                        adverse_action_factors=("national origin — foreign income not counted",))
-        ctx = _make_context(m, query_context=m.QueryContext.ADVERSE_ACTION,
-                            adverse_action_notice_required=True)
+        doc = _make_doc(
+            m,
+            doc_id="U2",
+            category=m.MortgageDocumentCategory.DENIAL_NOTICE,
+            adverse_action_factors=("national origin — foreign income not counted",),
+        )
+        ctx = _make_context(m, query_context=m.QueryContext.ADVERSE_ACTION, adverse_action_notice_required=True)
         permitted, reasons = f.filter([doc], ctx)
         assert len(permitted) == 0
         assert any("national origin" in r.lower() for r in reasons)
 
     def test_denial_with_valid_factors_permitted(self, m):
         f = m.CFPBUDAAPFilter()
-        doc = _make_doc(m, doc_id="U3",
-                        category=m.MortgageDocumentCategory.DENIAL_NOTICE,
-                        adverse_action_factors=(
-                            "Credit score below minimum (640)",
-                            "Debt-to-income ratio exceeds 50%",
-                        ))
-        ctx = _make_context(m, query_context=m.QueryContext.ADVERSE_ACTION,
-                            adverse_action_notice_required=True)
+        doc = _make_doc(
+            m,
+            doc_id="U3",
+            category=m.MortgageDocumentCategory.DENIAL_NOTICE,
+            adverse_action_factors=(
+                "Credit score below minimum (640)",
+                "Debt-to-income ratio exceeds 50%",
+            ),
+        )
+        ctx = _make_context(m, query_context=m.QueryContext.ADVERSE_ACTION, adverse_action_notice_required=True)
         permitted, reasons = f.filter([doc], ctx)
         assert len(permitted) == 1
         assert len(reasons) == 0
 
     def test_non_adverse_action_context_passthrough(self, m):
         f = m.CFPBUDAAPFilter()
-        doc = _make_doc(m, doc_id="U4",
-                        category=m.MortgageDocumentCategory.DENIAL_NOTICE,
-                        adverse_action_factors=())
-        ctx = _make_context(m, query_context=m.QueryContext.APPRAISAL_REVIEW,
-                            adverse_action_notice_required=False)
+        doc = _make_doc(m, doc_id="U4", category=m.MortgageDocumentCategory.DENIAL_NOTICE, adverse_action_factors=())
+        ctx = _make_context(m, query_context=m.QueryContext.APPRAISAL_REVIEW, adverse_action_notice_required=False)
         permitted, reasons = f.filter([doc], ctx)
         assert len(permitted) == 1
 
     def test_neighborhood_demo_blocked_in_adverse_action(self, m):
         f = m.CFPBUDAAPFilter()
-        doc = _make_doc(m, doc_id="U5",
-                        category=m.MortgageDocumentCategory.NEIGHBORHOOD_DEMOGRAPHIC)
-        ctx = _make_context(m, query_context=m.QueryContext.ADVERSE_ACTION,
-                            adverse_action_notice_required=True)
+        doc = _make_doc(m, doc_id="U5", category=m.MortgageDocumentCategory.NEIGHBORHOOD_DEMOGRAPHIC)
+        ctx = _make_context(m, query_context=m.QueryContext.ADVERSE_ACTION, adverse_action_notice_required=True)
         permitted, reasons = f.filter([doc], ctx)
         assert len(permitted) == 0
 
     def test_counter_offer_with_sex_factor_blocked(self, m):
         f = m.CFPBUDAAPFilter()
-        doc = _make_doc(m, doc_id="U6",
-                        category=m.MortgageDocumentCategory.COUNTER_OFFER,
-                        adverse_action_factors=("applicant sex — maternity leave income excluded",))
-        ctx = _make_context(m, query_context=m.QueryContext.ADVERSE_ACTION,
-                            adverse_action_notice_required=True)
+        doc = _make_doc(
+            m,
+            doc_id="U6",
+            category=m.MortgageDocumentCategory.COUNTER_OFFER,
+            adverse_action_factors=("applicant sex — maternity leave income excluded",),
+        )
+        ctx = _make_context(m, query_context=m.QueryContext.ADVERSE_ACTION, adverse_action_notice_required=True)
         permitted, reasons = f.filter([doc], ctx)
         assert len(permitted) == 0
 
     def test_adverse_action_not_required_flag_disables_filter(self, m):
         f = m.CFPBUDAAPFilter()
-        doc = _make_doc(m, doc_id="U7",
-                        category=m.MortgageDocumentCategory.DENIAL_NOTICE,
-                        adverse_action_factors=())
-        ctx = _make_context(m, query_context=m.QueryContext.ADVERSE_ACTION,
-                            adverse_action_notice_required=False)
+        doc = _make_doc(m, doc_id="U7", category=m.MortgageDocumentCategory.DENIAL_NOTICE, adverse_action_factors=())
+        ctx = _make_context(m, query_context=m.QueryContext.ADVERSE_ACTION, adverse_action_notice_required=False)
         permitted, reasons = f.filter([doc], ctx)
         assert len(permitted) == 1
 
@@ -284,8 +286,9 @@ class TestRESPALicensingFilter:
     def test_cross_state_blocked(self, m):
         f = m.RESPALicensingFilter()
         doc = _make_doc(m, doc_id="R1", property_state="TX")
-        ctx = _make_context(m, license_state="CA", property_state="TX",
-                            query_context=m.QueryContext.UNDERWRITING_DECISION)
+        ctx = _make_context(
+            m, license_state="CA", property_state="TX", query_context=m.QueryContext.UNDERWRITING_DECISION
+        )
         permitted, reasons = f.filter([doc], ctx)
         assert len(permitted) == 0
         assert any("R1" in r for r in reasons)
@@ -294,8 +297,9 @@ class TestRESPALicensingFilter:
     def test_same_state_permitted(self, m):
         f = m.RESPALicensingFilter()
         doc = _make_doc(m, doc_id="R2", property_state="TX")
-        ctx = _make_context(m, license_state="TX", property_state="TX",
-                            query_context=m.QueryContext.UNDERWRITING_DECISION)
+        ctx = _make_context(
+            m, license_state="TX", property_state="TX", query_context=m.QueryContext.UNDERWRITING_DECISION
+        )
         permitted, reasons = f.filter([doc], ctx)
         assert len(permitted) == 1
         assert len(reasons) == 0
@@ -303,33 +307,36 @@ class TestRESPALicensingFilter:
     def test_compliance_audit_exempt(self, m):
         f = m.RESPALicensingFilter()
         doc = _make_doc(m, doc_id="R3", property_state="TX")
-        ctx = _make_context(m, license_state="WA", property_state="TX",
-                            query_context=m.QueryContext.COMPLIANCE_AUDIT)
+        ctx = _make_context(m, license_state="WA", property_state="TX", query_context=m.QueryContext.COMPLIANCE_AUDIT)
         permitted, reasons = f.filter([doc], ctx)
         assert len(permitted) == 1
 
     def test_hmda_reporting_exempt(self, m):
         f = m.RESPALicensingFilter()
         doc = _make_doc(m, doc_id="R4", property_state="FL")
-        ctx = _make_context(m, license_state="CA", property_state="FL",
-                            query_context=m.QueryContext.HMDA_REPORTING,
-                            hmda_reporting_context=True)
+        ctx = _make_context(
+            m,
+            license_state="CA",
+            property_state="FL",
+            query_context=m.QueryContext.HMDA_REPORTING,
+            hmda_reporting_context=True,
+        )
         permitted, reasons = f.filter([doc], ctx)
         assert len(permitted) == 1
 
     def test_public_disclosure_not_restricted(self, m):
         f = m.RESPALicensingFilter()
         doc = _make_doc(m, doc_id="R5", property_state="NY", is_public_disclosure=True)
-        ctx = _make_context(m, license_state="CA", property_state="NY",
-                            query_context=m.QueryContext.GENERAL_QUERY)
+        ctx = _make_context(m, license_state="CA", property_state="NY", query_context=m.QueryContext.GENERAL_QUERY)
         permitted, reasons = f.filter([doc], ctx)
         assert len(permitted) == 1
 
     def test_case_insensitive_state_matching(self, m):
         f = m.RESPALicensingFilter()
         doc = _make_doc(m, doc_id="R6", property_state="tx")
-        ctx = _make_context(m, license_state="TX", property_state="tx",
-                            query_context=m.QueryContext.UNDERWRITING_DECISION)
+        ctx = _make_context(
+            m, license_state="TX", property_state="tx", query_context=m.QueryContext.UNDERWRITING_DECISION
+        )
         permitted, reasons = f.filter([doc], ctx)
         assert len(permitted) == 1
 
@@ -343,13 +350,23 @@ class TestMortgageRAGPipeline:
     def _full_kb(self, m):
         return [
             _make_doc(m, doc_id="CREDIT-001", category=m.MortgageDocumentCategory.CREDIT_REPORT, property_state="TX"),
-            _make_doc(m, doc_id="INCOME-001", category=m.MortgageDocumentCategory.INCOME_VERIFICATION, property_state="TX"),
-            _make_doc(m, doc_id="DEMO-001",
-                      category=m.MortgageDocumentCategory.NEIGHBORHOOD_DEMOGRAPHIC,
-                      contains_protected_class_data=True, property_state="TX"),
-            _make_doc(m, doc_id="HMDA-001",
-                      category=m.MortgageDocumentCategory.HMDA_DEMOGRAPHIC,
-                      contains_hmda_demographic_fields=True, property_state="TX"),
+            _make_doc(
+                m, doc_id="INCOME-001", category=m.MortgageDocumentCategory.INCOME_VERIFICATION, property_state="TX"
+            ),  # noqa: E501
+            _make_doc(
+                m,
+                doc_id="DEMO-001",
+                category=m.MortgageDocumentCategory.NEIGHBORHOOD_DEMOGRAPHIC,
+                contains_protected_class_data=True,
+                property_state="TX",
+            ),
+            _make_doc(
+                m,
+                doc_id="HMDA-001",
+                category=m.MortgageDocumentCategory.HMDA_DEMOGRAPHIC,
+                contains_hmda_demographic_fields=True,
+                property_state="TX",
+            ),
         ]
 
     def test_appraisal_review_blocks_demographic_and_hmda(self, m):
@@ -371,17 +388,15 @@ class TestMortgageRAGPipeline:
         assert audit.documents_requested == 4
         assert audit.documents_permitted < 4
         total_blocked = (
-            len(audit.fha_blocks)
-            + len(audit.hmda_blocks)
-            + len(audit.udaap_blocks)
-            + len(audit.respa_blocks)
+            len(audit.fha_blocks) + len(audit.hmda_blocks) + len(audit.udaap_blocks) + len(audit.respa_blocks)
         )
         assert total_blocked >= 2
 
     def test_cross_state_blocks_everything(self, m):
         pipeline = m.MortgageRAGPipeline()
-        ctx = _make_context(m, license_state="CA", property_state="TX",
-                            query_context=m.QueryContext.UNDERWRITING_DECISION)
+        ctx = _make_context(
+            m, license_state="CA", property_state="TX", query_context=m.QueryContext.UNDERWRITING_DECISION
+        )
         docs = self._full_kb(m)
         permitted, audit = pipeline.retrieve(docs, ctx)
         assert len(permitted) == 0
@@ -389,16 +404,21 @@ class TestMortgageRAGPipeline:
 
     def test_hmda_reporting_context_permits_hmda_data(self, m):
         pipeline = m.MortgageRAGPipeline()
-        ctx = _make_context(m,
-                            license_state="WA",
-                            property_state="TX",
-                            query_context=m.QueryContext.HMDA_REPORTING,
-                            hmda_reporting_context=True)
+        ctx = _make_context(
+            m,
+            license_state="WA",
+            property_state="TX",
+            query_context=m.QueryContext.HMDA_REPORTING,
+            hmda_reporting_context=True,
+        )
         docs = [
-            _make_doc(m, doc_id="HMDA-LAR",
-                      category=m.MortgageDocumentCategory.HMDA_LAR_DATA,
-                      contains_hmda_demographic_fields=True,
-                      property_state="TX"),
+            _make_doc(
+                m,
+                doc_id="HMDA-LAR",
+                category=m.MortgageDocumentCategory.HMDA_LAR_DATA,
+                contains_hmda_demographic_fields=True,
+                property_state="TX",
+            ),
         ]
         permitted, audit = pipeline.retrieve(docs, ctx)
         assert len(permitted) == 1
@@ -406,17 +426,22 @@ class TestMortgageRAGPipeline:
 
     def test_adverse_action_blocks_denial_without_reasons(self, m):
         pipeline = m.MortgageRAGPipeline()
-        ctx = _make_context(m, query_context=m.QueryContext.ADVERSE_ACTION,
-                            adverse_action_notice_required=True)
+        ctx = _make_context(m, query_context=m.QueryContext.ADVERSE_ACTION, adverse_action_notice_required=True)
         docs = [
-            _make_doc(m, doc_id="DENIAL-BAD",
-                      category=m.MortgageDocumentCategory.DENIAL_NOTICE,
-                      adverse_action_factors=(),
-                      property_state="TX"),
-            _make_doc(m, doc_id="DENIAL-GOOD",
-                      category=m.MortgageDocumentCategory.DENIAL_NOTICE,
-                      adverse_action_factors=("Credit score below 640",),
-                      property_state="TX"),
+            _make_doc(
+                m,
+                doc_id="DENIAL-BAD",
+                category=m.MortgageDocumentCategory.DENIAL_NOTICE,
+                adverse_action_factors=(),
+                property_state="TX",
+            ),
+            _make_doc(
+                m,
+                doc_id="DENIAL-GOOD",
+                category=m.MortgageDocumentCategory.DENIAL_NOTICE,
+                adverse_action_factors=("Credit score below 640",),
+                property_state="TX",
+            ),
         ]
         permitted, audit = pipeline.retrieve(docs, ctx)
         doc_ids = {d.doc_id for d in permitted}

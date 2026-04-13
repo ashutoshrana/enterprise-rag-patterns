@@ -85,7 +85,6 @@ def _doc(m, **kwargs):
 
 
 class TestAttorneyClientPrivilegeFilter:
-
     def test_public_document_permitted(self, m):
         """is_public=True → PERMITTED regardless of privilege status."""
         f = m.AttorneyClientPrivilegeFilter()
@@ -163,7 +162,6 @@ class TestAttorneyClientPrivilegeFilter:
 
 
 class TestConflictOfInterestFilter:
-
     def test_conflict_cleared_no_former_client_approved(self, m):
         """has_conflict_cleared=True, no adverse former client → not denied."""
         f = m.ConflictOfInterestFilter()
@@ -232,7 +230,6 @@ class TestConflictOfInterestFilter:
 
 
 class TestWorkProductDoctrineFilter:
-
     def test_not_work_product_permitted(self, m):
         """WorkProductType.NOT_WORK_PRODUCT → not denied; Rule 26(b)(3) does not apply."""
         f = m.WorkProductDoctrineFilter()
@@ -280,7 +277,7 @@ class TestWorkProductDoctrineFilter:
         assert result.is_denied
 
     def test_opposing_counsel_ordinary_substantial_need_permitted(self, m):
-        """OPPOSING_COUNSEL + ORDINARY work product + substantial_need_shown=True → not denied; conditions reference 'substantial need'."""
+        """OPPOSING_COUNSEL + ORDINARY work product + substantial_need_shown=True → not denied; conditions reference 'substantial need'."""  # noqa: E501
         f = m.WorkProductDoctrineFilter()
         ctx = _ctx(
             m,
@@ -316,7 +313,6 @@ class TestWorkProductDoctrineFilter:
 
 
 class TestStateBarEthicsFilter:
-
     def test_attorney_admitted_in_jurisdiction_permitted(self, m):
         """ATTORNEY with is_admitted_in_matter_jurisdiction=True → not denied."""
         f = m.StateBarEthicsFilter()
@@ -373,18 +369,20 @@ class TestStateBarEthicsFilter:
 
 
 class TestLegalServicesRAGPipeline:
-
     def test_compliant_attorney_permitted_docs(self, m):
         """Fully compliant attorney on a WA matter retrieves all 3 docs (privileged+ORDINARY, OPINION, public)."""
         pipeline = m.LegalServicesRAGPipeline()
         ctx = _ctx(m)
         docs = [
-            _doc(m, document_id="DOC-PRIV-ORD", is_privileged=True,
-                 work_product_type=m.WorkProductType.ORDINARY),
-            _doc(m, document_id="DOC-OPINION", is_privileged=True,
-                 work_product_type=m.WorkProductType.OPINION),
-            _doc(m, document_id="DOC-PUBLIC", is_public=True, is_privileged=False,
-                 work_product_type=m.WorkProductType.NOT_WORK_PRODUCT),
+            _doc(m, document_id="DOC-PRIV-ORD", is_privileged=True, work_product_type=m.WorkProductType.ORDINARY),
+            _doc(m, document_id="DOC-OPINION", is_privileged=True, work_product_type=m.WorkProductType.OPINION),
+            _doc(
+                m,
+                document_id="DOC-PUBLIC",
+                is_public=True,
+                is_privileged=False,
+                work_product_type=m.WorkProductType.NOT_WORK_PRODUCT,
+            ),
         ]
         permitted = pipeline.retrieve(ctx, docs)
         permitted_ids = {d.document_id for d in permitted}
@@ -406,12 +404,15 @@ class TestLegalServicesRAGPipeline:
             privilege_waiver_documented=False,
         )
         docs = [
-            _doc(m, document_id="DOC-PRIV", is_privileged=True,
-                 work_product_type=m.WorkProductType.NOT_WORK_PRODUCT),
-            _doc(m, document_id="DOC-OPINION", is_privileged=True,
-                 work_product_type=m.WorkProductType.OPINION),
-            _doc(m, document_id="DOC-PUBLIC", is_public=True, is_privileged=False,
-                 work_product_type=m.WorkProductType.NOT_WORK_PRODUCT),
+            _doc(m, document_id="DOC-PRIV", is_privileged=True, work_product_type=m.WorkProductType.NOT_WORK_PRODUCT),
+            _doc(m, document_id="DOC-OPINION", is_privileged=True, work_product_type=m.WorkProductType.OPINION),
+            _doc(
+                m,
+                document_id="DOC-PUBLIC",
+                is_public=True,
+                is_privileged=False,
+                work_product_type=m.WorkProductType.NOT_WORK_PRODUCT,
+            ),
         ]
         permitted = pipeline.retrieve(ctx, docs)
         permitted_ids = {d.document_id for d in permitted}
@@ -433,12 +434,21 @@ class TestLegalServicesRAGPipeline:
             adverse_to_former_client=False,
         )
         docs = [
-            _doc(m, document_id="DOC-NON-PUBLIC", is_privileged=True,
-                 work_product_type=m.WorkProductType.NOT_WORK_PRODUCT,
-                 matter_jurisdiction="WA"),
-            _doc(m, document_id="DOC-PUBLIC", is_public=True, is_privileged=False,
-                 work_product_type=m.WorkProductType.NOT_WORK_PRODUCT,
-                 matter_jurisdiction="WA"),
+            _doc(
+                m,
+                document_id="DOC-NON-PUBLIC",
+                is_privileged=True,
+                work_product_type=m.WorkProductType.NOT_WORK_PRODUCT,
+                matter_jurisdiction="WA",
+            ),
+            _doc(
+                m,
+                document_id="DOC-PUBLIC",
+                is_public=True,
+                is_privileged=False,
+                work_product_type=m.WorkProductType.NOT_WORK_PRODUCT,
+                matter_jurisdiction="WA",
+            ),
         ]
         permitted = pipeline.retrieve(ctx, docs)
         permitted_ids = {d.document_id for d in permitted}
@@ -454,12 +464,17 @@ class TestLegalServicesRAGPipeline:
             adverse_to_former_client=False,
         )
         docs = [
-            _doc(m, document_id="DOC-PRIV-1", is_privileged=True,
-                 work_product_type=m.WorkProductType.ORDINARY),
-            _doc(m, document_id="DOC-PRIV-2", is_privileged=False,
-                 work_product_type=m.WorkProductType.NOT_WORK_PRODUCT),
-            _doc(m, document_id="DOC-PUBLIC", is_public=True, is_privileged=False,
-                 work_product_type=m.WorkProductType.NOT_WORK_PRODUCT),
+            _doc(m, document_id="DOC-PRIV-1", is_privileged=True, work_product_type=m.WorkProductType.ORDINARY),
+            _doc(
+                m, document_id="DOC-PRIV-2", is_privileged=False, work_product_type=m.WorkProductType.NOT_WORK_PRODUCT
+            ),
+            _doc(
+                m,
+                document_id="DOC-PUBLIC",
+                is_public=True,
+                is_privileged=False,
+                work_product_type=m.WorkProductType.NOT_WORK_PRODUCT,
+            ),
         ]
         permitted = pipeline.retrieve(ctx, docs)
         permitted_ids = {d.document_id for d in permitted}
@@ -490,10 +505,8 @@ class TestLegalServicesRAGPipeline:
             adverse_to_former_client=False,
         )
         docs = [
-            _doc(m, document_id="DOC-PRIV-1", is_privileged=True,
-                 work_product_type=m.WorkProductType.ORDINARY),
-            _doc(m, document_id="DOC-PRIV-2", is_privileged=True,
-                 work_product_type=m.WorkProductType.NOT_WORK_PRODUCT),
+            _doc(m, document_id="DOC-PRIV-1", is_privileged=True, work_product_type=m.WorkProductType.ORDINARY),
+            _doc(m, document_id="DOC-PRIV-2", is_privileged=True, work_product_type=m.WorkProductType.NOT_WORK_PRODUCT),
         ]
         permitted = pipeline.retrieve(ctx, docs)
         assert len(permitted) == 0
@@ -510,10 +523,12 @@ class TestLegalServicesRAGPipeline:
             is_admitted_in_matter_jurisdiction=True,
         )
         docs = [
-            _doc(m, document_id="DOC-CLIENT-1", is_privileged=True,
-                 work_product_type=m.WorkProductType.NOT_WORK_PRODUCT),
-            _doc(m, document_id="DOC-CLIENT-2", is_privileged=True,
-                 work_product_type=m.WorkProductType.NOT_WORK_PRODUCT),
+            _doc(
+                m, document_id="DOC-CLIENT-1", is_privileged=True, work_product_type=m.WorkProductType.NOT_WORK_PRODUCT
+            ),
+            _doc(
+                m, document_id="DOC-CLIENT-2", is_privileged=True, work_product_type=m.WorkProductType.NOT_WORK_PRODUCT
+            ),
         ]
         permitted = pipeline.retrieve(ctx, docs)
         permitted_ids = {d.document_id for d in permitted}

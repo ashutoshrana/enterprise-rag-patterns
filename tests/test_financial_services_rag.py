@@ -40,6 +40,7 @@ def m():
 # Helper factories
 # ---------------------------------------------------------------------------
 
+
 def _ctx(m, **kwargs):
     """Fully compliant compliance officer context."""
     defaults = dict(
@@ -82,8 +83,8 @@ def _doc(m, **kwargs):
 # TestGLBAPrivacyFilter — 7 tests
 # ---------------------------------------------------------------------------
 
-class TestGLBAPrivacyFilter:
 
+class TestGLBAPrivacyFilter:
     @pytest.fixture
     def glba(self, m):
         return m.GLBAPrivacyFilter()
@@ -136,11 +137,7 @@ class TestGLBAPrivacyFilter:
         result = glba.evaluate(ctx, doc)
         assert result.is_denied
         reason_lower = result.reason.lower()
-        assert (
-            "6802" in result.reason
-            or "opt-out" in reason_lower
-            or "affiliate" in reason_lower
-        )
+        assert "6802" in result.reason or "opt-out" in reason_lower or "affiliate" in reason_lower
 
     def test_opt_out_not_honored_denied(self, m, glba):
         """Registered representative accessing NPI when opt-out is not honored is denied."""
@@ -165,8 +162,8 @@ class TestGLBAPrivacyFilter:
 # TestSECRegSPFilter — 6 tests
 # ---------------------------------------------------------------------------
 
-class TestSECRegSPFilter:
 
+class TestSECRegSPFilter:
     @pytest.fixture
     def reg_sp(self, m):
         return m.SECRegSPFilter()
@@ -184,11 +181,7 @@ class TestSECRegSPFilter:
         doc = _doc(m)
         result = reg_sp.evaluate(ctx, doc)
         assert result.is_denied
-        assert (
-            "248.30" in result.reason
-            or "Safeguard" in result.reason
-            or "safeguard" in result.reason.lower()
-        )
+        assert "248.30" in result.reason or "Safeguard" in result.reason or "safeguard" in result.reason.lower()
 
     def test_registered_rep_with_safeguards_permitted(self, m, reg_sp):
         """Registered representative with safeguard program in place is permitted."""
@@ -226,19 +219,15 @@ class TestSECRegSPFilter:
         result = reg_sp.evaluate(ctx, doc)
         assert not result.is_denied
         combined = " ".join(result.conditions) + " " + result.reason
-        assert (
-            "Reg S-P" in combined
-            or "248" in combined
-            or "safeguard" in combined.lower()
-        )
+        assert "Reg S-P" in combined or "248" in combined or "safeguard" in combined.lower()
 
 
 # ---------------------------------------------------------------------------
 # TestFINRASupervisionFilter — 7 tests
 # ---------------------------------------------------------------------------
 
-class TestFINRASupervisionFilter:
 
+class TestFINRASupervisionFilter:
     @pytest.fixture
     def finra(self, m):
         return m.FINRASupervisionFilter()
@@ -271,11 +260,7 @@ class TestFINRASupervisionFilter:
         doc = _doc(m)
         result = finra.evaluate(ctx, doc)
         assert result.is_denied
-        assert (
-            "3110" in result.reason
-            or "WSP" in result.reason
-            or "wsp" in result.reason.lower()
-        )
+        assert "3110" in result.reason or "WSP" in result.reason or "wsp" in result.reason.lower()
 
     def test_branch_manager_licensed_permitted(self, m, finra):
         """Licensed branch manager (registered principal) is permitted under Rule 3110(a)."""
@@ -317,19 +302,15 @@ class TestFINRASupervisionFilter:
         result = finra.evaluate(ctx, doc)
         assert not result.is_denied
         combined = " ".join(result.conditions) + " " + result.reason
-        assert (
-            "3110" in combined
-            or "FINRA" in combined
-            or "WSP" in combined
-        )
+        assert "3110" in combined or "FINRA" in combined or "WSP" in combined
 
 
 # ---------------------------------------------------------------------------
 # TestBSAAMLFilter — 8 tests
 # ---------------------------------------------------------------------------
 
-class TestBSAAMLFilter:
 
+class TestBSAAMLFilter:
     @pytest.fixture
     def bsa(self, m):
         return m.BSAAMLFilter()
@@ -354,11 +335,7 @@ class TestBSAAMLFilter:
         doc = _doc(m, is_sar=True)
         result = bsa.evaluate(ctx, doc)
         assert result.is_denied
-        assert (
-            "tipping" in result.reason.lower()
-            or "5318" in result.reason
-            or "SAR" in result.reason
-        )
+        assert "tipping" in result.reason.lower() or "5318" in result.reason or "SAR" in result.reason
 
     def test_compliance_officer_sar_authorized_permitted(self, m, bsa):
         """Compliance officer with explicit SAR access authorization is permitted."""
@@ -412,8 +389,8 @@ class TestBSAAMLFilter:
 # TestFinancialServicesRAGPipeline — 8 tests
 # ---------------------------------------------------------------------------
 
-class TestFinancialServicesRAGPipeline:
 
+class TestFinancialServicesRAGPipeline:
     @pytest.fixture
     def pipeline(self, m):
         return m.FinancialServicesRAGPipeline()

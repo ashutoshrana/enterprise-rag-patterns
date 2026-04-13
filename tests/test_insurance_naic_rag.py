@@ -16,9 +16,9 @@ InsuranceLoBFilter, InsuranceNAICRAGPipeline, and InsuranceRAGAuditRecord.
 
 from __future__ import annotations
 
+import importlib.util
 import os
 import sys
-import importlib.util
 import types
 
 # ---------------------------------------------------------------------------
@@ -51,6 +51,7 @@ InsuranceRAGAuditRecord = mod.InsuranceRAGAuditRecord
 # ---------------------------------------------------------------------------
 # Factory helpers
 # ---------------------------------------------------------------------------
+
 
 def _ctx(
     *,
@@ -167,6 +168,7 @@ def _public_doc(document_id: str = "doc-pub") -> object:
 # Tests 1–5: NAICModelActFilter
 # ---------------------------------------------------------------------------
 
+
 class TestNAICModelActFilter:
     """Tests 1-5: NAIC Model Privacy Protection Act §13, §7, and AI Guidance."""
 
@@ -230,6 +232,7 @@ class TestNAICModelActFilter:
 # Tests 6–9: FCRAInsuranceFilter
 # ---------------------------------------------------------------------------
 
+
 class TestFCRAInsuranceFilter:
     """Tests 6-9: FCRA §1681b permissible purpose and §1681m adverse action."""
 
@@ -284,6 +287,7 @@ class TestFCRAInsuranceFilter:
 # Tests 10–13: StateInsuranceAIFilter
 # ---------------------------------------------------------------------------
 
+
 class TestStateInsuranceAIFilter:
     """Tests 10-13: CA CDI 2022-5, IL IDOI 2021, CA Prop 103, state medical consent."""
 
@@ -335,6 +339,7 @@ class TestStateInsuranceAIFilter:
 # ---------------------------------------------------------------------------
 # Tests 14–17: InsuranceLoBFilter
 # ---------------------------------------------------------------------------
+
 
 class TestInsuranceLoBFilter:
     """Tests 14-17: Line of Business authorization and actuarial data access."""
@@ -390,6 +395,7 @@ class TestInsuranceLoBFilter:
 # ---------------------------------------------------------------------------
 # Tests 18–23: Full pipeline integration
 # ---------------------------------------------------------------------------
+
 
 class TestPipelineIntegration:
     """Tests 18-23: end-to-end InsuranceNAICRAGPipeline behavior."""
@@ -488,6 +494,7 @@ class TestPipelineIntegration:
 # Tests 24–28: InsuranceRAGAuditRecord.to_audit_log() structure
 # ---------------------------------------------------------------------------
 
+
 class TestInsuranceRAGAuditRecord:
     """Tests 24-28: audit log structure and field correctness."""
 
@@ -502,12 +509,24 @@ class TestInsuranceRAGAuditRecord:
         audit = self._run_audit([_doc()])
         log = audit.to_audit_log()
         required = {
-            "event", "user_id", "role", "company_id", "state",
-            "is_consumer_request", "is_ai_model_decision", "ai_model_registered",
-            "has_adverse_action_basis", "adverse_action_notice_sent",
-            "is_state_regulator_exam", "processing_purpose",
-            "documents_evaluated", "documents_permitted", "documents_denied",
-            "documents_redacted", "filter_results", "timestamp",
+            "event",
+            "user_id",
+            "role",
+            "company_id",
+            "state",
+            "is_consumer_request",
+            "is_ai_model_decision",
+            "ai_model_registered",
+            "has_adverse_action_basis",
+            "adverse_action_notice_sent",
+            "is_state_regulator_exam",
+            "processing_purpose",
+            "documents_evaluated",
+            "documents_permitted",
+            "documents_denied",
+            "documents_redacted",
+            "filter_results",
+            "timestamp",
         }
         assert required.issubset(set(log.keys()))
 
@@ -579,6 +598,7 @@ class TestInsuranceRAGAuditRecord:
 # ---------------------------------------------------------------------------
 # Tests 29–36: Edge cases and additional coverage
 # ---------------------------------------------------------------------------
+
 
 class TestEdgeCases:
     """Tests 29-36: edge cases, is_denied property, and boundary conditions."""

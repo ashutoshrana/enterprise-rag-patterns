@@ -19,9 +19,7 @@ import pytest
 # ---------------------------------------------------------------------------
 
 _MODULE_NAME = "pharma_clinical_rag"
-_MODULE_PATH = (
-    Path(__file__).parent.parent / "examples" / "19_pharma_clinical_rag.py"
-)
+_MODULE_PATH = Path(__file__).parent.parent / "examples" / "19_pharma_clinical_rag.py"
 
 
 def _load_module() -> Any:
@@ -56,6 +54,7 @@ SITE_B = _mod.SITE_B
 # ---------------------------------------------------------------------------
 # Shared fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture()
 def controlled_protocol_doc() -> ClinicalDocument:
@@ -134,6 +133,7 @@ def authorized_ctx() -> ClinicalAccessContext:
 # FDA 21 CFR Part 11 Filter
 # ---------------------------------------------------------------------------
 
+
 class TestFDA21CFRPart11Filter:
     """Tests for §11.10(d) credentials and §11.10(g) authority checks."""
 
@@ -150,16 +150,12 @@ class TestFDA21CFRPart11Filter:
     def test_blocks_no_gxp_credentials(
         self, controlled_protocol_doc: ClinicalDocument, authorized_ctx: ClinicalAccessContext
     ) -> None:
-        ctx = ClinicalAccessContext(
-            **{**authorized_ctx.__dict__, "gxp_credentials_valid": False}
-        )
+        ctx = ClinicalAccessContext(**{**authorized_ctx.__dict__, "gxp_credentials_valid": False})
         permitted, blocked = self._filter().filter([controlled_protocol_doc], ctx)
         assert len(permitted) == 0
         assert "§11.10(d)" in blocked[0]
 
-    def test_passes_public_record_without_credentials(
-        self, public_summary_doc: ClinicalDocument
-    ) -> None:
+    def test_passes_public_record_without_credentials(self, public_summary_doc: ClinicalDocument) -> None:
         ctx = ClinicalAccessContext(
             role=GCPRole.EXTERNAL_AUDITOR,
             gxp_credentials_valid=False,
@@ -176,9 +172,7 @@ class TestFDA21CFRPart11Filter:
     def test_blocks_unauthorized_trial(
         self, controlled_protocol_doc: ClinicalDocument, authorized_ctx: ClinicalAccessContext
     ) -> None:
-        ctx = ClinicalAccessContext(
-            **{**authorized_ctx.__dict__, "authorized_trial_ids": frozenset({"OTHER-TRIAL"})}
-        )
+        ctx = ClinicalAccessContext(**{**authorized_ctx.__dict__, "authorized_trial_ids": frozenset({"OTHER-TRIAL"})})
         permitted, blocked = self._filter().filter([controlled_protocol_doc], ctx)
         assert len(permitted) == 0
         assert "§11.10(g)" in blocked[0]
@@ -196,9 +190,7 @@ class TestFDA21CFRPart11Filter:
     def test_block_reason_contains_doc_id(
         self, controlled_protocol_doc: ClinicalDocument, authorized_ctx: ClinicalAccessContext
     ) -> None:
-        ctx = ClinicalAccessContext(
-            **{**authorized_ctx.__dict__, "gxp_credentials_valid": False}
-        )
+        ctx = ClinicalAccessContext(**{**authorized_ctx.__dict__, "gxp_credentials_valid": False})
         _, blocked = self._filter().filter([controlled_protocol_doc], ctx)
         assert "DOC-PROTOCOL" in blocked[0]
 
@@ -206,6 +198,7 @@ class TestFDA21CFRPart11Filter:
 # ---------------------------------------------------------------------------
 # ICH GCP Filter
 # ---------------------------------------------------------------------------
+
 
 class TestICHGCPFilter:
     """Tests for ICH E6(R3) blinding integrity and site isolation."""
@@ -217,9 +210,7 @@ class TestICHGCPFilter:
         self, randomization_doc: ClinicalDocument, authorized_ctx: ClinicalAccessContext
     ) -> None:
         ctx = ClinicalAccessContext(
-            **{**authorized_ctx.__dict__,
-               "role": GCPRole.UNBLINDED_STATISTICIAN,
-               "is_blinded": False}
+            **{**authorized_ctx.__dict__, "role": GCPRole.UNBLINDED_STATISTICIAN, "is_blinded": False}
         )
         permitted, blocked = self._filter().filter([randomization_doc], ctx)
         assert len(permitted) == 1
@@ -229,9 +220,7 @@ class TestICHGCPFilter:
         self, randomization_doc: ClinicalDocument, authorized_ctx: ClinicalAccessContext
     ) -> None:
         ctx = ClinicalAccessContext(
-            **{**authorized_ctx.__dict__,
-               "role": GCPRole.BLINDED_STATISTICIAN,
-               "is_blinded": True}
+            **{**authorized_ctx.__dict__, "role": GCPRole.BLINDED_STATISTICIAN, "is_blinded": True}
         )
         permitted, blocked = self._filter().filter([randomization_doc], ctx)
         assert len(permitted) == 0
@@ -250,9 +239,7 @@ class TestICHGCPFilter:
             is_controlled_record=True,
         )
         ctx = ClinicalAccessContext(
-            **{**authorized_ctx.__dict__,
-               "role": GCPRole.PRINCIPAL_INVESTIGATOR,
-               "is_blinded": True}
+            **{**authorized_ctx.__dict__, "role": GCPRole.PRINCIPAL_INVESTIGATOR, "is_blinded": True}
         )
         permitted, blocked = self._filter().filter([interim_doc], ctx)
         assert len(permitted) == 0
@@ -271,9 +258,7 @@ class TestICHGCPFilter:
             is_controlled_record=True,
         )
         ctx = ClinicalAccessContext(
-            **{**authorized_ctx.__dict__,
-               "role": GCPRole.CLINICAL_RESEARCH_ASSOCIATE,
-               "site_id": SITE_A}
+            **{**authorized_ctx.__dict__, "role": GCPRole.CLINICAL_RESEARCH_ASSOCIATE, "site_id": SITE_A}
         )
         permitted, blocked = self._filter().filter([site_b_doc], ctx)
         assert len(permitted) == 0
@@ -292,10 +277,12 @@ class TestICHGCPFilter:
             is_controlled_record=True,
         )
         ctx = ClinicalAccessContext(
-            **{**authorized_ctx.__dict__,
-               "role": GCPRole.CLINICAL_RESEARCH_ASSOCIATE,
-               "is_blinded": True,
-               "site_id": SITE_A}
+            **{
+                **authorized_ctx.__dict__,
+                "role": GCPRole.CLINICAL_RESEARCH_ASSOCIATE,
+                "is_blinded": True,
+                "site_id": SITE_A,
+            }
         )
         permitted, blocked = self._filter().filter([site_a_doc], ctx)
         assert len(permitted) == 1
@@ -304,16 +291,12 @@ class TestICHGCPFilter:
     def test_blocks_expired_gcp_training(
         self, controlled_protocol_doc: ClinicalDocument, authorized_ctx: ClinicalAccessContext
     ) -> None:
-        ctx = ClinicalAccessContext(
-            **{**authorized_ctx.__dict__, "gcp_training_current": False}
-        )
+        ctx = ClinicalAccessContext(**{**authorized_ctx.__dict__, "gcp_training_current": False})
         permitted, blocked = self._filter().filter([controlled_protocol_doc], ctx)
         assert len(permitted) == 0
         assert "GCP training" in blocked[0]
 
-    def test_passes_public_record_without_gcp_training(
-        self, public_summary_doc: ClinicalDocument
-    ) -> None:
+    def test_passes_public_record_without_gcp_training(self, public_summary_doc: ClinicalDocument) -> None:
         ctx = ClinicalAccessContext(
             role=GCPRole.EXTERNAL_AUDITOR,
             gxp_credentials_valid=False,
@@ -327,9 +310,7 @@ class TestICHGCPFilter:
         assert len(permitted) == 1
         assert len(blocked) == 0
 
-    def test_blocks_docs_with_unblinded_flag_for_blinded_role(
-        self, authorized_ctx: ClinicalAccessContext
-    ) -> None:
+    def test_blocks_docs_with_unblinded_flag_for_blinded_role(self, authorized_ctx: ClinicalAccessContext) -> None:
         unblinded_doc = ClinicalDocument(
             doc_id="DOC-CSR",
             content="Unblinded CSR draft.",
@@ -342,9 +323,7 @@ class TestICHGCPFilter:
             is_controlled_record=True,
         )
         ctx = ClinicalAccessContext(
-            **{**authorized_ctx.__dict__,
-               "role": GCPRole.PRINCIPAL_INVESTIGATOR,
-               "is_blinded": True}
+            **{**authorized_ctx.__dict__, "role": GCPRole.PRINCIPAL_INVESTIGATOR, "is_blinded": True}
         )
         permitted, blocked = self._filter().filter([unblinded_doc], ctx)
         assert len(permitted) == 0
@@ -354,6 +333,7 @@ class TestICHGCPFilter:
 # ---------------------------------------------------------------------------
 # HIPAA Minimum Necessary Filter
 # ---------------------------------------------------------------------------
+
 
 class TestHIPAAMinimumNecessaryFilter:
     """Tests for 45 CFR §164.502(b) minimum necessary PHI access."""
@@ -383,9 +363,7 @@ class TestHIPAAMinimumNecessaryFilter:
         assert len(permitted) == 1
         assert len(blocked) == 0
 
-    def test_blocks_out_of_scope_phi_category(
-        self, authorized_ctx: ClinicalAccessContext
-    ) -> None:
+    def test_blocks_out_of_scope_phi_category(self, authorized_ctx: ClinicalAccessContext) -> None:
         lab_doc = ClinicalDocument(
             doc_id="DOC-LAB",
             content="Lab results.",
@@ -399,8 +377,7 @@ class TestHIPAAMinimumNecessaryFilter:
         )
         # Minimum necessary scope only includes ADVERSE_EVENT, not LAB_RESULT
         ctx = ClinicalAccessContext(
-            **{**authorized_ctx.__dict__,
-               "minimum_necessary_scope": frozenset({ClinicalRecordCategory.ADVERSE_EVENT})}
+            **{**authorized_ctx.__dict__, "minimum_necessary_scope": frozenset({ClinicalRecordCategory.ADVERSE_EVENT})}
         )
         permitted, blocked = self._filter().filter([lab_doc], ctx)
         assert len(permitted) == 0
@@ -410,10 +387,14 @@ class TestHIPAAMinimumNecessaryFilter:
         self, phi_doc: ClinicalDocument, authorized_ctx: ClinicalAccessContext
     ) -> None:
         ctx = ClinicalAccessContext(
-            **{**authorized_ctx.__dict__,
-               "minimum_necessary_scope": frozenset({
-                   ClinicalRecordCategory.PATIENT_DATA_IDENTIFIABLE,
-               })}
+            **{
+                **authorized_ctx.__dict__,
+                "minimum_necessary_scope": frozenset(
+                    {
+                        ClinicalRecordCategory.PATIENT_DATA_IDENTIFIABLE,
+                    }
+                ),
+            }
         )
         permitted, blocked = self._filter().filter([phi_doc], ctx)
         assert len(permitted) == 1
@@ -423,9 +404,7 @@ class TestHIPAAMinimumNecessaryFilter:
         self, phi_doc: ClinicalDocument, authorized_ctx: ClinicalAccessContext
     ) -> None:
         """Empty minimum_necessary_scope means no category restriction."""
-        ctx = ClinicalAccessContext(
-            **{**authorized_ctx.__dict__, "minimum_necessary_scope": frozenset()}
-        )
+        ctx = ClinicalAccessContext(**{**authorized_ctx.__dict__, "minimum_necessary_scope": frozenset()})
         permitted, blocked = self._filter().filter([phi_doc], ctx)
         assert len(permitted) == 1
         assert len(blocked) == 0
@@ -434,6 +413,7 @@ class TestHIPAAMinimumNecessaryFilter:
 # ---------------------------------------------------------------------------
 # ClinicalRAGPipeline — defence-in-depth
 # ---------------------------------------------------------------------------
+
 
 class TestClinicalRAGPipeline:
     """Integration tests for the three-layer pipeline."""
@@ -451,9 +431,7 @@ class TestClinicalRAGPipeline:
         assert "DOC-PROTOCOL" in doc_ids
         assert "DOC-PUBLIC-SUMMARY" in doc_ids
 
-    def test_blocked_count_plus_permitted_count_equals_total(
-        self, authorized_ctx: ClinicalAccessContext
-    ) -> None:
+    def test_blocked_count_plus_permitted_count_equals_total(self, authorized_ctx: ClinicalAccessContext) -> None:
         pipeline = self._pipeline()
         _, audit = pipeline.retrieve(SAMPLE_DOCUMENTS, authorized_ctx, "test")
         assert audit.permitted_count + audit.blocked_count == audit.total_candidates
@@ -534,6 +512,7 @@ class TestClinicalRAGPipeline:
 # Scenario functions (integration smoke tests)
 # ---------------------------------------------------------------------------
 
+
 class TestScenarios:
     """Smoke tests for the four published demonstration scenarios."""
 
@@ -549,9 +528,7 @@ class TestScenarios:
             minimum_necessary_scope=frozenset(),
         )
         pipeline = ClinicalRAGPipeline()
-        permitted, audit = pipeline.retrieve(
-            SAMPLE_DOCUMENTS, ctx, "statistical analysis planning"
-        )
+        permitted, audit = pipeline.retrieve(SAMPLE_DOCUMENTS, ctx, "statistical analysis planning")
         assert audit.blinding_violation_blocked
         assert all(not d.is_unblinded_data for d in permitted)
         # PHI must be blocked (phi_authorized=False)
@@ -567,16 +544,16 @@ class TestScenarios:
             authorized_trial_phases=frozenset({TrialPhase.PHASE_III}),
             phi_authorized=True,
             site_id=SITE_A,
-            minimum_necessary_scope=frozenset({
-                ClinicalRecordCategory.PATIENT_DATA_IDENTIFIABLE,
-                ClinicalRecordCategory.ADVERSE_EVENT,
-                ClinicalRecordCategory.LAB_RESULT,
-            }),
+            minimum_necessary_scope=frozenset(
+                {
+                    ClinicalRecordCategory.PATIENT_DATA_IDENTIFIABLE,
+                    ClinicalRecordCategory.ADVERSE_EVENT,
+                    ClinicalRecordCategory.LAB_RESULT,
+                }
+            ),
         )
         pipeline = ClinicalRAGPipeline()
-        permitted, audit = pipeline.retrieve(
-            SAMPLE_DOCUMENTS, ctx, "site monitoring"
-        )
+        permitted, audit = pipeline.retrieve(SAMPLE_DOCUMENTS, ctx, "site monitoring")
         permitted_ids = {d.doc_id for d in permitted}
         assert "DOC-AE-SITE-B" not in permitted_ids, "Cross-site access must be blocked"
         assert "DOC-AE-SITE-A" in permitted_ids, "Same-site AEs must be accessible"
@@ -592,9 +569,7 @@ class TestScenarios:
             phi_authorized=False,
         )
         pipeline = ClinicalRAGPipeline()
-        permitted, audit = pipeline.retrieve(
-            SAMPLE_DOCUMENTS, ctx, "unauthorized access attempt"
-        )
+        permitted, audit = pipeline.retrieve(SAMPLE_DOCUMENTS, ctx, "unauthorized access attempt")
         # Only non-controlled records (PUBLIC_SUMMARY) should pass
         assert all(not d.is_controlled_record for d in permitted)
         permitted_ids = {d.doc_id for d in permitted}
@@ -610,16 +585,16 @@ class TestScenarios:
             authorized_trial_phases=frozenset({TrialPhase.PHASE_III}),
             phi_authorized=True,
             site_id=SITE_A,
-            minimum_necessary_scope=frozenset({
-                ClinicalRecordCategory.ADVERSE_EVENT,
-                ClinicalRecordCategory.SERIOUS_ADVERSE_EVENT,
-                ClinicalRecordCategory.LAB_RESULT,
-            }),
+            minimum_necessary_scope=frozenset(
+                {
+                    ClinicalRecordCategory.ADVERSE_EVENT,
+                    ClinicalRecordCategory.SERIOUS_ADVERSE_EVENT,
+                    ClinicalRecordCategory.LAB_RESULT,
+                }
+            ),
         )
         pipeline = ClinicalRAGPipeline()
-        permitted, audit = pipeline.retrieve(
-            SAMPLE_DOCUMENTS, ctx, "safety review"
-        )
+        permitted, audit = pipeline.retrieve(SAMPLE_DOCUMENTS, ctx, "safety review")
         permitted_ids = {d.doc_id for d in permitted}
         assert all(not d.is_unblinded_data for d in permitted), "PI must not see unblinded data"
         assert "DOC-AE-SITE-A" in permitted_ids, "PI must see their site AEs"
@@ -652,11 +627,13 @@ class TestScenarios:
             authorized_trial_phases=frozenset({TrialPhase.PHASE_III}),
             phi_authorized=True,
             site_id=SITE_A,
-            minimum_necessary_scope=frozenset({
-                ClinicalRecordCategory.PATIENT_DATA_IDENTIFIABLE,
-                ClinicalRecordCategory.ADVERSE_EVENT,
-                ClinicalRecordCategory.LAB_RESULT,
-            }),
+            minimum_necessary_scope=frozenset(
+                {
+                    ClinicalRecordCategory.PATIENT_DATA_IDENTIFIABLE,
+                    ClinicalRecordCategory.ADVERSE_EVENT,
+                    ClinicalRecordCategory.LAB_RESULT,
+                }
+            ),
         )
         pipeline = ClinicalRAGPipeline()
         _, audit = pipeline.retrieve(SAMPLE_DOCUMENTS, ctx, "test")

@@ -16,9 +16,9 @@ StateRealEstateLawFilter, RealEstateRAGPipeline, and RealEstateAuditRecord.
 
 from __future__ import annotations
 
+import importlib.util
 import os
 import sys
-import importlib.util
 import types
 
 # ---------------------------------------------------------------------------
@@ -49,6 +49,7 @@ RealEstateAuditRecord = mod.RealEstateAuditRecord
 # ---------------------------------------------------------------------------
 # Factory helpers
 # ---------------------------------------------------------------------------
+
 
 def _ctx(
     *,
@@ -100,6 +101,7 @@ def _doc(
 # [1-5] FairHousingActFilter
 # ---------------------------------------------------------------------------
 
+
 class TestFairHousingActFilter:
     def setup_method(self):
         self.f = FairHousingActFilter()
@@ -150,6 +152,7 @@ class TestFairHousingActFilter:
 # ---------------------------------------------------------------------------
 # [6-9] ECOALendingFilter
 # ---------------------------------------------------------------------------
+
 
 class TestECOALendingFilter:
     def setup_method(self):
@@ -209,6 +212,7 @@ class TestECOALendingFilter:
 # ---------------------------------------------------------------------------
 # [10-13] AppraisalIndependenceFilter
 # ---------------------------------------------------------------------------
+
 
 class TestAppraisalIndependenceFilter:
     def setup_method(self):
@@ -271,6 +275,7 @@ class TestAppraisalIndependenceFilter:
 # ---------------------------------------------------------------------------
 # [14-18] StateRealEstateLawFilter
 # ---------------------------------------------------------------------------
+
 
 class TestStateRealEstateLawFilter:
     def setup_method(self):
@@ -339,6 +344,7 @@ class TestStateRealEstateLawFilter:
 # [19-24] Pipeline — filter_documents
 # ---------------------------------------------------------------------------
 
+
 class TestRealEstateRAGPipelineFilterDocuments:
     def setup_method(self):
         self.pipeline = RealEstateRAGPipeline()
@@ -398,6 +404,7 @@ class TestRealEstateRAGPipelineFilterDocuments:
 # [25-30] Pipeline — filter_documents_with_audit
 # ---------------------------------------------------------------------------
 
+
 class TestRealEstateRAGPipelineAudit:
     def setup_method(self):
         self.pipeline = RealEstateRAGPipeline()
@@ -455,6 +462,7 @@ class TestRealEstateRAGPipelineAudit:
 # ---------------------------------------------------------------------------
 # [31-36] Full-stack and edge cases
 # ---------------------------------------------------------------------------
+
 
 class TestFullStackAndEdgeCases:
     def setup_method(self):
@@ -515,6 +523,7 @@ class TestFullStackAndEdgeCases:
     def test_36_real_estate_context_is_frozen(self):
         """RealEstateContext is immutable (frozen=True)."""
         import dataclasses
+
         ctx = _ctx()
         assert dataclasses.is_dataclass(ctx)
         try:

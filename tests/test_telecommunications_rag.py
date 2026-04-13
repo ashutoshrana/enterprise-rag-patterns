@@ -16,9 +16,9 @@ TelecomRegulatoryAuditRecord.
 
 from __future__ import annotations
 
+import importlib.util
 import os
 import sys
-import importlib.util
 import types
 
 # ---------------------------------------------------------------------------
@@ -50,6 +50,7 @@ TelecomRegulatoryAuditRecord = mod.TelecomRegulatoryAuditRecord
 # Factory helpers
 # ---------------------------------------------------------------------------
 
+
 def _ctx(
     *,
     user_id: str = "user-001",
@@ -65,7 +66,7 @@ def _ctx(
     contact_method: str = "",
     prior_express_consent: bool = False,
     do_not_call_registry: bool = False,
-    calling_time_hour: "int | None" = None,
+    calling_time_hour: int | None = None,
     # CALEA
     intercept_type: str = "",
     court_order: bool = False,
@@ -115,6 +116,7 @@ def _doc(
 # ---------------------------------------------------------------------------
 # [1-8] FCCCPNIFilter
 # ---------------------------------------------------------------------------
+
 
 class TestFCCCPNIFilter:
     def setup_method(self):
@@ -168,7 +170,11 @@ class TestFCCCPNIFilter:
         assert result.is_denied
         assert result.decision == "DENIED"
         assert "§222(c)(1)" in result.regulation_citation
-        assert "third-party" in result.reason.lower() or "third_party" in result.reason.lower() or "third" in result.reason.lower()
+        assert (
+            "third-party" in result.reason.lower()
+            or "third_party" in result.reason.lower()
+            or "third" in result.reason.lower()
+        )  # noqa: E501
 
     def test_07_cpni_marketing_use_requires_human_review(self):
         """CPNI with marketing_use flag triggers REQUIRES_HUMAN_REVIEW (§222(c)(3))."""
@@ -195,6 +201,7 @@ class TestFCCCPNIFilter:
 # ---------------------------------------------------------------------------
 # [9-16] TCPAComplianceFilter
 # ---------------------------------------------------------------------------
+
 
 class TestTCPAComplianceFilter:
     def setup_method(self):
@@ -270,6 +277,7 @@ class TestTCPAComplianceFilter:
 # [17-23] CALEAWiretapFilter
 # ---------------------------------------------------------------------------
 
+
 class TestCALEAWiretapFilter:
     def setup_method(self):
         self.f = CALEAWiretapFilter()
@@ -331,6 +339,7 @@ class TestCALEAWiretapFilter:
 # ---------------------------------------------------------------------------
 # [24-30] TelecoCrossBorderFilter
 # ---------------------------------------------------------------------------
+
 
 class TestTelecoCrossBorderFilter:
     def setup_method(self):
@@ -398,6 +407,7 @@ class TestTelecoCrossBorderFilter:
 # [31-36] Pipeline — filter_documents and filter_documents_with_audit
 # ---------------------------------------------------------------------------
 
+
 class TestTelecomRegulatoryRAGPipeline:
     def setup_method(self):
         self.pipeline = TelecomRegulatoryRAGPipeline()
@@ -461,8 +471,15 @@ class TestTelecomRegulatoryRAGPipeline:
         log = record.to_audit_log()
         assert isinstance(log, dict)
         required_keys = {
-            "event", "user_id", "carrier_id", "data_type", "purpose",
-            "documents_in", "documents_out", "decisions", "timestamp",
+            "event",
+            "user_id",
+            "carrier_id",
+            "data_type",
+            "purpose",
+            "documents_in",
+            "documents_out",
+            "decisions",
+            "timestamp",
         }
         assert required_keys.issubset(set(log.keys()))
         assert log["event"] == "TELECOM_REGULATORY_RAG_RETRIEVAL"
@@ -472,6 +489,7 @@ class TestTelecomRegulatoryRAGPipeline:
 # ---------------------------------------------------------------------------
 # [37-40] Full-stack integration and edge cases
 # ---------------------------------------------------------------------------
+
 
 class TestFullStackAndEdgeCases:
     def setup_method(self):
@@ -487,7 +505,7 @@ class TestFullStackAndEdgeCases:
             marketing_use=False,
             contact_method="human_agent",
             do_not_call_registry=False,
-            calling_time_hour=10,           # 10 AM — within allowed window
+            calling_time_hour=10,  # 10 AM — within allowed window
             intercept_type="",
             court_order=False,
             calea_compliance_certified=True,
@@ -523,15 +541,9 @@ class TestFullStackAndEdgeCases:
 
     def test_39_filter_result_is_denied_semantics(self):
         """FilterResult.is_denied is True only for DENIED; False for APPROVED and REQUIRES_HUMAN_REVIEW."""
-        denied = FilterResult(
-            layer="L", decision="DENIED", reason="r", regulation_citation="c"
-        )
-        approved = FilterResult(
-            layer="L", decision="APPROVED", reason="r", regulation_citation="c"
-        )
-        review = FilterResult(
-            layer="L", decision="REQUIRES_HUMAN_REVIEW", reason="r", regulation_citation="c"
-        )
+        denied = FilterResult(layer="L", decision="DENIED", reason="r", regulation_citation="c")
+        approved = FilterResult(layer="L", decision="APPROVED", reason="r", regulation_citation="c")
+        review = FilterResult(layer="L", decision="REQUIRES_HUMAN_REVIEW", reason="r", regulation_citation="c")
         assert denied.is_denied is True
         assert approved.is_denied is False
         assert review.is_denied is False

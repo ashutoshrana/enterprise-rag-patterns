@@ -1,31 +1,39 @@
 """Tests for FilterPipeline and PipelineResult."""
-import sys
-import os
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+import os
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 import pytest
-from enterprise_rag_patterns.pipeline import FilterPipeline, PipelineResult
 
+from enterprise_rag_patterns.pipeline import FilterPipeline, PipelineResult
 
 # ---------------------------------------------------------------------------
 # Minimal stub that mimics a real filter result object
 # ---------------------------------------------------------------------------
 
+
 class _FilterResult:
-    def __init__(self, decision: str, reason: str = "test reason",
-                 regulation_citation: str = "Test §1", requires_logging: bool = True):
+    def __init__(
+        self,
+        decision: str,
+        reason: str = "test reason",
+        regulation_citation: str = "Test §1",
+        requires_logging: bool = True,
+    ):
         self.decision = decision
         self.reason = reason
         self.regulation_citation = regulation_citation
         self.requires_logging = requires_logging
 
 
-def _make_filter(decision: str, reason: str = "test reason",
-                 citation: str = "Test §1", requires_logging: bool = True):
+def _make_filter(decision: str, reason: str = "test reason", citation: str = "Test §1", requires_logging: bool = True):
     """Return a simple callable that always returns the given decision."""
+
     def _filter(document: dict) -> _FilterResult:
         return _FilterResult(decision, reason, citation, requires_logging)
+
     return _filter
 
 
@@ -33,41 +41,39 @@ def _make_filter(decision: str, reason: str = "test reason",
 # PipelineResult unit tests
 # ---------------------------------------------------------------------------
 
+
 class TestPipelineResult:
     def test_is_approved_true(self):
-        r = PipelineResult(decision="APPROVED", reason="ok", regulation_citation="",
-                           filter_name="pipeline")
+        r = PipelineResult(decision="APPROVED", reason="ok", regulation_citation="", filter_name="pipeline")
         assert r.is_approved is True
 
     def test_is_approved_false_denied(self):
-        r = PipelineResult(decision="DENIED", reason="blocked", regulation_citation="§1",
-                           filter_name="f")
+        r = PipelineResult(decision="DENIED", reason="blocked", regulation_citation="§1", filter_name="f")
         assert r.is_approved is False
 
     def test_passed_all_filters_alias(self):
-        r = PipelineResult(decision="APPROVED", reason="ok", regulation_citation="",
-                           filter_name="pipeline")
+        r = PipelineResult(decision="APPROVED", reason="ok", regulation_citation="", filter_name="pipeline")
         assert r.passed_all_filters is True
 
     def test_passed_all_filters_false(self):
-        r = PipelineResult(decision="REQUIRES_HUMAN_REVIEW", reason="review", regulation_citation="§2",
-                           filter_name="f")
+        r = PipelineResult(decision="REQUIRES_HUMAN_REVIEW", reason="review", regulation_citation="§2", filter_name="f")
         assert r.passed_all_filters is False
 
     def test_requires_logging_default_true(self):
-        r = PipelineResult(decision="DENIED", reason="x", regulation_citation="§1",
-                           filter_name="f")
+        r = PipelineResult(decision="DENIED", reason="x", regulation_citation="§1", filter_name="f")
         assert r.requires_logging is True
 
     def test_requires_logging_can_be_false(self):
-        r = PipelineResult(decision="APPROVED", reason="ok", regulation_citation="",
-                           filter_name="pipeline", requires_logging=False)
+        r = PipelineResult(
+            decision="APPROVED", reason="ok", regulation_citation="", filter_name="pipeline", requires_logging=False
+        )
         assert r.requires_logging is False
 
 
 # ---------------------------------------------------------------------------
 # FilterPipeline construction
 # ---------------------------------------------------------------------------
+
 
 class TestFilterPipelineConstruction:
     def test_empty_filters_raises(self):
@@ -85,6 +91,7 @@ class TestFilterPipelineConstruction:
     def test_repr_contains_filter_name(self):
         def my_special_filter(doc):
             return _FilterResult("APPROVED")
+
         p = FilterPipeline([my_special_filter])
         assert "my_special_filter" in repr(p)
 
@@ -98,6 +105,7 @@ class TestFilterPipelineConstruction:
 # ---------------------------------------------------------------------------
 # FilterPipeline.run — single filter
 # ---------------------------------------------------------------------------
+
 
 class TestFilterPipelineRunSingle:
     def test_single_approved_returns_approved(self):
@@ -123,9 +131,10 @@ class TestFilterPipelineRunSingle:
         assert result.decision == "APPROVED"
 
     def test_single_requires_review_blocks_when_flag_set(self):
-        p = FilterPipeline([_make_filter("REQUIRES_HUMAN_REVIEW", reason="ambiguous",
-                                         citation="Policy §5")],
-                           stop_on_requires_review=True)
+        p = FilterPipeline(
+            [_make_filter("REQUIRES_HUMAN_REVIEW", reason="ambiguous", citation="Policy §5")],
+            stop_on_requires_review=True,
+        )
         result = p.run({})
         assert result.decision == "REQUIRES_HUMAN_REVIEW"
         assert result.reason == "ambiguous"
@@ -134,6 +143,7 @@ class TestFilterPipelineRunSingle:
 # ---------------------------------------------------------------------------
 # FilterPipeline.run — two filters, ordering / short-circuit
 # ---------------------------------------------------------------------------
+
 
 class TestFilterPipelineShortCircuit:
     def test_first_denied_second_never_called(self):
@@ -149,21 +159,25 @@ class TestFilterPipelineShortCircuit:
         assert call_count["n"] == 0, "Second filter should not have been called"
 
     def test_first_approved_second_denied_returns_second(self):
-        p = FilterPipeline([
-            _make_filter("APPROVED"),
-            _make_filter("DENIED", reason="second blocked", citation="GDPR Art.9"),
-        ])
+        p = FilterPipeline(
+            [
+                _make_filter("APPROVED"),
+                _make_filter("DENIED", reason="second blocked", citation="GDPR Art.9"),
+            ]
+        )
         result = p.run({})
         assert result.decision == "DENIED"
         assert result.reason == "second blocked"
         assert result.regulation_citation == "GDPR Art.9"
 
     def test_all_approved_returns_approved(self):
-        p = FilterPipeline([
-            _make_filter("APPROVED"),
-            _make_filter("APPROVED"),
-            _make_filter("APPROVED"),
-        ])
+        p = FilterPipeline(
+            [
+                _make_filter("APPROVED"),
+                _make_filter("APPROVED"),
+                _make_filter("APPROVED"),
+            ]
+        )
         result = p.run({"text": "safe content"})
         assert result.is_approved is True
         assert result.filter_name == "pipeline"
@@ -177,10 +191,13 @@ class TestFilterPipelineShortCircuit:
             call_count["n"] += 1
             return _FilterResult("APPROVED")
 
-        p = FilterPipeline([
-            _make_filter("REQUIRES_HUMAN_REVIEW"),
-            second_filter,
-        ], stop_on_requires_review=False)
+        p = FilterPipeline(
+            [
+                _make_filter("REQUIRES_HUMAN_REVIEW"),
+                second_filter,
+            ],
+            stop_on_requires_review=False,
+        )
         result = p.run({})
         assert result.decision == "APPROVED"
         assert call_count["n"] == 1, "Second filter must have been called"
@@ -192,10 +209,13 @@ class TestFilterPipelineShortCircuit:
             call_count["n"] += 1
             return _FilterResult("APPROVED")
 
-        p = FilterPipeline([
-            _make_filter("REQUIRES_HUMAN_REVIEW"),
-            second_filter,
-        ], stop_on_requires_review=True)
+        p = FilterPipeline(
+            [
+                _make_filter("REQUIRES_HUMAN_REVIEW"),
+                second_filter,
+            ],
+            stop_on_requires_review=True,
+        )
         result = p.run({})
         assert result.decision == "REQUIRES_HUMAN_REVIEW"
         assert call_count["n"] == 0, "Second filter must NOT have been called"
@@ -207,6 +227,7 @@ class TestFilterPipelineShortCircuit:
 
     def test_requires_logging_defaults_true_when_attribute_missing(self):
         """If filter result has no requires_logging attribute, default to True."""
+
         class MinimalResult:
             decision = "DENIED"
             reason = "blocked"
@@ -224,6 +245,7 @@ class TestFilterPipelineShortCircuit:
 # ---------------------------------------------------------------------------
 # FilterPipeline.filter_batch
 # ---------------------------------------------------------------------------
+
 
 class TestFilterBatch:
     def test_filter_batch_returns_one_result_per_document(self):
@@ -260,6 +282,7 @@ class TestFilterBatch:
 # FilterPipeline.approved_only
 # ---------------------------------------------------------------------------
 
+
 class TestApprovedOnly:
     def test_approved_only_passes_all_when_all_approved(self):
         p = FilterPipeline([_make_filter("APPROVED")])
@@ -294,13 +317,17 @@ class TestApprovedOnly:
 # Top-level package import smoke test
 # ---------------------------------------------------------------------------
 
+
 class TestPackageImport:
     def test_import_from_package_init(self):
-        from enterprise_rag_patterns import FilterPipeline as FP, PipelineResult as PR
+        from enterprise_rag_patterns import FilterPipeline as FP
+        from enterprise_rag_patterns import PipelineResult as PR
+
         assert FP is FilterPipeline
         assert PR is PipelineResult
 
     def test_version_present(self):
         import enterprise_rag_patterns
+
         assert hasattr(enterprise_rag_patterns, "__version__")
-        assert enterprise_rag_patterns.__version__ == "0.33.0"
+        assert enterprise_rag_patterns.__version__ == "0.34.0"

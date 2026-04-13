@@ -4,10 +4,12 @@ FilterPipeline — composable pre-filter chain for RAG pipelines.
 Chains multiple filter callables and short-circuits on the first non-APPROVED
 result, returning that result along with the filter that produced it.
 """
+
 from __future__ import annotations
-from dataclasses import dataclass, field
-from typing import Callable, Optional
+
 import logging
+from collections.abc import Callable
+from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +17,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class PipelineResult:
     """Aggregated result from running all filters in the pipeline."""
+
     decision: str  # APPROVED / DENIED / REDACTED / REQUIRES_HUMAN_REVIEW
     reason: str
     regulation_citation: str

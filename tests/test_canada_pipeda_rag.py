@@ -17,9 +17,9 @@ CanadaPrivacyAuditRecord.
 
 from __future__ import annotations
 
+import importlib.util
 import os
 import sys
-import importlib.util
 import types
 
 # ---------------------------------------------------------------------------
@@ -50,6 +50,7 @@ CanadaPrivacyAuditRecord = mod.CanadaPrivacyAuditRecord
 # ---------------------------------------------------------------------------
 # Factory helpers
 # ---------------------------------------------------------------------------
+
 
 def _ctx(
     *,
@@ -106,6 +107,7 @@ def _doc(
 # ---------------------------------------------------------------------------
 # [1-8] PIPEDAConsentFilter
 # ---------------------------------------------------------------------------
+
 
 class TestPIPEDAConsentFilter:
     def setup_method(self):
@@ -215,6 +217,7 @@ class TestPIPEDAConsentFilter:
 # [9-15] QuebecLaw25Filter
 # ---------------------------------------------------------------------------
 
+
 class TestQuebecLaw25Filter:
     def setup_method(self):
         self.f = QuebecLaw25Filter()
@@ -305,6 +308,7 @@ class TestQuebecLaw25Filter:
 # [16-22] HealthcarePrivacyFilter
 # ---------------------------------------------------------------------------
 
+
 class TestHealthcarePrivacyFilter:
     def setup_method(self):
         self.f = HealthcarePrivacyFilter()
@@ -373,7 +377,11 @@ class TestHealthcarePrivacyFilter:
         result = self.f.evaluate(ctx, _doc())
         assert not result.is_denied
         assert result.decision == "APPROVED"
-        assert "Healthcare provider" in result.reason or "healthcare_provider" in result.reason.lower() or "authorized" in result.reason.lower()
+        assert (
+            "Healthcare provider" in result.reason
+            or "healthcare_provider" in result.reason.lower()
+            or "authorized" in result.reason.lower()
+        )  # noqa: E501
 
     def test_21_ontario_healthcare_with_consent_approved(self):
         """Ontario healthcare request WITH consent is APPROVED (PHIPA + PIPEDA compliant)."""
@@ -405,6 +413,7 @@ class TestHealthcarePrivacyFilter:
 # ---------------------------------------------------------------------------
 # [23-29] CanadaCrossBorderFilter
 # ---------------------------------------------------------------------------
+
 
 class TestCanadaCrossBorderFilter:
     def setup_method(self):
@@ -496,6 +505,7 @@ class TestCanadaCrossBorderFilter:
 # [30-35] Pipeline — filter_documents
 # ---------------------------------------------------------------------------
 
+
 class TestCanadaPrivacyRAGPipelineFilterDocuments:
     def setup_method(self):
         self.pipeline = CanadaPrivacyRAGPipeline()
@@ -582,6 +592,7 @@ class TestCanadaPrivacyRAGPipelineFilterDocuments:
 # [36-39] Pipeline — filter_documents_with_audit
 # ---------------------------------------------------------------------------
 
+
 class TestCanadaPrivacyRAGPipelineAudit:
     def setup_method(self):
         self.pipeline = CanadaPrivacyRAGPipeline()
@@ -629,6 +640,7 @@ class TestCanadaPrivacyRAGPipelineAudit:
 # ---------------------------------------------------------------------------
 # [40] Full-stack and edge cases
 # ---------------------------------------------------------------------------
+
 
 class TestFullStackAndEdgeCases:
     def setup_method(self):

@@ -8,13 +8,12 @@ GPC signal handling, and most-restrictive-jurisdiction logic.
 
 from __future__ import annotations
 
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import importlib.util
-import types
 
 # ---------------------------------------------------------------------------
 # Load module from examples directory
@@ -44,6 +43,7 @@ SAMPLE_DOCUMENTS = _mod.SAMPLE_DOCUMENTS
 # ---------------------------------------------------------------------------
 # Helper factories
 # ---------------------------------------------------------------------------
+
 
 def _ctx(
     states: set,
@@ -93,6 +93,7 @@ def _doc(
 # ---------------------------------------------------------------------------
 # CCPACPRAFilter tests
 # ---------------------------------------------------------------------------
+
 
 class TestCCPACPRAFilter:
     def setup_method(self) -> None:
@@ -180,6 +181,7 @@ class TestCCPACPRAFilter:
 # VCDPAFilter tests
 # ---------------------------------------------------------------------------
 
+
 class TestVCDPAFilter:
     def setup_method(self) -> None:
         self.f = VCDPAFilter()
@@ -239,6 +241,7 @@ class TestVCDPAFilter:
 # CPAFilter tests
 # ---------------------------------------------------------------------------
 
+
 class TestCPAFilter:
     def setup_method(self) -> None:
         self.f = CPAFilter()
@@ -297,6 +300,7 @@ class TestCPAFilter:
 # CTDPAFilter tests
 # ---------------------------------------------------------------------------
 
+
 class TestCTDPAFilter:
     def setup_method(self) -> None:
         self.f = CTDPAFilter()
@@ -347,6 +351,7 @@ class TestCTDPAFilter:
 # MultiStatePrivacyPipeline tests
 # ---------------------------------------------------------------------------
 
+
 class TestMultiStatePrivacyPipeline:
     def setup_method(self) -> None:
         self.pipeline = MultiStatePrivacyPipeline()
@@ -370,9 +375,9 @@ class TestMultiStatePrivacyPipeline:
             opted_out_of_sharing=True,
         )
         docs = [
-            _doc("D1", requires_sharing_opt_in=True),      # CA blocks
+            _doc("D1", requires_sharing_opt_in=True),  # CA blocks
             _doc("D2", pi=SensitivePICategory.HEALTH_MEDICAL),  # VA blocks
-            _doc("D3"),                                     # neither blocks
+            _doc("D3"),  # neither blocks
         ]
         permitted, audit = self.pipeline.retrieve(docs, ctx)
         # D1 blocked by CA, D2 blocked by VA, D3 permitted
@@ -427,8 +432,8 @@ class TestMultiStatePrivacyPipeline:
         assert "DOC-001" in permitted_ids
         assert "DOC-002" in permitted_ids
         assert "DOC-003" in permitted_ids
-        assert "DOC-004" not in permitted_ids   # sharing_opt_in required
-        assert "DOC-009" not in permitted_ids   # targeted advertising
+        assert "DOC-004" not in permitted_ids  # sharing_opt_in required
+        assert "DOC-009" not in permitted_ids  # targeted advertising
 
     def test_multi_state_blocks_are_union_not_intersection(self) -> None:
         """A doc blocked by ANY law must be excluded (union, not intersection)."""
@@ -438,8 +443,8 @@ class TestMultiStatePrivacyPipeline:
             gpc=True,
         )
         docs = [
-            _doc("D1", requires_sharing_opt_in=True),   # blocked only by CA
-            _doc("D2", is_targeted=True),               # blocked only by CO (via GPC)
+            _doc("D1", requires_sharing_opt_in=True),  # blocked only by CA
+            _doc("D2", is_targeted=True),  # blocked only by CO (via GPC)
             _doc("D3"),
         ]
         permitted, audit = self.pipeline.retrieve(docs, ctx)

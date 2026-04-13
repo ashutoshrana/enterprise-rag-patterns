@@ -118,8 +118,7 @@ class TestNYCLL144Filter:
 
     def test_nyc_rule_does_not_apply_outside_nyc(self, m):
         f = m.NYCLL144Filter()
-        ctx = _ctx(m, employer_jurisdiction=frozenset({"TX"}),
-                   aedt_bias_audit_completed=False)
+        ctx = _ctx(m, employer_jurisdiction=frozenset({"TX"}), aedt_bias_audit_completed=False)
         doc = _doc(m, category=m.HRDocumentCategory.AUTOMATED_RANKING)
         audit = m.HRComplianceAuditRecord("Q", "U")
         result = f.filter([doc], ctx, audit)
@@ -128,8 +127,7 @@ class TestNYCLL144Filter:
     def test_permits_publicly_releasable_regardless_of_compliance(self, m):
         f = m.NYCLL144Filter()
         ctx = _ctx(m, aedt_bias_audit_completed=False)
-        doc = _doc(m, category=m.HRDocumentCategory.AEDT_BIAS_AUDIT_SUMMARY,
-                   is_publicly_releasable=True)
+        doc = _doc(m, category=m.HRDocumentCategory.AEDT_BIAS_AUDIT_SUMMARY, is_publicly_releasable=True)
         audit = m.HRComplianceAuditRecord("Q", "U")
         result = f.filter([doc], ctx, audit)
         assert len(result) == 1
@@ -160,8 +158,7 @@ class TestNYCLL144Filter:
     def test_block_reason_has_document_id(self, m):
         f = m.NYCLL144Filter()
         ctx = _ctx(m, aedt_bias_audit_completed=False)
-        doc = _doc(m, document_id="TEST-DOC-777",
-                   category=m.HRDocumentCategory.AUTOMATED_RANKING)
+        doc = _doc(m, document_id="TEST-DOC-777", category=m.HRDocumentCategory.AUTOMATED_RANKING)
         audit = m.HRComplianceAuditRecord("Q", "U")
         f.filter([doc], ctx, audit)
         assert audit.block_reasons[0]["document_id"] == "TEST-DOC-777"
@@ -235,8 +232,7 @@ class TestEEOCFilter:
     def test_permits_publicly_releasable_regardless_of_ratio(self, m):
         f = m.EEOCFilter()
         ctx = _ctx(m, eeoc_selection_rate_ratio=0.50)
-        doc = _doc(m, category=m.HRDocumentCategory.EEO_DEMOGRAPHIC_DATA,
-                   is_publicly_releasable=True)
+        doc = _doc(m, category=m.HRDocumentCategory.EEO_DEMOGRAPHIC_DATA, is_publicly_releasable=True)
         audit = m.HRComplianceAuditRecord("Q", "U")
         result = f.filter([doc], ctx, audit)
         assert len(result) == 1
@@ -299,8 +295,9 @@ class TestAIVIAFilter:
 
     def test_blocks_video_on_deletion_request(self, m):
         f = m.AIVIAFilter()
-        ctx = _ctx(m, aivia_candidate_consented=True, aivia_disclosure_provided=True,
-                   candidate_requested_video_deletion=True)
+        ctx = _ctx(
+            m, aivia_candidate_consented=True, aivia_disclosure_provided=True, candidate_requested_video_deletion=True
+        )
         doc = _doc(m, category=m.HRDocumentCategory.VIDEO_AI_ANALYSIS_REPORT)
         audit = m.HRComplianceAuditRecord("Q", "U")
         result = f.filter([doc], ctx, audit)
@@ -332,8 +329,7 @@ class TestAIVIAFilter:
     def test_publicly_releasable_video_permitted(self, m):
         f = m.AIVIAFilter()
         ctx = _ctx(m, aivia_candidate_consented=False)
-        doc = _doc(m, category=m.HRDocumentCategory.VIDEO_AI_ANALYSIS_REPORT,
-                   is_publicly_releasable=True)
+        doc = _doc(m, category=m.HRDocumentCategory.VIDEO_AI_ANALYSIS_REPORT, is_publicly_releasable=True)
         audit = m.HRComplianceAuditRecord("Q", "U")
         result = f.filter([doc], ctx, audit)
         assert len(result) == 1
@@ -351,8 +347,12 @@ class TestHRRAGPipeline:
             _doc(m, document_id="VIDEO-001", category=m.HRDocumentCategory.VIDEO_AI_ANALYSIS_REPORT),
             _doc(m, document_id="EEO-001", category=m.HRDocumentCategory.EEO_DEMOGRAPHIC_DATA),
             _doc(m, document_id="JD-001", category=m.HRDocumentCategory.JOB_DESCRIPTION),
-            _doc(m, document_id="PUB-001", category=m.HRDocumentCategory.AEDT_BIAS_AUDIT_SUMMARY,
-                 is_publicly_releasable=True),
+            _doc(
+                m,
+                document_id="PUB-001",
+                category=m.HRDocumentCategory.AEDT_BIAS_AUDIT_SUMMARY,
+                is_publicly_releasable=True,
+            ),
         ]
 
     def test_fully_compliant_all_permitted(self, m):
@@ -423,8 +423,7 @@ class TestHRRAGPipeline:
 
     def test_non_nyc_employer_aedt_not_blocked_by_ll144(self, m):
         pipeline = m.HRRAGPipeline()
-        ctx = _ctx(m, employer_jurisdiction=frozenset({"CA"}),
-                   aedt_bias_audit_completed=False)
+        ctx = _ctx(m, employer_jurisdiction=frozenset({"CA"}), aedt_bias_audit_completed=False)
         corpus = [_doc(m, category=m.HRDocumentCategory.AUTOMATED_RANKING)]
         docs, audit = pipeline.retrieve(corpus, ctx)
         # LLC 144 doesn't apply to non-NYC employers
@@ -432,9 +431,13 @@ class TestHRRAGPipeline:
 
     def test_block_reasons_reference_correct_layer(self, m):
         pipeline = m.HRRAGPipeline()
-        ctx = _ctx(m, aedt_bias_audit_completed=False,
-                   aivia_candidate_consented=False,
-                   eeoc_selection_rate_ratio=0.60, eeoc_testing_sample_adequate=True)
+        ctx = _ctx(
+            m,
+            aedt_bias_audit_completed=False,
+            aivia_candidate_consented=False,
+            eeoc_selection_rate_ratio=0.60,
+            eeoc_testing_sample_adequate=True,
+        )
         corpus = [
             _doc(m, document_id="A", category=m.HRDocumentCategory.AUTOMATED_RANKING),
             _doc(m, document_id="V", category=m.HRDocumentCategory.VIDEO_AI_ANALYSIS_REPORT),

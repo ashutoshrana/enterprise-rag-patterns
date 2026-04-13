@@ -17,9 +17,9 @@ and LatAmAuditRecord.
 
 from __future__ import annotations
 
+import importlib.util
 import os
 import sys
-import importlib.util
 import types
 
 # ---------------------------------------------------------------------------
@@ -50,6 +50,7 @@ LatAmAuditRecord = mod.LatAmAuditRecord
 # ---------------------------------------------------------------------------
 # Factory helpers
 # ---------------------------------------------------------------------------
+
 
 def _ctx(
     *,
@@ -104,6 +105,7 @@ def _doc(
 # ---------------------------------------------------------------------------
 # [1-6] ArgentinaPersonalDataFilter
 # ---------------------------------------------------------------------------
+
 
 class TestArgentinaPersonalDataFilter:
     def setup_method(self):
@@ -193,6 +195,7 @@ class TestArgentinaPersonalDataFilter:
 # ---------------------------------------------------------------------------
 # [7-12] ChilePersonalDataFilter
 # ---------------------------------------------------------------------------
+
 
 class TestChilePersonalDataFilter:
     def setup_method(self):
@@ -284,6 +287,7 @@ class TestChilePersonalDataFilter:
 # [13-18] ColombiaHabeasDataFilter
 # ---------------------------------------------------------------------------
 
+
 class TestColombiaHabeasDataFilter:
     def setup_method(self):
         self.f = ColombiaHabeasDataFilter()
@@ -371,6 +375,7 @@ class TestColombiaHabeasDataFilter:
 # ---------------------------------------------------------------------------
 # [19-25] LatAmCrossBorderFilter
 # ---------------------------------------------------------------------------
+
 
 class TestLatAmCrossBorderFilter:
     def setup_method(self):
@@ -463,6 +468,7 @@ class TestLatAmCrossBorderFilter:
 # [26-31] Pipeline — filter_documents
 # ---------------------------------------------------------------------------
 
+
 class TestLatAmRAGPipelineFilterDocuments:
     def setup_method(self):
         self.pipeline = LatAmRAGPipeline()
@@ -545,6 +551,7 @@ class TestLatAmRAGPipelineFilterDocuments:
 # [32-36] Pipeline — filter_documents_with_audit
 # ---------------------------------------------------------------------------
 
+
 class TestLatAmRAGPipelineAudit:
     def setup_method(self):
         self.pipeline = LatAmRAGPipeline()
@@ -599,6 +606,7 @@ class TestLatAmRAGPipelineAudit:
 # [37-38] Full-stack and edge cases
 # ---------------------------------------------------------------------------
 
+
 class TestFullStackAndEdgeCases:
     def setup_method(self):
         self.pipeline = LatAmRAGPipeline()
@@ -606,6 +614,7 @@ class TestFullStackAndEdgeCases:
     def test_37_latam_context_is_frozen(self):
         """LatAmContext is immutable (frozen=True)."""
         import dataclasses
+
         ctx = _ctx()
         assert dataclasses.is_dataclass(ctx)
         try:

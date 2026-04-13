@@ -19,9 +19,7 @@ import pytest
 # Module loading
 # ---------------------------------------------------------------------------
 
-_MOD_PATH = (
-    Path(__file__).parent.parent / "examples" / "24_clinical_trials_rag.py"
-)
+_MOD_PATH = Path(__file__).parent.parent / "examples" / "24_clinical_trials_rag.py"
 
 
 def _load_module():
@@ -90,7 +88,6 @@ def _doc(m, doc_type=None, gxp=None, phi=None, **kwargs):
 
 
 class TestFDA21CFR11Filter:
-
     def test_passes_when_fully_validated(self, m):
         f = m.FDA21CFR11Filter()
         ctx = _ctx(m)
@@ -143,12 +140,16 @@ class TestFDA21CFR11Filter:
 
 
 class TestGxPDocumentFilter:
-
     def test_gmp_batch_record_blocked_for_non_qa(self, m):
         f = m.GxPDocumentFilter()
         ctx = _ctx(m, user_role=m.ClinicalTrialRole.INVESTIGATOR)
-        doc = _doc(m, doc_type=m.ClinicalDocumentType.BATCH_RECORD,
-                   gxp=m.GxPTier.GMP, phi=m.PHIClassification.NO_PHI, site_id=None)
+        doc = _doc(
+            m,
+            doc_type=m.ClinicalDocumentType.BATCH_RECORD,
+            gxp=m.GxPTier.GMP,
+            phi=m.PHIClassification.NO_PHI,
+            site_id=None,
+        )
         reason = f._evaluate(doc, ctx)
         assert reason is not None
         assert "GMP" in reason
@@ -156,22 +157,37 @@ class TestGxPDocumentFilter:
     def test_gmp_batch_record_permitted_for_qa(self, m):
         f = m.GxPDocumentFilter()
         ctx = _ctx(m, user_role=m.ClinicalTrialRole.QA)
-        doc = _doc(m, doc_type=m.ClinicalDocumentType.BATCH_RECORD,
-                   gxp=m.GxPTier.GMP, phi=m.PHIClassification.NO_PHI, site_id=None)
+        doc = _doc(
+            m,
+            doc_type=m.ClinicalDocumentType.BATCH_RECORD,
+            gxp=m.GxPTier.GMP,
+            phi=m.PHIClassification.NO_PHI,
+            site_id=None,
+        )
         assert f._evaluate(doc, ctx) is None
 
     def test_gmp_batch_record_permitted_for_regulatory(self, m):
         f = m.GxPDocumentFilter()
         ctx = _ctx(m, user_role=m.ClinicalTrialRole.REGULATORY)
-        doc = _doc(m, doc_type=m.ClinicalDocumentType.BATCH_RECORD,
-                   gxp=m.GxPTier.GMP, phi=m.PHIClassification.NO_PHI, site_id=None)
+        doc = _doc(
+            m,
+            doc_type=m.ClinicalDocumentType.BATCH_RECORD,
+            gxp=m.GxPTier.GMP,
+            phi=m.PHIClassification.NO_PHI,
+            site_id=None,
+        )
         assert f._evaluate(doc, ctx) is None
 
     def test_glp_raw_data_blocked_for_investigator(self, m):
         f = m.GxPDocumentFilter()
         ctx = _ctx(m, user_role=m.ClinicalTrialRole.INVESTIGATOR)
-        doc = _doc(m, doc_type=m.ClinicalDocumentType.RAW_STUDY_DATA,
-                   gxp=m.GxPTier.GLP, phi=m.PHIClassification.NO_PHI, site_id=None)
+        doc = _doc(
+            m,
+            doc_type=m.ClinicalDocumentType.RAW_STUDY_DATA,
+            gxp=m.GxPTier.GLP,
+            phi=m.PHIClassification.NO_PHI,
+            site_id=None,
+        )
         reason = f._evaluate(doc, ctx)
         assert reason is not None
         assert "GLP" in reason
@@ -179,15 +195,25 @@ class TestGxPDocumentFilter:
     def test_glp_raw_data_permitted_for_regulatory(self, m):
         f = m.GxPDocumentFilter()
         ctx = _ctx(m, user_role=m.ClinicalTrialRole.REGULATORY)
-        doc = _doc(m, doc_type=m.ClinicalDocumentType.RAW_STUDY_DATA,
-                   gxp=m.GxPTier.GLP, phi=m.PHIClassification.NO_PHI, site_id=None)
+        doc = _doc(
+            m,
+            doc_type=m.ClinicalDocumentType.RAW_STUDY_DATA,
+            gxp=m.GxPTier.GLP,
+            phi=m.PHIClassification.NO_PHI,
+            site_id=None,
+        )
         assert f._evaluate(doc, ctx) is None
 
     def test_gdp_distribution_blocked_for_investigator(self, m):
         f = m.GxPDocumentFilter()
         ctx = _ctx(m, user_role=m.ClinicalTrialRole.INVESTIGATOR)
-        doc = _doc(m, doc_type=m.ClinicalDocumentType.DISTRIBUTION_RECORD,
-                   gxp=m.GxPTier.GDP, phi=m.PHIClassification.NO_PHI, site_id=None)
+        doc = _doc(
+            m,
+            doc_type=m.ClinicalDocumentType.DISTRIBUTION_RECORD,
+            gxp=m.GxPTier.GDP,
+            phi=m.PHIClassification.NO_PHI,
+            site_id=None,
+        )
         reason = f._evaluate(doc, ctx)
         assert reason is not None
         assert "GDP" in reason or "distribution" in reason.lower()
@@ -195,8 +221,13 @@ class TestGxPDocumentFilter:
     def test_gdp_distribution_permitted_for_pharmacist(self, m):
         f = m.GxPDocumentFilter()
         ctx = _ctx(m, user_role=m.ClinicalTrialRole.PHARMACIST)
-        doc = _doc(m, doc_type=m.ClinicalDocumentType.DISTRIBUTION_RECORD,
-                   gxp=m.GxPTier.GDP, phi=m.PHIClassification.NO_PHI, site_id=None)
+        doc = _doc(
+            m,
+            doc_type=m.ClinicalDocumentType.DISTRIBUTION_RECORD,
+            gxp=m.GxPTier.GDP,
+            phi=m.PHIClassification.NO_PHI,
+            site_id=None,
+        )
         assert f._evaluate(doc, ctx) is None
 
     def test_gcp_document_passes_gxp_layer(self, m):
@@ -208,9 +239,14 @@ class TestGxPDocumentFilter:
     def test_public_doc_bypasses_gxp(self, m):
         f = m.GxPDocumentFilter()
         ctx = _ctx(m, user_role=m.ClinicalTrialRole.SPONSOR)
-        doc = _doc(m, doc_type=m.ClinicalDocumentType.BATCH_RECORD,
-                   gxp=m.GxPTier.GMP, phi=m.PHIClassification.NO_PHI,
-                   site_id=None, is_public=True)
+        doc = _doc(
+            m,
+            doc_type=m.ClinicalDocumentType.BATCH_RECORD,
+            gxp=m.GxPTier.GMP,
+            phi=m.PHIClassification.NO_PHI,
+            site_id=None,
+            is_public=True,
+        )
         assert f._evaluate(doc, ctx) is None
 
 
@@ -220,18 +256,15 @@ class TestGxPDocumentFilter:
 
 
 class TestICHE6GCPFilter:
-
     def test_investigator_permitted_own_site(self, m):
         f = m.ICHE6GCPFilter()
-        ctx = _ctx(m, user_role=m.ClinicalTrialRole.INVESTIGATOR,
-                   assigned_site_ids=frozenset({"SITE-A"}))
+        ctx = _ctx(m, user_role=m.ClinicalTrialRole.INVESTIGATOR, assigned_site_ids=frozenset({"SITE-A"}))
         doc = _doc(m, site_id="SITE-A")
         assert f._evaluate(doc, ctx) is None
 
     def test_investigator_blocked_other_site(self, m):
         f = m.ICHE6GCPFilter()
-        ctx = _ctx(m, user_role=m.ClinicalTrialRole.INVESTIGATOR,
-                   assigned_site_ids=frozenset({"SITE-A"}))
+        ctx = _ctx(m, user_role=m.ClinicalTrialRole.INVESTIGATOR, assigned_site_ids=frozenset({"SITE-A"}))
         doc = _doc(m, document_id="CRF-B", site_id="SITE-B")
         reason = f._evaluate(doc, ctx)
         assert reason is not None
@@ -239,15 +272,13 @@ class TestICHE6GCPFilter:
 
     def test_monitor_permitted_assigned_site(self, m):
         f = m.ICHE6GCPFilter()
-        ctx = _ctx(m, user_role=m.ClinicalTrialRole.MONITOR,
-                   assigned_site_ids=frozenset({"SITE-A", "SITE-C"}))
+        ctx = _ctx(m, user_role=m.ClinicalTrialRole.MONITOR, assigned_site_ids=frozenset({"SITE-A", "SITE-C"}))
         doc = _doc(m, site_id="SITE-C")
         assert f._evaluate(doc, ctx) is None
 
     def test_monitor_blocked_unassigned_site(self, m):
         f = m.ICHE6GCPFilter()
-        ctx = _ctx(m, user_role=m.ClinicalTrialRole.MONITOR,
-                   assigned_site_ids=frozenset({"SITE-A"}))
+        ctx = _ctx(m, user_role=m.ClinicalTrialRole.MONITOR, assigned_site_ids=frozenset({"SITE-A"}))
         doc = _doc(m, site_id="SITE-B")
         reason = f._evaluate(doc, ctx)
         assert reason is not None
@@ -256,9 +287,14 @@ class TestICHE6GCPFilter:
     def test_blinded_interim_blocked_for_sponsor_before_dbl(self, m):
         f = m.ICHE6GCPFilter()
         ctx = _ctx(m, user_role=m.ClinicalTrialRole.SPONSOR, database_locked=False)
-        doc = _doc(m, doc_type=m.ClinicalDocumentType.INTERIM_ANALYSIS,
-                   gxp=m.GxPTier.GCP, phi=m.PHIClassification.DE_IDENTIFIED,
-                   is_blinded=True, site_id=None)
+        doc = _doc(
+            m,
+            doc_type=m.ClinicalDocumentType.INTERIM_ANALYSIS,
+            gxp=m.GxPTier.GCP,
+            phi=m.PHIClassification.DE_IDENTIFIED,
+            is_blinded=True,
+            site_id=None,
+        )
         reason = f._evaluate(doc, ctx)
         assert reason is not None
         assert "blinded" in reason.lower() or "DBL" in reason
@@ -266,32 +302,39 @@ class TestICHE6GCPFilter:
     def test_blinded_interim_permitted_for_sponsor_after_dbl(self, m):
         f = m.ICHE6GCPFilter()
         ctx = _ctx(m, user_role=m.ClinicalTrialRole.SPONSOR, database_locked=True)
-        doc = _doc(m, doc_type=m.ClinicalDocumentType.INTERIM_ANALYSIS,
-                   gxp=m.GxPTier.GCP, phi=m.PHIClassification.DE_IDENTIFIED,
-                   is_blinded=True, site_id=None)
+        doc = _doc(
+            m,
+            doc_type=m.ClinicalDocumentType.INTERIM_ANALYSIS,
+            gxp=m.GxPTier.GCP,
+            phi=m.PHIClassification.DE_IDENTIFIED,
+            is_blinded=True,
+            site_id=None,
+        )
         assert f._evaluate(doc, ctx) is None
 
     def test_dsmb_with_authorization_accesses_blinded(self, m):
         f = m.ICHE6GCPFilter()
-        ctx = _ctx(m, user_role=m.ClinicalTrialRole.DSMB,
-                   dsmb_authorized_access=True, database_locked=False)
-        doc = _doc(m, doc_type=m.ClinicalDocumentType.INTERIM_ANALYSIS,
-                   gxp=m.GxPTier.GCP, phi=m.PHIClassification.DE_IDENTIFIED,
-                   is_blinded=True, site_id=None)
+        ctx = _ctx(m, user_role=m.ClinicalTrialRole.DSMB, dsmb_authorized_access=True, database_locked=False)
+        doc = _doc(
+            m,
+            doc_type=m.ClinicalDocumentType.INTERIM_ANALYSIS,
+            gxp=m.GxPTier.GCP,
+            phi=m.PHIClassification.DE_IDENTIFIED,
+            is_blinded=True,
+            site_id=None,
+        )
         assert f._evaluate(doc, ctx) is None
 
     def test_regulatory_has_full_access(self, m):
         f = m.ICHE6GCPFilter()
         ctx = _ctx(m, user_role=m.ClinicalTrialRole.REGULATORY)
-        doc = _doc(m, doc_type=m.ClinicalDocumentType.INTERIM_ANALYSIS,
-                   is_blinded=True, site_id="SITE-Z")
+        doc = _doc(m, doc_type=m.ClinicalDocumentType.INTERIM_ANALYSIS, is_blinded=True, site_id="SITE-Z")
         assert f._evaluate(doc, ctx) is None
 
     def test_biostatistician_can_access_unblinded(self, m):
         f = m.ICHE6GCPFilter()
         ctx = _ctx(m, user_role=m.ClinicalTrialRole.BIOSTATISTICIAN)
-        doc = _doc(m, doc_type=m.ClinicalDocumentType.INTERIM_ANALYSIS,
-                   is_blinded=True, site_id=None)
+        doc = _doc(m, doc_type=m.ClinicalDocumentType.INTERIM_ANALYSIS, is_blinded=True, site_id=None)
         assert f._evaluate(doc, ctx) is None
 
     def test_public_doc_bypasses_gcp(self, m):
@@ -307,7 +350,6 @@ class TestICHE6GCPFilter:
 
 
 class TestHIPAAFilter:
-
     def test_identified_phi_permitted_for_investigator_with_irb(self, m):
         f = m.HIPAAFilter()
         ctx = _ctx(m, user_role=m.ClinicalTrialRole.INVESTIGATOR, irb_waiver_active=True)
@@ -375,23 +417,26 @@ class TestHIPAAFilter:
 
 
 class TestClinicalTrialRAGPipeline:
-
     def test_fully_compliant_investigator_own_site(self, m):
         pipeline = m.ClinicalTrialRAGPipeline()
         ctx = _ctx(m)
         docs = [
             _doc(m, document_id="CRF-A", site_id="SITE-A"),
-            _doc(m, document_id="IB-001",
-                 doc_type=m.ClinicalDocumentType.INVESTIGATOR_BROCHURE,
-                 gxp=m.GxPTier.GCP, phi=m.PHIClassification.NO_PHI, site_id=None),
+            _doc(
+                m,
+                document_id="IB-001",
+                doc_type=m.ClinicalDocumentType.INVESTIGATOR_BROCHURE,
+                gxp=m.GxPTier.GCP,
+                phi=m.PHIClassification.NO_PHI,
+                site_id=None,
+            ),
         ]
         result = pipeline.retrieve(docs, ctx)
         assert len(result.permitted_documents) == 2
 
     def test_monitor_site_restricted(self, m):
         pipeline = m.ClinicalTrialRAGPipeline()
-        ctx = _ctx(m, user_role=m.ClinicalTrialRole.MONITOR,
-                   assigned_site_ids=frozenset({"SITE-A"}))
+        ctx = _ctx(m, user_role=m.ClinicalTrialRole.MONITOR, assigned_site_ids=frozenset({"SITE-A"}))
         docs = [
             _doc(m, document_id="CRF-A", site_id="SITE-A"),
             _doc(m, document_id="CRF-B", site_id="SITE-B"),
@@ -419,13 +464,23 @@ class TestClinicalTrialRAGPipeline:
         pipeline = m.ClinicalTrialRAGPipeline()
         ctx = _ctx(m, user_role=m.ClinicalTrialRole.SPONSOR, database_locked=False)
         docs = [
-            _doc(m, document_id="IA-001",
-                 doc_type=m.ClinicalDocumentType.INTERIM_ANALYSIS,
-                 gxp=m.GxPTier.GCP, phi=m.PHIClassification.DE_IDENTIFIED,
-                 is_blinded=True, site_id=None),
-            _doc(m, document_id="IB-001",
-                 doc_type=m.ClinicalDocumentType.INVESTIGATOR_BROCHURE,
-                 gxp=m.GxPTier.GCP, phi=m.PHIClassification.NO_PHI, site_id=None),
+            _doc(
+                m,
+                document_id="IA-001",
+                doc_type=m.ClinicalDocumentType.INTERIM_ANALYSIS,
+                gxp=m.GxPTier.GCP,
+                phi=m.PHIClassification.DE_IDENTIFIED,
+                is_blinded=True,
+                site_id=None,
+            ),
+            _doc(
+                m,
+                document_id="IB-001",
+                doc_type=m.ClinicalDocumentType.INVESTIGATOR_BROCHURE,
+                gxp=m.GxPTier.GCP,
+                phi=m.PHIClassification.NO_PHI,
+                site_id=None,
+            ),
         ]
         result = pipeline.retrieve(docs, ctx)
         permitted_ids = [d.document_id for d in result.permitted_documents]
@@ -437,16 +492,31 @@ class TestClinicalTrialRAGPipeline:
         pipeline = m.ClinicalTrialRAGPipeline()
         ctx = _ctx(m, user_role=m.ClinicalTrialRole.REGULATORY)
         docs = [
-            _doc(m, document_id="BATCH-1",
-                 doc_type=m.ClinicalDocumentType.BATCH_RECORD,
-                 gxp=m.GxPTier.GMP, phi=m.PHIClassification.NO_PHI, site_id=None),
-            _doc(m, document_id="RAW-1",
-                 doc_type=m.ClinicalDocumentType.RAW_STUDY_DATA,
-                 gxp=m.GxPTier.GLP, phi=m.PHIClassification.NO_PHI, site_id=None),
-            _doc(m, document_id="IA-REG",
-                 doc_type=m.ClinicalDocumentType.INTERIM_ANALYSIS,
-                 gxp=m.GxPTier.GCP, phi=m.PHIClassification.IDENTIFIED,
-                 is_blinded=True, site_id=None),
+            _doc(
+                m,
+                document_id="BATCH-1",
+                doc_type=m.ClinicalDocumentType.BATCH_RECORD,
+                gxp=m.GxPTier.GMP,
+                phi=m.PHIClassification.NO_PHI,
+                site_id=None,
+            ),
+            _doc(
+                m,
+                document_id="RAW-1",
+                doc_type=m.ClinicalDocumentType.RAW_STUDY_DATA,
+                gxp=m.GxPTier.GLP,
+                phi=m.PHIClassification.NO_PHI,
+                site_id=None,
+            ),
+            _doc(
+                m,
+                document_id="IA-REG",
+                doc_type=m.ClinicalDocumentType.INTERIM_ANALYSIS,
+                gxp=m.GxPTier.GCP,
+                phi=m.PHIClassification.IDENTIFIED,
+                is_blinded=True,
+                site_id=None,
+            ),
         ]
         result = pipeline.retrieve(docs, ctx)
         assert len(result.permitted_documents) == 3

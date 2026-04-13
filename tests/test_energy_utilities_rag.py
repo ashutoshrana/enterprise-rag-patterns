@@ -9,6 +9,7 @@ Covers all four filter layers:
 
 Plus end-to-end pipeline tests and audit record tests.
 """
+
 from __future__ import annotations
 
 import importlib.util
@@ -90,7 +91,6 @@ def _doc(m, **kwargs):
 
 
 class TestNERCCIPFilter:
-
     @pytest.fixture
     def nerc(self, m):
         return m.NERCCIPFilter()
@@ -197,7 +197,6 @@ class TestNERCCIPFilter:
 
 
 class TestFERCRegulatoryFilter:
-
     @pytest.fixture
     def ferc(self, m):
         return m.FERCRegulatoryFilter()
@@ -269,7 +268,6 @@ class TestFERCRegulatoryFilter:
 
 
 class TestDOECybersecurityFilter:
-
     @pytest.fixture
     def doe(self, m):
         return m.DOECybersecurityFilter()
@@ -339,7 +337,6 @@ class TestDOECybersecurityFilter:
 
 
 class TestNRCNuclearSecurityFilter:
-
     @pytest.fixture
     def nrc(self, m):
         return m.NRCNuclearSecurityFilter()
@@ -417,7 +414,6 @@ class TestNRCNuclearSecurityFilter:
 
 
 class TestEnergyUtilitiesRAGPipeline:
-
     @pytest.fixture
     def pipeline(self, m):
         return m.EnergyUtilitiesRAGPipeline()
@@ -474,7 +470,6 @@ class TestEnergyUtilitiesRAGPipeline:
 
 
 class TestEnergyAuditRecord:
-
     def _make_record(self, m, decision=None):
         """Build a minimal EnergyAuditRecord for audit log testing."""
         if decision is None:

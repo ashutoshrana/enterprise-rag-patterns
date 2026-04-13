@@ -9,6 +9,7 @@ Covers all four filter layers:
 
 Plus end-to-end pipeline tests and audit record tests.
 """
+
 from __future__ import annotations
 
 import importlib.util
@@ -88,7 +89,6 @@ def _doc(**overrides):
 
 
 class TestFedRAMPAuthorizationFilter:
-
     @pytest.fixture
     def fedramp(self):
         return mod.FedRAMPAuthorizationFilter()
@@ -173,7 +173,6 @@ class TestFedRAMPAuthorizationFilter:
 
 
 class TestFISMASecurityControlFilter:
-
     @pytest.fixture
     def fisma(self):
         return mod.FISMASecurityControlFilter()
@@ -255,10 +254,7 @@ class TestFISMASecurityControlFilter:
         ctx = _ctx(fisma_system_category="MODERATE")
         doc = _doc(fedramp_required_level=mod.FedRAMPImpactLevel.HIGH)
         result = fisma.evaluate(ctx, doc)
-        assert (
-            "NIST SP 800-53" in result.reason
-            or "NIST SP 800-53" in result.regulation_citation
-        )
+        assert "NIST SP 800-53" in result.reason or "NIST SP 800-53" in result.regulation_citation
 
 
 # ---------------------------------------------------------------------------
@@ -267,7 +263,6 @@ class TestFISMASecurityControlFilter:
 
 
 class TestCUIMarkingFilter:
-
     @pytest.fixture
     def cui(self):
         return mod.CUIMarkingFilter()
@@ -281,11 +276,7 @@ class TestCUIMarkingFilter:
         )
         result = cui.evaluate(ctx, doc)
         assert result.is_denied
-        assert (
-            "EAR" in result.reason
-            or "ITAR" in result.reason
-            or "export" in result.reason.lower()
-        )
+        assert "EAR" in result.reason or "ITAR" in result.reason or "export" in result.reason.lower()
 
     def test_les_doc_non_law_enforcement_non_ig_denied(self, cui):
         """LES doc + not law enforcement + not IG oversight → DENIED."""
@@ -355,7 +346,6 @@ class TestCUIMarkingFilter:
 
 
 class TestGovernmentAuditFilter:
-
     @pytest.fixture
     def audit(self):
         return mod.GovernmentAuditFilter()
@@ -366,11 +356,7 @@ class TestGovernmentAuditFilter:
         doc = _doc()
         result = audit.evaluate(ctx, doc)
         assert not result.is_denied
-        assert (
-            "Inspector General" in result.reason
-            or "IG" in result.reason
-            or "§6" in result.reason
-        )
+        assert "Inspector General" in result.reason or "IG" in result.reason or "§6" in result.reason
 
     def test_congressional_oversight_override_permitted(self, audit):
         """Congressional oversight → PERMITTED override."""
@@ -425,7 +411,6 @@ class TestGovernmentAuditFilter:
 
 
 class TestGovernmentRAGPipeline:
-
     @pytest.fixture
     def pipeline(self):
         return mod.GovernmentRAGPipeline()
@@ -466,7 +451,6 @@ class TestGovernmentRAGPipeline:
 
 
 class TestGovernmentAuditRecord:
-
     def _make_record(self):
         return mod.GovernmentAuditRecord(
             user_id="u-audit",

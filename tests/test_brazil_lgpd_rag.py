@@ -16,9 +16,9 @@ LGPDCrossBorderFilter, BrazilLGPDRAGPipeline, and BrazilRAGAuditRecord.
 
 from __future__ import annotations
 
+import importlib.util
 import os
 import sys
-import importlib.util
 import types
 
 # ---------------------------------------------------------------------------
@@ -51,6 +51,7 @@ BrazilRAGAuditRecord = mod.BrazilRAGAuditRecord
 # ---------------------------------------------------------------------------
 # Factory helpers
 # ---------------------------------------------------------------------------
+
 
 def _ctx(
     *,
@@ -141,6 +142,7 @@ def _sensitive_doc(document_id: str = "doc-sensitive") -> object:
 # Tests 1–5: LGPDDataSubjectFilter
 # ---------------------------------------------------------------------------
 
+
 class TestLGPDDataSubjectFilter:
     """Tests 1-5: LGPD Art. 7, Art. 11, Art. 18 data subject and legal basis rules."""
 
@@ -200,6 +202,7 @@ class TestLGPDDataSubjectFilter:
 # Tests 6–9: LGPDMinimizationFilter
 # ---------------------------------------------------------------------------
 
+
 class TestLGPDMinimizationFilter:
     """Tests 6-9: LGPD Art. 6(I) purpose limitation and Art. 6(III) data minimization."""
 
@@ -253,6 +256,7 @@ class TestLGPDMinimizationFilter:
 # Tests 10–13: LGPDDataRetentionFilter
 # ---------------------------------------------------------------------------
 
+
 class TestLGPDDataRetentionFilter:
     """Tests 10-13: LGPD Art. 15 retention expiry and Art. 18(VI) erasure requests."""
 
@@ -295,6 +299,7 @@ class TestLGPDDataRetentionFilter:
 # Tests 14–17: LGPDCrossBorderFilter
 # ---------------------------------------------------------------------------
 
+
 class TestLGPDCrossBorderFilter:
     """Tests 14-17: LGPD Art. 33 cross-border transfer controls."""
 
@@ -335,6 +340,7 @@ class TestLGPDCrossBorderFilter:
 # ---------------------------------------------------------------------------
 # Tests 18–22: Full pipeline integration
 # ---------------------------------------------------------------------------
+
 
 class TestPipelineIntegration:
     """Tests 18-22: end-to-end BrazilLGPDRAGPipeline behavior."""
@@ -402,6 +408,7 @@ class TestPipelineIntegration:
 # Tests 23–27: BrazilRAGAuditRecord.to_audit_log() format
 # ---------------------------------------------------------------------------
 
+
 class TestBrazilRAGAuditRecord:
     """Tests 23-27: audit log structure and field correctness."""
 
@@ -439,10 +446,18 @@ class TestBrazilRAGAuditRecord:
         audit = self._run_audit([_doc()])
         log = audit.to_audit_log()
         required = {
-            "event", "user_id", "requester_role", "requester_jurisdiction",
-            "lgpd_legal_basis", "processing_purpose", "documents_evaluated",
-            "documents_permitted", "documents_denied", "documents_redacted",
-            "filter_results", "timestamp",
+            "event",
+            "user_id",
+            "requester_role",
+            "requester_jurisdiction",
+            "lgpd_legal_basis",
+            "processing_purpose",
+            "documents_evaluated",
+            "documents_permitted",
+            "documents_denied",
+            "documents_redacted",
+            "filter_results",
+            "timestamp",
         }
         assert required.issubset(set(log.keys()))
 
@@ -471,6 +486,7 @@ class TestBrazilRAGAuditRecord:
 # Tests 28–36: Edge cases and additional coverage
 # ---------------------------------------------------------------------------
 
+
 class TestEdgeCases:
     """Tests 28-36: edge cases, citation checks, and boundary conditions."""
 
@@ -484,15 +500,9 @@ class TestEdgeCases:
 
     def test_29_filter_result_is_denied_property(self):
         """Test 29: FilterResult.is_denied is True only for DENIED, not REDACTED."""
-        denied = FilterResult(
-            layer="TEST", decision=Decision.DENIED, reason="r", regulation_citation="c"
-        )
-        redacted = FilterResult(
-            layer="TEST", decision=Decision.REDACTED, reason="r", regulation_citation="c"
-        )
-        permitted = FilterResult(
-            layer="TEST", decision=Decision.PERMITTED, reason="r", regulation_citation="c"
-        )
+        denied = FilterResult(layer="TEST", decision=Decision.DENIED, reason="r", regulation_citation="c")
+        redacted = FilterResult(layer="TEST", decision=Decision.REDACTED, reason="r", regulation_citation="c")
+        permitted = FilterResult(layer="TEST", decision=Decision.PERMITTED, reason="r", regulation_citation="c")
         assert denied.is_denied is True
         assert redacted.is_denied is False
         assert permitted.is_denied is False
@@ -570,8 +580,13 @@ class TestEdgeCases:
         f = LGPDDataSubjectFilter()
         doc = _doc(contains_sensitive_data=False)
         valid_bases = [
-            "consent", "legitimate_interest", "legal_obligation",
-            "contract", "vital_interests", "public_task", "official_authority",
+            "consent",
+            "legitimate_interest",
+            "legal_obligation",
+            "contract",
+            "vital_interests",
+            "public_task",
+            "official_authority",
         ]
         for basis in valid_bases:
             ctx = _ctx(lgpd_legal_basis=basis, requester_is_data_subject=False)

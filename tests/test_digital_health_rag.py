@@ -19,9 +19,7 @@ import pytest
 # Module loading
 # ---------------------------------------------------------------------------
 
-_MOD_PATH = (
-    Path(__file__).parent.parent / "examples" / "25_digital_health_rag.py"
-)
+_MOD_PATH = Path(__file__).parent.parent / "examples" / "25_digital_health_rag.py"
 
 
 def _load_module():
@@ -62,8 +60,7 @@ def _ctx(m, **kwargs):
     return m.DigitalHealthContext(**defaults)
 
 
-def _doc(m, doc_id="D001", samd_class=None, is_sud=False,
-         special_category=None, is_public=False):
+def _doc(m, doc_id="D001", samd_class=None, is_sud=False, special_category=None, is_public=False):
     samd_class = samd_class or m.SaMDClass.CLASS_II
     special_category = special_category or m.SpecialCategory.NONE
     return m.DigitalHealthDocument(
@@ -81,7 +78,6 @@ def _doc(m, doc_id="D001", samd_class=None, is_sud=False,
 
 
 class TestFDASaMDFilter:
-
     def test_class_i_always_permitted(self, m):
         f = m.FDASaMDFilter()
         ctx = _ctx(m, device_cleared=False, intended_use_documented=False)
@@ -152,7 +148,6 @@ class TestFDASaMDFilter:
 
 
 class TestPart2SUDFilter:
-
     def test_non_sud_record_passes(self, m):
         f = m.Part2SUDFilter()
         ctx = _ctx(m, explicit_part2_consent=False, is_same_sud_program=False)
@@ -184,8 +179,7 @@ class TestPart2SUDFilter:
 
     def test_sud_blocked_even_for_admin_without_consent(self, m):
         f = m.Part2SUDFilter()
-        ctx = _ctx(m, user_role=m.DigitalHealthRole.ADMIN,
-                   explicit_part2_consent=False, is_same_sud_program=False)
+        ctx = _ctx(m, user_role=m.DigitalHealthRole.ADMIN, explicit_part2_consent=False, is_same_sud_program=False)
         doc = _doc(m, is_sud=True)
         result = f._evaluate(ctx, doc)
         assert not result.permitted
@@ -204,7 +198,6 @@ class TestPart2SUDFilter:
 
 
 class TestHIPAASpecialCategoryFilter:
-
     def test_none_category_permitted_for_all_roles(self, m):
         f = m.HIPAASpecialCategoryFilter()
         for role in m.DigitalHealthRole:
@@ -238,9 +231,11 @@ class TestHIPAASpecialCategoryFilter:
 
     def test_hiv_clinical_role_permitted(self, m):
         f = m.HIPAASpecialCategoryFilter()
-        for role in [m.DigitalHealthRole.PRESCRIBER,
-                     m.DigitalHealthRole.CARE_MANAGER,
-                     m.DigitalHealthRole.MENTAL_HEALTH_PROVIDER]:
+        for role in [
+            m.DigitalHealthRole.PRESCRIBER,
+            m.DigitalHealthRole.CARE_MANAGER,
+            m.DigitalHealthRole.MENTAL_HEALTH_PROVIDER,
+        ]:
             ctx = _ctx(m, user_role=role, hipaa_authorization_obtained=False)
             doc = _doc(m, special_category=m.SpecialCategory.HIV_STATUS)
             result = f._evaluate(ctx, doc)
@@ -248,24 +243,21 @@ class TestHIPAASpecialCategoryFilter:
 
     def test_hiv_data_analyst_without_auth_blocked(self, m):
         f = m.HIPAASpecialCategoryFilter()
-        ctx = _ctx(m, user_role=m.DigitalHealthRole.DATA_ANALYST,
-                   hipaa_authorization_obtained=False)
+        ctx = _ctx(m, user_role=m.DigitalHealthRole.DATA_ANALYST, hipaa_authorization_obtained=False)
         doc = _doc(m, special_category=m.SpecialCategory.HIV_STATUS)
         result = f._evaluate(ctx, doc)
         assert not result.permitted
 
     def test_hiv_data_analyst_with_auth_permitted(self, m):
         f = m.HIPAASpecialCategoryFilter()
-        ctx = _ctx(m, user_role=m.DigitalHealthRole.DATA_ANALYST,
-                   hipaa_authorization_obtained=True)
+        ctx = _ctx(m, user_role=m.DigitalHealthRole.DATA_ANALYST, hipaa_authorization_obtained=True)
         doc = _doc(m, special_category=m.SpecialCategory.HIV_STATUS)
         result = f._evaluate(ctx, doc)
         assert result.permitted
 
     def test_genetic_info_data_analyst_blocked_without_auth(self, m):
         f = m.HIPAASpecialCategoryFilter()
-        ctx = _ctx(m, user_role=m.DigitalHealthRole.DATA_ANALYST,
-                   hipaa_authorization_obtained=False)
+        ctx = _ctx(m, user_role=m.DigitalHealthRole.DATA_ANALYST, hipaa_authorization_obtained=False)
         doc = _doc(m, special_category=m.SpecialCategory.GENETIC_INFO)
         result = f._evaluate(ctx, doc)
         assert not result.permitted
@@ -292,29 +284,33 @@ class TestHIPAASpecialCategoryFilter:
 
 
 class TestONCInteroperabilityFilter:
-
     def test_clinical_role_passes_through(self, m):
         f = m.ONCInteroperabilityFilter()
-        ctx = _ctx(m, user_role=m.DigitalHealthRole.PRESCRIBER,
-                   is_patient_self_access=False)
+        ctx = _ctx(m, user_role=m.DigitalHealthRole.PRESCRIBER, is_patient_self_access=False)
         doc = _doc(m)
         result = f._evaluate(ctx, doc)
         assert result.permitted
 
     def test_patient_self_access_permitted_no_exception(self, m):
         f = m.ONCInteroperabilityFilter()
-        ctx = _ctx(m, user_role=m.DigitalHealthRole.PATIENT,
-                   is_patient_self_access=True,
-                   information_blocking_exception_applies=False)
+        ctx = _ctx(
+            m,
+            user_role=m.DigitalHealthRole.PATIENT,
+            is_patient_self_access=True,
+            information_blocking_exception_applies=False,
+        )
         doc = _doc(m)
         result = f._evaluate(ctx, doc)
         assert result.permitted
 
     def test_patient_self_access_blocked_with_exception(self, m):
         f = m.ONCInteroperabilityFilter()
-        ctx = _ctx(m, user_role=m.DigitalHealthRole.PATIENT,
-                   is_patient_self_access=True,
-                   information_blocking_exception_applies=True)
+        ctx = _ctx(
+            m,
+            user_role=m.DigitalHealthRole.PATIENT,
+            is_patient_self_access=True,
+            information_blocking_exception_applies=True,
+        )
         doc = _doc(m, doc_id="D-RESTRICTED")
         result = f._evaluate(ctx, doc)
         assert not result.permitted
@@ -322,9 +318,12 @@ class TestONCInteroperabilityFilter:
 
     def test_patient_advocate_permitted_no_exception(self, m):
         f = m.ONCInteroperabilityFilter()
-        ctx = _ctx(m, user_role=m.DigitalHealthRole.PATIENT_ADVOCATE,
-                   is_patient_self_access=False,
-                   information_blocking_exception_applies=False)
+        ctx = _ctx(
+            m,
+            user_role=m.DigitalHealthRole.PATIENT_ADVOCATE,
+            is_patient_self_access=False,
+            information_blocking_exception_applies=False,
+        )
         doc = _doc(m)
         result = f._evaluate(ctx, doc)
         assert result.permitted
@@ -336,7 +335,6 @@ class TestONCInteroperabilityFilter:
 
 
 class TestDigitalHealthRAGPipeline:
-
     def test_fully_compliant_prescriber_permits_standard_docs(self, m):
         pipeline = m.DigitalHealthRAGPipeline()
         ctx = _ctx(m)
@@ -350,8 +348,9 @@ class TestDigitalHealthRAGPipeline:
 
     def test_analyst_sud_records_blocked(self, m):
         pipeline = m.DigitalHealthRAGPipeline()
-        ctx = _ctx(m, user_role=m.DigitalHealthRole.DATA_ANALYST,
-                   explicit_part2_consent=False, is_same_sud_program=False)
+        ctx = _ctx(
+            m, user_role=m.DigitalHealthRole.DATA_ANALYST, explicit_part2_consent=False, is_same_sud_program=False
+        )
         docs = [
             _doc(m, "SUD1", is_sud=True),
             _doc(m, "REG1", is_sud=False),
@@ -362,9 +361,12 @@ class TestDigitalHealthRAGPipeline:
 
     def test_patient_self_access_permitted(self, m):
         pipeline = m.DigitalHealthRAGPipeline()
-        ctx = _ctx(m, user_role=m.DigitalHealthRole.PATIENT,
-                   is_patient_self_access=True,
-                   information_blocking_exception_applies=False)
+        ctx = _ctx(
+            m,
+            user_role=m.DigitalHealthRole.PATIENT,
+            is_patient_self_access=True,
+            information_blocking_exception_applies=False,
+        )
         docs = [
             _doc(m, "REC1", samd_class=m.SaMDClass.CLASS_I),
         ]
@@ -375,8 +377,7 @@ class TestDigitalHealthRAGPipeline:
         pipeline = m.DigitalHealthRAGPipeline()
         ctx = _ctx(m, user_role=m.DigitalHealthRole.PRESCRIBER)
         docs = [
-            _doc(m, "PSY1",
-                 special_category=m.SpecialCategory.PSYCHOTHERAPY_NOTES),
+            _doc(m, "PSY1", special_category=m.SpecialCategory.PSYCHOTHERAPY_NOTES),
         ]
         result = pipeline.retrieve(ctx, docs)
         assert "PSY1" in {d.document_id for d in result.blocked_documents}
@@ -408,10 +409,7 @@ class TestDigitalHealthRAGPipeline:
     def test_all_public_docs_permitted(self, m):
         pipeline = m.DigitalHealthRAGPipeline()
         ctx = _ctx(m, device_cleared=False, intended_use_documented=False)
-        docs = [
-            _doc(m, f"PUB{i}", samd_class=m.SaMDClass.CLASS_III, is_public=True)
-            for i in range(3)
-        ]
+        docs = [_doc(m, f"PUB{i}", samd_class=m.SaMDClass.CLASS_III, is_public=True) for i in range(3)]
         result = pipeline.retrieve(ctx, docs)
         assert len(result.permitted_documents) == 3
 

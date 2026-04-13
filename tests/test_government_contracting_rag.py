@@ -50,10 +50,12 @@ def _ctx(m, **kwargs):
         is_us_person=True,
         personnel_clearance=m.SecurityClearanceLevel.SECRET,
         facility_clearance=m.SecurityClearanceLevel.SECRET,
-        cui_categories_authorized=frozenset({
-            m.CUICategory.CONTROLLED_TECHNICAL_INFORMATION,
-            m.CUICategory.PROPRIETARY_BUSINESS_INFORMATION,
-        }),
+        cui_categories_authorized=frozenset(
+            {
+                m.CUICategory.CONTROLLED_TECHNICAL_INFORMATION,
+                m.CUICategory.PROPRIETARY_BUSINESS_INFORMATION,
+            }
+        ),
         authorized_contract_ids=frozenset(),
         has_deemed_export_license=False,
         is_domestic_recipient=True,
@@ -82,6 +84,7 @@ def _doc(m, **kwargs):
 # SecurityClearanceLevel tests
 # ---------------------------------------------------------------------------
 
+
 class TestSecurityClearanceLevel:
     def test_rank_ordering(self, m):
         lvl = m.SecurityClearanceLevel
@@ -99,9 +102,7 @@ class TestSecurityClearanceLevel:
         assert not m.SecurityClearanceLevel.CONFIDENTIAL.authorizes(m.SecurityClearanceLevel.SECRET)
 
     def test_unclassified_authorizes_unclassified(self, m):
-        assert m.SecurityClearanceLevel.UNCLASSIFIED.authorizes(
-            m.SecurityClearanceLevel.UNCLASSIFIED
-        )
+        assert m.SecurityClearanceLevel.UNCLASSIFIED.authorizes(m.SecurityClearanceLevel.UNCLASSIFIED)
 
     def test_top_secret_sci_authorizes_all(self, m):
         for lvl in m.SecurityClearanceLevel:
@@ -111,6 +112,7 @@ class TestSecurityClearanceLevel:
 # ---------------------------------------------------------------------------
 # Layer 1 — FAR/DFARS filter
 # ---------------------------------------------------------------------------
+
 
 class TestFARDFARSFilter:
     def test_permits_authorized_clearance_and_category(self, m):
@@ -203,6 +205,7 @@ class TestFARDFARSFilter:
 # ---------------------------------------------------------------------------
 # Layer 2 — ITAR/EAR filter
 # ---------------------------------------------------------------------------
+
 
 class TestITAREARFilter:
     def test_blocks_usml_foreign_national_no_license(self, m):
@@ -305,6 +308,7 @@ class TestITAREARFilter:
 # Layer 3 — DD Form 254 need-to-know filter
 # ---------------------------------------------------------------------------
 
+
 class TestDD254Filter:
     def test_permits_matching_contract(self, m):
         f = m.DD254NeedToKnowFilter()
@@ -353,6 +357,7 @@ class TestDD254Filter:
 # ---------------------------------------------------------------------------
 # Full pipeline tests
 # ---------------------------------------------------------------------------
+
 
 class TestGovContractRAGPipeline:
     def _make_corpus(self, m):
@@ -474,18 +479,27 @@ class TestGovContractRAGPipeline:
 # Scenario-based integration tests
 # ---------------------------------------------------------------------------
 
+
 class TestScenarios:
     def test_scenario_a_cleared_us_engineer(self, m):
         """Cleared US engineer on F-35 contract can access USML IV + PBI docs."""
         pipeline = m.GovContractRAGPipeline()
         docs_corpus = [
-            _doc(m, document_id="USML", itar_category=m.ITARCategory.USML_IV_AIRCRAFT,
-                 required_contract_ids=frozenset({"FA8625-24-C-0001"})),
-            _doc(m, document_id="PBI", itar_category=m.ITARCategory.EAR99,
-                 cui_category=m.CUICategory.PROPRIETARY_BUSINESS_INFORMATION,
-                 minimum_clearance=m.SecurityClearanceLevel.CUI,
-                 requires_facility_clearance=m.SecurityClearanceLevel.CUI,
-                 required_contract_ids=frozenset()),
+            _doc(
+                m,
+                document_id="USML",
+                itar_category=m.ITARCategory.USML_IV_AIRCRAFT,
+                required_contract_ids=frozenset({"FA8625-24-C-0001"}),
+            ),
+            _doc(
+                m,
+                document_id="PBI",
+                itar_category=m.ITARCategory.EAR99,
+                cui_category=m.CUICategory.PROPRIETARY_BUSINESS_INFORMATION,
+                minimum_clearance=m.SecurityClearanceLevel.CUI,
+                requires_facility_clearance=m.SecurityClearanceLevel.CUI,
+                required_contract_ids=frozenset(),
+            ),
         ]
         ctx = _ctx(m, is_us_person=True, authorized_contract_ids=frozenset({"FA8625-24-C-0001"}))
         docs, audit = pipeline.retrieve(docs_corpus, ctx)
@@ -495,10 +509,14 @@ class TestScenarios:
     def test_scenario_b_foreign_national_blocked_all_usml(self, m):
         """Foreign national without license cannot access any USML category."""
         pipeline = m.GovContractRAGPipeline()
-        ctx = _ctx(m, is_us_person=False, has_deemed_export_license=False,
-                   authorized_contract_ids=frozenset({"CONTRACT-A"}))
-        for cat in [m.ITARCategory.USML_I_FIREARMS, m.ITARCategory.USML_XV_SPACECRAFT,
-                    m.ITARCategory.USML_XXII_SUBMERSIBLES]:
+        ctx = _ctx(
+            m, is_us_person=False, has_deemed_export_license=False, authorized_contract_ids=frozenset({"CONTRACT-A"})
+        )
+        for cat in [
+            m.ITARCategory.USML_I_FIREARMS,
+            m.ITARCategory.USML_XV_SPACECRAFT,
+            m.ITARCategory.USML_XXII_SUBMERSIBLES,
+        ]:
             doc = _doc(m, itar_category=cat, required_contract_ids=frozenset({"CONTRACT-A"}))
             docs, _ = pipeline.retrieve([doc], ctx)
             assert docs == [], f"Expected {cat.value} to be blocked for foreign national"
@@ -506,22 +524,24 @@ class TestScenarios:
     def test_scenario_d_foreign_with_license_gets_usml(self, m):
         """Foreign national WITH deemed-export license can access USML data."""
         pipeline = m.GovContractRAGPipeline()
-        ctx = _ctx(m, is_us_person=False, has_deemed_export_license=True,
-                   authorized_contract_ids=frozenset({"CONTRACT-A"}))
-        doc = _doc(m, itar_category=m.ITARCategory.USML_IV_AIRCRAFT,
-                   required_contract_ids=frozenset({"CONTRACT-A"}))
+        ctx = _ctx(
+            m, is_us_person=False, has_deemed_export_license=True, authorized_contract_ids=frozenset({"CONTRACT-A"})
+        )
+        doc = _doc(m, itar_category=m.ITARCategory.USML_IV_AIRCRAFT, required_contract_ids=frozenset({"CONTRACT-A"}))
         docs, _ = pipeline.retrieve([doc], ctx)
         assert len(docs) == 1
 
     def test_public_doc_accessible_to_everyone(self, m):
         """Publicly releasable documents bypass all three layers."""
         pipeline = m.GovContractRAGPipeline()
-        ctx = _ctx(m, is_us_person=False,
-                   personnel_clearance=m.SecurityClearanceLevel.UNCLASSIFIED,
-                   facility_clearance=m.SecurityClearanceLevel.UNCLASSIFIED,
-                   cui_categories_authorized=frozenset(),
-                   authorized_contract_ids=frozenset())
-        doc = _doc(m, itar_category=m.ITARCategory.USML_I_FIREARMS,
-                   is_publicly_releasable=True)
+        ctx = _ctx(
+            m,
+            is_us_person=False,
+            personnel_clearance=m.SecurityClearanceLevel.UNCLASSIFIED,
+            facility_clearance=m.SecurityClearanceLevel.UNCLASSIFIED,
+            cui_categories_authorized=frozenset(),
+            authorized_contract_ids=frozenset(),
+        )
+        doc = _doc(m, itar_category=m.ITARCategory.USML_I_FIREARMS, is_publicly_releasable=True)
         docs, _ = pipeline.retrieve([doc], ctx)
         assert len(docs) == 1

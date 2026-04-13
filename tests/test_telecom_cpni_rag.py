@@ -18,9 +18,9 @@ StateTelecomPrivacyFilter, TelecomCPNIRAGPipeline, and TelecomAuditRecord.
 
 from __future__ import annotations
 
+import importlib.util
 import os
 import sys
-import importlib.util
 import types
 
 # ---------------------------------------------------------------------------
@@ -54,6 +54,7 @@ TelecomAuditRecord = mod.TelecomAuditRecord
 # ---------------------------------------------------------------------------
 # Factory helpers
 # ---------------------------------------------------------------------------
+
 
 def _ctx(
     *,
@@ -160,6 +161,7 @@ def _inferred_doc(document_id: str = "doc-inferred") -> object:
 # Tests 1–5: CPNI consent gate (CPNIAccessFilter)
 # ---------------------------------------------------------------------------
 
+
 class TestCPNIConsentGate:
     """Tests 1-5: consent rules under 47 CFR §64.2005 / §64.2009."""
 
@@ -215,6 +217,7 @@ class TestCPNIConsentGate:
 # Tests 6–7: CPNI authentication gate for call detail records (§64.2007)
 # ---------------------------------------------------------------------------
 
+
 class TestCPNIAuthenticationGate:
     """Tests 6-7: authentication required for call detail records (§64.2007)."""
 
@@ -239,6 +242,7 @@ class TestCPNIAuthenticationGate:
 # ---------------------------------------------------------------------------
 # Tests 8–10: CALEA lawful intercept (CALEAFilter)
 # ---------------------------------------------------------------------------
+
 
 class TestCALEAFilter:
     """Tests 8-10: CALEA 47 USC §1002 lawful intercept gate."""
@@ -273,6 +277,7 @@ class TestCALEAFilter:
 # ---------------------------------------------------------------------------
 # Tests 11–14: FCC broadband privacy (FCCBroadbandPrivacyFilter)
 # ---------------------------------------------------------------------------
+
 
 class TestFCCBroadbandPrivacyFilter:
     """Tests 11-14: 47 CFR Part 64 Subpart U broadband privacy controls."""
@@ -320,6 +325,7 @@ class TestFCCBroadbandPrivacyFilter:
 # Tests 15–17: State CPNI — California (StateTelecomPrivacyFilter)
 # ---------------------------------------------------------------------------
 
+
 class TestStateTelecomPrivacyFilter:
     """Tests 15-17: CalOPPA + CCPA §1798.100 California subscriber rules."""
 
@@ -356,6 +362,7 @@ class TestStateTelecomPrivacyFilter:
 # ---------------------------------------------------------------------------
 # Tests 18–22: Full pipeline integration
 # ---------------------------------------------------------------------------
+
 
 class TestPipelineIntegration:
     """Tests 18-22: end-to-end TelecomCPNIRAGPipeline behavior."""
@@ -425,6 +432,7 @@ class TestPipelineIntegration:
 # Tests 23–26: TelecomAuditRecord.to_audit_log() structure
 # ---------------------------------------------------------------------------
 
+
 class TestTelecomAuditRecord:
     """Tests 23-26: audit log structure and field correctness."""
 
@@ -468,9 +476,17 @@ class TestTelecomAuditRecord:
         audit = self._run_audit([_cpni_doc()])
         log = audit.to_audit_log()
         required_fields = {
-            "event", "user_id", "carrier_id", "customer_id", "role",
-            "access_purpose", "documents_evaluated", "documents_permitted",
-            "documents_denied", "filter_results", "timestamp",
+            "event",
+            "user_id",
+            "carrier_id",
+            "customer_id",
+            "role",
+            "access_purpose",
+            "documents_evaluated",
+            "documents_permitted",
+            "documents_denied",
+            "filter_results",
+            "timestamp",
         }
         assert required_fields.issubset(set(log.keys()))
 
@@ -488,6 +504,7 @@ class TestTelecomAuditRecord:
 # ---------------------------------------------------------------------------
 # Tests 27–30: Role-based access (carrier agent with authenticated access)
 # ---------------------------------------------------------------------------
+
 
 class TestRoleBasedAccess:
     """Tests 27-30: role and authentication interactions."""
@@ -547,6 +564,7 @@ class TestRoleBasedAccess:
 # ---------------------------------------------------------------------------
 # Tests 31–36: Edge cases and additional coverage
 # ---------------------------------------------------------------------------
+
 
 class TestEdgeCases:
     """Tests 31-36: edge cases, citation checks, and boundary conditions."""

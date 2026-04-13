@@ -16,9 +16,9 @@ KoreaCrossBorderFilter, KoreaPIPARAGPipeline, and KoreaRAGAuditRecord.
 
 from __future__ import annotations
 
+import importlib.util
 import os
 import sys
-import importlib.util
 import types
 
 # ---------------------------------------------------------------------------
@@ -51,6 +51,7 @@ KoreaRAGAuditRecord = mod.KoreaRAGAuditRecord
 # ---------------------------------------------------------------------------
 # Factory helpers
 # ---------------------------------------------------------------------------
+
 
 def _ctx(
     *,
@@ -143,6 +144,7 @@ def _sensitive_doc(document_id: str = "doc-sensitive") -> object:
 # Tests 1–5: KoreaPIPADataSubjectFilter
 # ---------------------------------------------------------------------------
 
+
 class TestKoreaPIPADataSubjectFilter:
     """Tests 1-5: PIPA Art. 15, Art. 23, Art. 35 data subject and legal basis rules."""
 
@@ -186,15 +188,14 @@ class TestKoreaPIPADataSubjectFilter:
         # and a valid enum basis, we get APPROVED (since basis IS valid). The denial path
         # for "no legal basis" requires a basis not in the enum — tested below via mocking
         # the attribute. We test the more meaningful case: valid basis + no consent → APPROVED.
-        ctx = _ctx(has_pipa_consent=False, legal_basis=KoreaLegalBasis.CONTRACT,
-                   is_data_subject_request=False)
+        ctx = _ctx(has_pipa_consent=False, legal_basis=KoreaLegalBasis.CONTRACT, is_data_subject_request=False)
         doc = _doc()
         result = f.evaluate(ctx, doc)
         assert result.decision == "APPROVED"
 
     def test_02b_no_pipa_consent_and_invalid_legal_basis_denied(self):
         """Test 2b: Denied when has_pipa_consent=False and legal_basis not in valid set."""
-        f = KoreaPIPADataSubjectFilter()
+        pass  # filter instantiated inline below
         # We'll create a context with has_pipa_consent=False and then monkeypatch
         # the valid-basis check by evaluating with a document that has personal_info=True.
         # Since all KoreaLegalBasis values are valid, the denial requires has_pipa_consent=False
@@ -251,6 +252,7 @@ class TestKoreaPIPADataSubjectFilter:
 # Tests 6–9: KoreaPIPAMinimizationFilter
 # ---------------------------------------------------------------------------
 
+
 class TestKoreaPIPAMinimizationFilter:
     """Tests 6-9: PIPA Art. 3(1) data minimization and Art. 16(2) purpose limitation."""
 
@@ -304,6 +306,7 @@ class TestKoreaPIPAMinimizationFilter:
 # Tests 10–12: KoreaAIActFilter
 # ---------------------------------------------------------------------------
 
+
 class TestKoreaAIActFilter:
     """Tests 10-12: Korea AI Framework Act Art. 6 high-impact AI transparency."""
 
@@ -338,6 +341,7 @@ class TestKoreaAIActFilter:
 # ---------------------------------------------------------------------------
 # Tests 13–17: KoreaCrossBorderFilter
 # ---------------------------------------------------------------------------
+
 
 class TestKoreaCrossBorderFilter:
     """Tests 13-17: PIPA Art. 39-3 cross-border transfer controls."""
@@ -389,6 +393,7 @@ class TestKoreaCrossBorderFilter:
 # ---------------------------------------------------------------------------
 # Tests 18–23: Full pipeline integration
 # ---------------------------------------------------------------------------
+
 
 class TestPipelineIntegration:
     """Tests 18-23: end-to-end KoreaPIPARAGPipeline behavior."""
@@ -470,6 +475,7 @@ class TestPipelineIntegration:
 # Tests 24–28: KoreaRAGAuditRecord.to_audit_log() structure
 # ---------------------------------------------------------------------------
 
+
 class TestKoreaRAGAuditRecord:
     """Tests 24-28: audit log structure and field correctness."""
 
@@ -484,10 +490,18 @@ class TestKoreaRAGAuditRecord:
         audit = self._run_audit([_doc()])
         log = audit.to_audit_log()
         required = {
-            "event", "requester_id", "requester_role", "requester_jurisdiction",
-            "legal_basis", "processing_purpose", "documents_evaluated",
-            "documents_permitted", "documents_denied", "documents_redacted",
-            "filter_results", "timestamp",
+            "event",
+            "requester_id",
+            "requester_role",
+            "requester_jurisdiction",
+            "legal_basis",
+            "processing_purpose",
+            "documents_evaluated",
+            "documents_permitted",
+            "documents_denied",
+            "documents_redacted",
+            "filter_results",
+            "timestamp",
         }
         assert required.issubset(set(log.keys()))
 
@@ -545,6 +559,7 @@ class TestKoreaRAGAuditRecord:
 # ---------------------------------------------------------------------------
 # Tests 29–36: Edge cases and additional coverage
 # ---------------------------------------------------------------------------
+
 
 class TestEdgeCases:
     """Tests 29-36: edge cases, is_denied property, and boundary conditions."""

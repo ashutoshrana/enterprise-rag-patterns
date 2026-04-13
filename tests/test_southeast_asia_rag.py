@@ -16,9 +16,9 @@ SEAsiaCrossBorderFilter, SEAsiaRAGPipeline, and SEAsiaAuditRecord.
 
 from __future__ import annotations
 
+import importlib.util
 import os
 import sys
-import importlib.util
 import types
 
 # ---------------------------------------------------------------------------
@@ -49,6 +49,7 @@ SEAsiaAuditRecord = mod.SEAsiaAuditRecord
 # ---------------------------------------------------------------------------
 # Factory helpers
 # ---------------------------------------------------------------------------
+
 
 def _ctx(
     *,
@@ -101,6 +102,7 @@ def _doc(
 # ---------------------------------------------------------------------------
 # [1-5] ThailandPDPAFilter
 # ---------------------------------------------------------------------------
+
 
 class TestThailandPDPAFilter:
     def setup_method(self):
@@ -168,6 +170,7 @@ class TestThailandPDPAFilter:
 # ---------------------------------------------------------------------------
 # [6-10] IndonesiaPDPFilter
 # ---------------------------------------------------------------------------
+
 
 class TestIndonesiaPDPFilter:
     def setup_method(self):
@@ -243,6 +246,7 @@ class TestIndonesiaPDPFilter:
 # [11-15] VietnamCybersecurityFilter
 # ---------------------------------------------------------------------------
 
+
 class TestVietnamCybersecurityFilter:
     def setup_method(self):
         self.f = VietnamCybersecurityFilter()
@@ -313,6 +317,7 @@ class TestVietnamCybersecurityFilter:
 # ---------------------------------------------------------------------------
 # [16-22] SEAsiaCrossBorderFilter
 # ---------------------------------------------------------------------------
+
 
 class TestSEAsiaCrossBorderFilter:
     def setup_method(self):
@@ -405,6 +410,7 @@ class TestSEAsiaCrossBorderFilter:
 # [23-28] Pipeline — filter_documents
 # ---------------------------------------------------------------------------
 
+
 class TestSEAsiaRAGPipelineFilterDocuments:
     def setup_method(self):
         self.pipeline = SEAsiaRAGPipeline()
@@ -485,6 +491,7 @@ class TestSEAsiaRAGPipelineFilterDocuments:
 # [29-34] Pipeline — filter_documents_with_audit
 # ---------------------------------------------------------------------------
 
+
 class TestSEAsiaRAGPipelineAudit:
     def setup_method(self):
         self.pipeline = SEAsiaRAGPipeline()
@@ -546,6 +553,7 @@ class TestSEAsiaRAGPipelineAudit:
 # [35-38] Full-stack and edge cases
 # ---------------------------------------------------------------------------
 
+
 class TestFullStackAndEdgeCases:
     def setup_method(self):
         self.pipeline = SEAsiaRAGPipeline()
@@ -570,6 +578,7 @@ class TestFullStackAndEdgeCases:
     def test_37_seasia_context_is_frozen(self):
         """SEAsiaContext is immutable (frozen=True)."""
         import dataclasses
+
         ctx = _ctx()
         assert dataclasses.is_dataclass(ctx)
         try:
