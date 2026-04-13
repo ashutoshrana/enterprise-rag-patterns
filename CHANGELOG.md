@@ -6,6 +6,44 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.22.0] — 2026-04-13
+
+### Added — Financial Services RAG (GLBA Title V + SEC Reg S-P + FINRA Rule 3110 + BSA/AML SAR Confidentiality)
+
+**`examples/27_financial_services_rag.py`** — four-layer defense-in-depth retrieval pipeline
+for financial services platforms enforcing GLBA Title V Non-Public Personal Information
+protections, SEC Regulation S-P (17 CFR Part 248) safeguard rule and broker-dealer customer
+records privacy, FINRA Rule 3110 written supervisory procedures and licensed principal
+requirements, and Bank Secrecy Act 31 USC 5318(g)(2) SAR tipping-off prohibition and CTR
+access controls.
+
+**New classes:**
+- `FinancialRole` — 8 roles: REGISTERED_REPRESENTATIVE, COMPLIANCE_OFFICER, CUSTOMER,
+  BRANCH_MANAGER, INTERNAL_AUDITOR, EXTERNAL_AUDITOR, REGULATOR, ADMIN
+- `NPICategory` — 5 categories: ACCOUNT_INFORMATION, TRANSACTION_HISTORY,
+  CREDIT_INFORMATION, INCOME_ASSETS, NOT_NPI
+- `FinancialDecision` — PERMITTED / DENIED / REDACTED
+- `FinancialServicesContext` (frozen) — 15-field context: customer/account IDs, role,
+  self-access flag, GLBA opt-out/affiliate flags, safeguard controls, FINRA WSP status,
+  licensed principal flag, SAR/CTR authorization, law enforcement flag, audit access
+- `FinancialDocument` (frozen) — 7-field document: NPI category, customer ID, SAR/CTR
+  flags, AML investigation flag, public flag
+- `GLBAPrivacyFilter` — GLBA §§6801–6809: NPI protection; affiliate sharing rules
+  (§6802(a)/(b)); opt-out election; safeguard rule; regulatory examination exemption
+- `SECRegSPFilter` — 17 CFR §248.30 safeguard prerequisite; §248.10 NPI disclosure
+  restrictions; §248.15 regulatory examination access
+- `FINRASupervisionFilter` — Rule 3110(a)/(b): WSP currency gate; licensed principal
+  requirement for branch managers; regulatory examination access
+- `BSAAMLFilter` — 31 USC §5318(g)(2): absolute SAR tipping-off prohibition (blocks even
+  the SAR subject); 31 CFR §1010.311 CTR access; AML investigation confidentiality
+- `FinancialServicesRAGPipeline` — sequential four-layer retrieval with `retrieve()` and
+  `retrieve_with_audit()` methods
+- `FinancialAuditRecord` — structured audit with `to_audit_log()` event serialization
+
+**Tests:** 36 tests in `tests/test_financial_services_rag.py`
+
+---
+
 ## [0.21.0] — 2026-04-13
 
 ### Added — Legal Services RAG (Attorney-Client Privilege + Conflict of Interest + Work Product Doctrine + State Bar Ethics)
