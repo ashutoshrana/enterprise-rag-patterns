@@ -602,8 +602,8 @@ class TestFullStackAndEdgeCases:
         """California minor_data is DENIED at layer 3 (TDPSA) regardless of CCPA compliance."""
         ctx = _ctx(
             consumer_state="California",
-            ccpa_compliant=True,     # CCPA compliant — would pass layer 4
-            minor_data=True,          # TDPSA layer 3 should catch this
+            ccpa_compliant=True,  # CCPA compliant — would pass layer 4
+            minor_data=True,  # TDPSA layer 3 should catch this
             data_type="standard",
         )
         docs = [_doc(document_id="doc-ca-minor")]
