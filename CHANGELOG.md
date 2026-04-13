@@ -6,6 +6,21 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.35.0] — 2026-04-13
+
+### Added — US State Privacy Laws RAG Pre-filter (`39_us_state_privacy_rag.py`)
+
+Four-layer retrieval access control for platforms subject to US state consumer privacy laws:
+
+- `ColoradoCPAFilter` (CRS §6-1-1301 et seq.) — sensitive data (biometric/health/precise geolocation/racial origin/sexual orientation) → DENIED (§6-1-1303(19)); automated profiling without opt-out → REQUIRES_HUMAN_REVIEW (§6-1-1306(1)(a)(IV)); sale without opt-out → DENIED (§6-1-1306(1)(a)(III))
+- `VirginiaVCDPAFilter` (Va. Code §59.1-571 et seq.) — sensitive data opt-in requirement (§59.1-578(A)); automated decision with legal effect without opt-out → REQUIRES_HUMAN_REVIEW (§59.1-579); targeted advertising on sensitive data → DENIED (§59.1-578(B))
+- `TexasTDPSAFilter` (Tex. Bus. & Com. Code §541) — sensitive data consent (§541.101); sale opt-out (§541.052); minor data (under-13 and under-18 tiers) → DENIED
+- `USStatePrivacyCrossBorderFilter` — multi-state applicability matrix for CCPA/CPA/VCDPA/TDPSA/CTDPA; state-specific DENIED/REVIEW outcomes based on `destination_state`
+
+50 new tests. Total: **1315 passed, 2 skipped**.
+
+---
+
 ## [0.34.0] — 2026-04-13
 
 ### Added — FilterPipeline and public API foundation

@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Downloads](https://img.shields.io/pypi/dm/enterprise-rag-patterns.svg)](https://pypi.org/project/enterprise-rag-patterns/)
 
-**Cross-industry compliance patterns for RAG pipelines — 38 regulated sector examples, 5 vector store adapters, 1265 tests.**
+**Cross-industry compliance patterns for RAG pipelines — 39 regulated sector examples, 5 vector store adapters, 1315 tests.**
 
 Defense-in-depth pre-filters that enforce regulatory requirements at the retrieval layer, before any document reaches the LLM context window.
 
@@ -122,7 +122,7 @@ See the `examples/` directory for complete runnable pipelines.
 
 ---
 
-## Example catalog — 38 regulated sectors
+## Example catalog — 39 regulated sectors
 
 | # | File | Sector | Regulations Enforced |
 |---|------|--------|---------------------|
@@ -164,6 +164,7 @@ See the `examples/` directory for complete runnable pipelines.
 | 36 | `36_latin_america_rag.py` | Latin America | Argentina LPDP 25.326 (Art. 5/7/12), Chile Law 19.628 (Art. 2(g)/4) + Law 21.719 Art. 16 (automated decisions), Colombia Law 1581/2012 (Art. 4(c)/7) + Decree 1377/2013 Art. 10, Ibero-American Data Protection Network cross-border adequacy (AR/CL/CO/MX/PE/UY/BR) |
 | 37 | `37_canada_pipeda_rag.py` | Canada | PIPEDA Principles 3/4.3 + CPPA Bill C-27 §15/§62, Quebec Law 25 §8/§12.1/§63.3, Ontario PHIPA + BC PIPA §11, OPC cross-border adequacy + contractual safeguards + Quebec PIA |
 | 38 | `38_telecommunications_rag.py` | US Telecom | FCC CPNI 47 U.S.C. §222 (billing/repair/support restriction + third-party opt-in), TCPA 47 U.S.C. §227 (autodialer/SMS consent + DNC Registry + 8AM-9PM rule), CALEA 47 U.S.C. §§1001-1010 (court order requirement + pen register), Section 214 + CLOUD Act cross-border (OFAC sanctions: CN/RU/IR/KP) |
+| 39 | `39_us_state_privacy_rag.py` | US State Privacy | Colorado CPA CRS §6-1-1301 (sensitive data consent + profiling opt-out + sale opt-out), Virginia CDPA Va. Code §59.1-571 (sensitive opt-in + automated decision + targeted advertising), Texas TDPSA Tex. Bus. & Com. Code §541 (sensitive data + sale opt-out + minor data), CTDPA/CPA/VCDPA/TDPSA/CCPA multi-state cross-border applicability |
 
 ---
 
@@ -297,7 +298,7 @@ Read [CONTRIBUTING.md](./CONTRIBUTING.md) and [GOVERNANCE.md](./GOVERNANCE.md). 
   author  = {Rana, Ashutosh},
   title   = {enterprise-rag-patterns: Cross-industry compliance patterns for RAG pipelines},
   year    = {2026},
-  version = {0.25.0},
+  version = {0.35.0},
   url     = {https://github.com/ashutoshrana/enterprise-rag-patterns},
   license = {MIT}
 }
@@ -309,9 +310,9 @@ Read [CONTRIBUTING.md](./CONTRIBUTING.md) and [GOVERNANCE.md](./GOVERNANCE.md). 
 
 | Library | Focus | Coverage |
 |---------|-------|---------|
-| **enterprise-rag-patterns** | What to retrieve | 38 sectors · 40 regulations · 1265 tests |
+| **enterprise-rag-patterns** | What to retrieve | 39 sectors · 41 regulations · 1315 tests |
 | [regulated-ai-governance](https://github.com/ashutoshrana/regulated-ai-governance) | What agents may do | 29 governance examples · 16 jurisdictions · 1527 tests |
-| [integration-automation-patterns](https://github.com/ashutoshrana/integration-automation-patterns) | How data flows | 31 patterns · schema registry · GraphQL · 1072 tests |
+| [integration-automation-patterns](https://github.com/ashutoshrana/integration-automation-patterns) | How data flows | 32 patterns · schema registry · GraphQL · 1163 tests |
 
 ---
 
