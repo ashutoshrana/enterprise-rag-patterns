@@ -6,6 +6,21 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.40.0] — 2026-04-13
+
+### Added — Defense / Aerospace / Export Controls RAG Pre-filter (`44_defense_itar_ear_rag.py`)
+
+Four-layer retrieval access control for US defense and export compliance:
+
+- `ITARFilter` (22 CFR Parts 120-130) — USML technical data without export license → DENIED (§120.6/§120.10); defense services to foreign persons without DSP-5 → DENIED (§120.9/§123.1); controlled electronic transmission without §125.4 exemption → DENIED; classified defense data without NISPOM markings → REQUIRES_HUMAN_REVIEW
+- `EARFilter` (15 CFR Parts 730-774) — CCL MEU items to CN/RU/VE/MM/BY without BIS license → DENIED (§744.21); Entity List recipient without authorization → DENIED (§744.11); semiconductor export to CN/RU/KP without §744.23 license → DENIED (Oct 2023 rule); Huawei FDPR without compliance review → REQUIRES_HUMAN_REVIEW (§734.9)
+- `CFIUSDefenseFilter` (50 U.S.C. §4565 + 31 CFR Part 800) — defense contractor acquisition without CFIUS → DENIED; TID US Business with CN/RU/KP entity without clearance → DENIED; sensitive gov contract data access → DENIED; minority TID investment without mandatory declaration → REQUIRES_HUMAN_REVIEW (§800.401)
+- `DefenseCrossBorderFilter` — NATO classified without clearance+need-to-know → DENIED (MC 0049/15); FVEY data to non-FVEY without bilateral agreement → DENIED; defense industrial base data to CN/RU/KP/IR/CU/SY → DENIED (NSPM-33); joint military tech dev without foreign disclosure → REQUIRES_HUMAN_REVIEW (DoDD 5230.11)
+
+56 new tests. Total: **1548 passed, 2 skipped**.
+
+---
+
 ## [0.39.0] — 2026-04-13
 
 ### Added — Energy / Utilities / NERC CIP RAG Pre-filter (`43_energy_nerc_cip_rag.py`)
