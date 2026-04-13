@@ -39,8 +39,6 @@ from __future__ import annotations
 import json
 
 from enterprise_rag_patterns.regulations.nist_ai_rmf import (
-    AIRMFAuditRecord,
-    AIRMFFunction,
     AIRMFRAGPolicy,
     AIRMFRetrievalRisk,
     AIRMFRiskLevel,
@@ -83,7 +81,7 @@ risk1 = policy.assess_retrieval(
     relevance_scores=[0.95, 0.92, 0.78],  # High relevance → low confabulation risk
 )
 
-print(f"\n--- Scenario 1: Low-risk query (general course catalog) ---")
+print("\n--- Scenario 1: Low-risk query (general course catalog) ---")
 print(f"  Risk level:          {risk1.risk_level.value}")
 print(f"  Documents retrieved: {risk1.documents_retrieved}")
 print(f"  Confabulation risk:  {risk1.confabulation_risk:.2f}")
@@ -106,7 +104,7 @@ risk2 = policy.assess_retrieval(
     relevance_scores=[0.88, 0.72, 0.65],
 )
 
-print(f"\n--- Scenario 2: Medium-risk query (financial aid + student PII) ---")
+print("\n--- Scenario 2: Medium-risk query (financial aid + student PII) ---")
 print(f"  Risk level:          {risk2.risk_level.value}")
 print(f"  Documents retrieved: {risk2.documents_retrieved}")
 print(f"  Confabulation risk:  {risk2.confabulation_risk:.2f}")
@@ -128,7 +126,7 @@ risk3 = policy.assess_retrieval(
     relevance_scores=[0.45, 0.38],  # Low relevance → high confabulation risk
 )
 
-print(f"\n--- Scenario 3: High confabulation risk (low relevance scores) ---")
+print("\n--- Scenario 3: High confabulation risk (low relevance scores) ---")
 print(f"  Risk level:          {risk3.risk_level.value}")
 print(f"  Documents retrieved: {risk3.documents_retrieved}")
 print(f"  Confabulation risk:  {risk3.confabulation_risk:.2f}  ← GV-AI-002 flag")
@@ -151,7 +149,7 @@ if float(risk3.confabulation_risk) > 0.6:
         affected_users=1,
         remediation_applied=True,
     )
-    print(f"\n--- MANAGE 1.3: Incident Record ---")
+    print("\n--- MANAGE 1.3: Incident Record ---")
     parsed_incident = json.loads(incident.to_log_entry())
     for key, value in parsed_incident.items():
         print(f"  {key}: {value}")
@@ -160,7 +158,7 @@ if float(risk3.confabulation_risk) > 0.6:
 # Risk trend summary across all scenarios
 # ---------------------------------------------------------------------------
 
-print(f"\n--- RISK ASSESSMENT SUMMARY (MAP + MEASURE) ---")
+print("\n--- RISK ASSESSMENT SUMMARY (MAP + MEASURE) ---")
 print(f"{'Query':<45} {'Risk':<10} {'Confab':<10} {'PII'}")
 print("-" * 73)
 scenarios = [
@@ -171,7 +169,7 @@ scenarios = [
 for label, risk in scenarios:
     print(f"  {label:<43} {risk.risk_level.value:<10} {risk.confabulation_risk:<10.2f} {risk.pii_exposure_risk:.2f}")
 
-print(f"\n--- MANAGE: Recommended Actions ---")
+print("\n--- MANAGE: Recommended Actions ---")
 for label, risk in scenarios:
     if risk.risk_level in (AIRMFRiskLevel.HIGH, AIRMFRiskLevel.CRITICAL):
         print(f"  ⚠️  {label!r}: {risk.risk_level.value} — add retrieval fallback or human review gate")

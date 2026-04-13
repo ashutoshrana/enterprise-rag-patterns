@@ -131,16 +131,16 @@ print(f"\nRetrieved docs (pre-filter): {len(RETRIEVED_DOCS)}")
 
 authorized_docs = policy.filter_retrieved_documents(RETRIEVED_DOCS)
 
-print(f"\n--- FILTER RESULTS ---")
+print("\n--- FILTER RESULTS ---")
 print(f"Authorized docs:  {len(authorized_docs)}")
 print(f"Blocked docs:     {len(RETRIEVED_DOCS) - len(authorized_docs)}")
 
-print(f"\n--- AUTHORIZED DOCS (LLM CONTEXT) ---")
+print("\n--- AUTHORIZED DOCS (LLM CONTEXT) ---")
 for doc in authorized_docs:
     tier = doc.get("confidentiality_tier", "unclassified")
     print(f"  ✅  {doc['doc_id']} [{tier}]: {doc['content'][:55]}...")
 
-print(f"\n--- BLOCKED DOCS ---")
+print("\n--- BLOCKED DOCS ---")
 auth_ids = {d["doc_id"] for d in authorized_docs}
 for doc in RETRIEVED_DOCS:
     if doc["doc_id"] not in auth_ids:
@@ -159,7 +159,7 @@ for doc in RETRIEVED_DOCS:
 if audit_log:
     record = audit_log[0]
     parsed = json.loads(record.to_log_entry())
-    print(f"\n--- CC7.2 AUDIT RECORD ---")
+    print("\n--- CC7.2 AUDIT RECORD ---")
     for key, value in parsed.items():
         print(f"  {key}: {value}")
     print(f"  tamper_hash: {record.content_hash()[:32]}...")
@@ -170,7 +170,7 @@ if audit_log:
 
 last = policy.last_audit_record
 if last:
-    print(f"\n--- BLOCK REASON BREAKDOWN ---")
+    print("\n--- BLOCK REASON BREAKDOWN ---")
     for reason, count in sorted(last.block_reasons.items()):
         print(f"  {reason}: {count} document(s)")
     print(f"\nTSC controls applied: {sorted(last.tsc_controls_applied)}")

@@ -96,13 +96,13 @@ pii_filter = OWASPSensitiveDisclosureFilter(
     audit_sink=pii_audit_log.append,
 )
 
-print(f"\n[LLM02:2025] Sensitive Information Disclosure Filter")
-print(f"  Mode: redact (replace with [REDACTED:LLM02] / [REDACTED:PII])")
+print("\n[LLM02:2025] Sensitive Information Disclosure Filter")
+print("  Mode: redact (replace with [REDACTED:LLM02] / [REDACTED:PII])")
 print(f"  Input docs: {len(RETRIEVED_DOCS)}")
 
 redacted_docs = pii_filter.redact(RETRIEVED_DOCS)
 
-print(f"\n  Redacted doc sample (profile_001):")
+print("\n  Redacted doc sample (profile_001):")
 for doc in redacted_docs:
     if doc["doc_id"] == "profile_001":
         for key, value in doc.items():
@@ -112,7 +112,7 @@ for doc in redacted_docs:
 if pii_audit_log:
     record = pii_audit_log[0]
     parsed = json.loads(record.to_log_entry())
-    print(f"\n  Audit record:")
+    print("\n  Audit record:")
     print(f"    risk_id: {parsed['risk_id']}")
     print(f"    documents_affected: {parsed['documents_affected']}")
     print(f"    fields_redacted: {parsed['fields_redacted']}")
@@ -128,7 +128,7 @@ scanner = OWASPPromptInjectionScanner(
     quarantine_field="_owasp_injection_flagged",  # mark in clean list, don't remove
 )
 
-print(f"\n[LLM01:2025] Prompt Injection Scanner")
+print("\n[LLM01:2025] Prompt Injection Scanner")
 print(f"  Input docs (post-LLM02): {len(redacted_docs)}")
 
 clean_docs, flagged_docs = scanner.scan(redacted_docs, content_field="content")
@@ -137,7 +137,7 @@ print(f"  Clean docs:   {len(clean_docs)} (injection-free or quarantine-marked)"
 print(f"  Flagged docs: {len(flagged_docs)} (injection patterns detected)")
 
 if flagged_docs:
-    print(f"\n  Flagged documents:")
+    print("\n  Flagged documents:")
     for doc in flagged_docs:
         print(f"    ⚠️  {doc['doc_id']}: quarantined={doc.get('_owasp_injection_flagged', False)}")
         patterns = doc.get("_owasp_matched_patterns", [])
@@ -147,7 +147,7 @@ if flagged_docs:
 if injection_audit_log:
     record = injection_audit_log[0]
     parsed = json.loads(record.to_log_entry())
-    print(f"\n  Audit record:")
+    print("\n  Audit record:")
     print(f"    risk_id: {parsed['risk_id']}")
     print(f"    event: {parsed['event']}")
     print(f"    documents_affected: {parsed['documents_affected']}")
@@ -157,11 +157,11 @@ if injection_audit_log:
 # ---------------------------------------------------------------------------
 
 non_quarantined = [d for d in clean_docs if not d.get("_owasp_injection_flagged")]
-print(f"\n--- SUMMARY ---")
+print("\n--- SUMMARY ---")
 print(f"Input:             {len(RETRIEVED_DOCS)} docs")
 print(f"Post-LLM02:        {len(redacted_docs)} docs (PII redacted)")
 print(f"Post-LLM01:        {len(non_quarantined)} clean + {len(flagged_docs)} flagged")
 print(f"Safe for LLM:      {len(non_quarantined)} docs")
-print(f"\nFlagged docs are quarantine-marked in clean list.")
+print("\nFlagged docs are quarantine-marked in clean list.")
 print("In production: route flagged docs to security review; never pass to LLM.")
 print("\n[Layer 0 complete — proceed to Layer 1: identity scoping]")

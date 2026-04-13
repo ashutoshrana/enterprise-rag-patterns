@@ -36,7 +36,6 @@ from enterprise_rag_patterns.compliance import (
 from enterprise_rag_patterns.context import ContextEnvelope, ContextSource
 from enterprise_rag_patterns.session import SessionState
 
-
 # ---------------------------------------------------------------------------
 # Mock document store — replace with your actual vector store
 # ---------------------------------------------------------------------------

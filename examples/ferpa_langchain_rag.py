@@ -45,13 +45,14 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(messag
 # your auth layer, not by user-controlled data.
 # ---------------------------------------------------------------------------
 
+from unittest.mock import patch as _patch  # noqa: E402
+
 from enterprise_rag_patterns.compliance import (  # noqa: E402
     AuditRecord,
     DisclosureReason,
     RecordCategory,
     StudentIdentityScope,
 )
-from unittest.mock import patch as _patch  # noqa: E402
 
 # Patch the langchain-core availability check so this example runs without
 # the optional SDK installed.  Remove this block in production where
@@ -143,7 +144,7 @@ class _MockRetriever:
         self._documents = documents
         self.callbacks: list[Any] = []
 
-    def as_retriever(self, callbacks: list[Any] | None = None) -> "_MockRetriever":
+    def as_retriever(self, callbacks: list[Any] | None = None) -> _MockRetriever:
         self.callbacks = callbacks or []
         return self
 

@@ -142,15 +142,15 @@ print(f"\nRetrieved docs (pre-filter): {len(RETRIEVED_DOCS)}")
 
 safe_docs = policy.filter_retrieved_documents(RETRIEVED_DOCS)
 
-print(f"\n--- FILTER RESULTS ---")
+print("\n--- FILTER RESULTS ---")
 print(f"Docs passed minimum-necessary filter: {len(safe_docs)}")
 print(f"Docs blocked: {len(RETRIEVED_DOCS) - len(safe_docs)}")
 
-print(f"\n--- SAFE DOCS (LLM CONTEXT) ---")
+print("\n--- SAFE DOCS (LLM CONTEXT) ---")
 for doc in safe_docs:
     print(f"  ✅  {doc['doc_id']}: {doc['content'][:60]}...")
 
-print(f"\n--- BLOCKED DOCS (NEVER REACHED LLM) ---")
+print("\n--- BLOCKED DOCS (NEVER REACHED LLM) ---")
 safe_ids = {d["doc_id"] for d in safe_docs}
 for doc in RETRIEVED_DOCS:
     if doc["doc_id"] not in safe_ids:
@@ -159,7 +159,7 @@ for doc in RETRIEVED_DOCS:
         )
         print(f"  ❌  {doc['doc_id']}: blocked ({reason})")
 
-print(f"\n--- AUDIT TRAIL ---")
+print("\n--- AUDIT TRAIL ---")
 print(f"Audit records emitted: {len(audit_log)}")
 print("(In production: write to SIEM / append-only log per § 164.312(b))")
 
@@ -171,7 +171,7 @@ if audit_log:
     h1 = record.content_hash()
     record.documents_retrieved = 99  # simulate tampering
     h2 = record.content_hash()
-    print(f"\n--- TAMPER-EVIDENCE DEMONSTRATION ---")
+    print("\n--- TAMPER-EVIDENCE DEMONSTRATION ---")
     print(f"Original hash: {h1[:32]}...")
     print(f"After tampering: {h2[:32]}...")
     print(f"Hashes differ: {h1 != h2}  ← tampering detected")

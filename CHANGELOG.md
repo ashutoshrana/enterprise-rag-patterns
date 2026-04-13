@@ -6,6 +6,45 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.6.0] — 2026-04-13
+
+### Added
+
+- `vector_stores/pgvector_adapter.py`: `PGVectorComplianceFilter` and
+  `PGVectorSQLAlchemyFilter` — compliance-scoped filter adapters for PostgreSQL
+  with the `pgvector` extension, the most common enterprise vector store.
+
+  **`PGVectorComplianceFilter`** builds SQL `WHERE` clause fragments + parameterised
+  argument tuples for direct database drivers:
+  - `build_filter()` — psycopg2 `%s` placeholders; supports both JSONB metadata
+    column (`metadata->>'student_id' = %s … AND metadata->>'category' = ANY(%s)`)
+    and normalised column (`student_id = %s … AND category = ANY(%s)`) schemas.
+  - `build_asyncpg_filter()` — asyncpg `$N` positional placeholders with explicit
+    `::text[]` cast for array parameters (`= ANY($3::text[])`).
+  - Configurable column / field names (`metadata_column_name`, `student_id_field`,
+    `institution_id_field`, `category_field`).
+  - Categories sorted deterministically in all output parameter lists.
+
+  **`PGVectorSQLAlchemyFilter`** builds a `sqlalchemy.sql.ColumnElement` boolean
+  expression for SQLAlchemy ORM / Core queries (recommended for FastAPI apps):
+  - JSONB column mode: `metadata_col["key"].as_string() == value` with `or_()`
+    for multi-category matching.
+  - Normalised column mode: `col == value` / `col.in_(sorted_categories)`.
+  - `sqlalchemy` import is lazy — the module can be imported without SQLAlchemy
+    installed; `ImportError` is raised only when `build_filter()` is called.
+  - `ValueError` raised at construction time if neither `metadata_column` nor
+    the `student_id_column + institution_id_column` pair is provided.
+
+  Satisfies FERPA 34 CFR § 99.3 pre-filter requirement: SQL `WHERE` clauses applied
+  before the `<=>` (cosine distance) ranking step guarantee identity scoping at the
+  query layer. Closes #16, #9. 31 new tests (29 passing + 2 skipped when SQLAlchemy
+  not installed).
+
+- `vector_stores/__init__.py`: exports `PGVectorComplianceFilter`,
+  `PGVectorSQLAlchemyFilter`; updated module docstring.
+
+---
+
 ## [0.5.3] — 2026-04-12
 
 ### Added

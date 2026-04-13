@@ -8,8 +8,8 @@ Run:
     python examples/02_multi_student_isolation.py
 """
 
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
@@ -104,7 +104,7 @@ def main() -> None:
     print("FERPA Multi-Student Isolation Demo")
     print("=" * 68)
     print(f"\nInstitution: {institution}")
-    print(f"Authorized categories: academic_record, directory_information\n")
+    print("Authorized categories: academic_record, directory_information\n")
 
     header = f"{'Doc ID':<8} {'Owner':<8} {'Category':<25} {'Alice scope':<14} {'Bob scope'}"
     print(header)

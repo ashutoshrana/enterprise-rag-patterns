@@ -56,8 +56,8 @@ class FakeRetriever:
 # FERPA setup
 # ---------------------------------------------------------------------------
 
-from enterprise_rag_patterns.compliance import RecordCategory, StudentIdentityScope
-from enterprise_rag_patterns.integrations.langchain_lcel import FERPAFilterRunnable
+from enterprise_rag_patterns.compliance import RecordCategory, StudentIdentityScope  # noqa: E402
+from enterprise_rag_patterns.integrations.langchain_lcel import FERPAFilterRunnable  # noqa: E402
 
 audit_log: list[str] = []
 
