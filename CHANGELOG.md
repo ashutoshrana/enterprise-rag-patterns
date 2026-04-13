@@ -6,6 +6,23 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.29.0] — 2026-04-13
+
+### Added — US Real Estate / Proptech RAG Pre-filter (`34_real_estate_rag.py`)
+
+US real estate sector compliance as a four-layer RAG retrieval pre-filter:
+
+- `FairHousingActFilter` (42 U.S.C. §3604 + HUD) — protected class data blocked for buyer/seller roles; training requirement for agent access; regulator/lender bypass
+- `ECOALendingFilter` (15 U.S.C. §1691 / Regulation B) — credit decisions without ECOA notice → DENIED; lender adverse action without written notice → REQUIRES_HUMAN_REVIEW
+- `AppraisalIndependenceFilter` (Dodd-Frank §1472 + USPAP) — AVM for purchase → REQUIRES_HUMAN_REVIEW; lender appraisal without borrower disclosure → DENIED
+- `StateRealEstateLawFilter` — CA Civil Code §1940.2 (rental disclosure), NY RPL §462 (purchase disclosure → DENIED), TX Property Code §5.008 (seller disclosure)
+- `RealEstateRAGPipeline` + `RealEstateAuditRecord`
+
+36 new tests. Total: **1069 passed, 2 skipped**.
+
+---
+
+
 ## [0.28.0] — 2026-04-13
 
 ### Added — US Insurance NAIC/FCRA RAG Pre-filter (`33_insurance_naic_rag.py`)

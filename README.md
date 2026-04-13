@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Downloads](https://img.shields.io/pypi/dm/enterprise-rag-patterns.svg)](https://pypi.org/project/enterprise-rag-patterns/)
 
-**Cross-industry compliance patterns for RAG pipelines — 33 regulated sector examples, 5 vector store adapters, 1033 tests.**
+**Cross-industry compliance patterns for RAG pipelines — 34 regulated sector examples, 5 vector store adapters, 1069 tests.**
 
 Defense-in-depth pre-filters that enforce regulatory requirements at the retrieval layer, before any document reaches the LLM context window.
 
@@ -122,7 +122,7 @@ See the `examples/` directory for complete runnable pipelines.
 
 ---
 
-## Example catalog — 33 regulated sectors
+## Example catalog — 34 regulated sectors
 
 | # | File | Sector | Regulations Enforced |
 |---|------|--------|---------------------|
@@ -159,6 +159,7 @@ See the `examples/` directory for complete runnable pipelines.
 | 31 | `31_brazil_lgpd_rag.py` | Brazil / LGPD | LGPD Law 13.709/2018 Art. 7/11/15/18/33 — data subject access, legal basis, minimization, retention, cross-border transfer |
 | 32 | `32_south_korea_rag.py` | South Korea / PIPA | PIPA Art. 15/16/23 (legal basis + sensitive data consent) + Art. 39-3 (cross-border — KR/EU/UK/CH/JP/NZ/CA adequate) + Korea AI Framework Act Art. 6 high-impact AI transparency |
 | 33 | `33_insurance_naic_rag.py` | US Insurance | NAIC Model Privacy Protection Act §7/§13, FCRA §1681b(a)(3)(C) permissible purpose + §1681m(a) adverse action notice, CA CDI Bulletin 2022-5, IL IDOI AI guidance, CA Proposition 103 |
+| 34 | `34_real_estate_rag.py` | US Real Estate | Fair Housing Act 42 U.S.C. §3604 + HUD regulations, ECOA 15 U.S.C. §1691 / Regulation B, Dodd-Frank §1472 (appraisal independence) + USPAP, CA Civil Code §1940.2, NY RPL §462, TX Property Code §5.008 |
 
 ---
 
@@ -304,9 +305,9 @@ Read [CONTRIBUTING.md](./CONTRIBUTING.md) and [GOVERNANCE.md](./GOVERNANCE.md). 
 
 | Library | Focus | Coverage |
 |---------|-------|---------|
-| **enterprise-rag-patterns** | What to retrieve | 33 sectors · 35 regulations · 1033 tests |
-| [regulated-ai-governance](https://github.com/ashutoshrana/regulated-ai-governance) | What agents may do | 24 governance examples · 12 jurisdictions · 1088 tests |
-| [integration-automation-patterns](https://github.com/ashutoshrana/integration-automation-patterns) | How data flows | 25 patterns · schema registry · distributed tracing · 695 tests |
+| **enterprise-rag-patterns** | What to retrieve | 34 sectors · 36 regulations · 1069 tests |
+| [regulated-ai-governance](https://github.com/ashutoshrana/regulated-ai-governance) | What agents may do | 26 governance examples · 14 jurisdictions · 1225 tests |
+| [integration-automation-patterns](https://github.com/ashutoshrana/integration-automation-patterns) | How data flows | 27 patterns · schema registry · GraphQL · 792 tests |
 
 ---
 
