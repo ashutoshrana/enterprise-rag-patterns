@@ -6,6 +6,42 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.9.0] — 2026-04-13
+
+### Added — Legal Sector RAG Example
+
+**`examples/14_legal_sector_rag.py`** — attorney-client privilege and ABA Model Rules
+compliance for a law firm matter research assistant. Three compliance layers:
+
+- **Layer 1 — ABA Rule 1.6 (Confidentiality):** `MatterScopeFilter` restricts retrieval
+  to authorized matter personnel. Documents tagged with a `matter_id` are accessible only
+  if the requester's `authorized_matter_ids` includes that matter.
+- **Layer 2 — ABA Rule 1.7 / 1.9 (Conflicts of Interest):** `ConflictChecker` scans
+  retrieved documents for adverse-party entity names. If a conflict is detected, retrieval
+  halts and a conflict record is raised before any document reaches the LLM context window.
+- **Layer 3 — ABA Rule 1.15 (Safekeeping of Client Property):** `Rule1_15Filter` isolates
+  `CLIENT_FINANCIAL` documents to their scoped `matter_id`. A billing partner authorized
+  on both matters cannot aggregate financial data across clients in a single query.
+
+New classes:
+- `MatterScope` — authorized access boundary for a matter research session (analogous to
+  `StudentIdentityScope` for FERPA)
+- `MatterScopeFilter` — ABA Rule 1.6 scope enforcement with `LegalAuditRecord` emission
+- `ConflictChecker` — ABA Rule 1.7/1.9 adverse-party scanner; halts retrieval on conflict
+- `Rule1_15Filter` — cross-matter financial isolation filter
+- `LegalAuditRecord` — audit record capturing matter_id, requester, privilege_tags_blocked,
+  conflict_parties_detected, ABA rules invoked, outcome
+
+Scenarios:
+- A: Authorized associate queries own matter → full retrieval (ALLOW)
+- B: Paralegal queries matter they're not on → privileged documents blocked (Rule 1.6)
+- C: Query returns document mentioning adverse party → retrieval halted (Rule 1.7)
+- D: Billing partner cross-matter financial query → Rule 1.15 isolation applied
+
+Closes #31.
+
+---
+
 ## [0.8.5] — 2026-04-13
 
 ### Added — Financial Services RAG Example (PCI DSS + GLBA)
