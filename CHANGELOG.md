@@ -6,6 +6,21 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.36.0] — 2026-04-13
+
+### Added — US Financial Services RAG Pre-filter (`40_financial_services_rag.py`)
+
+Four-layer retrieval access control for US financial services regulatory compliance:
+
+- `DoddFrankFilter` (12 U.S.C. §5301) — swap data without regulatory authorization → DENIED (§728/17 CFR Part 49); FSOC-designated institutions without enhanced oversight docs → REQUIRES_HUMAN_REVIEW (§113); Volcker Rule proprietary trading without compliance program → DENIED (§619/12 CFR §248)
+- `SECRegulationSPFilter` (17 CFR Part 248) — NPI without privacy notice → DENIED (§248.4); NPI without opt-out opportunity → DENIED (§248.7); material cybersecurity incident without 4-day 8-K disclosure → REQUIRES_HUMAN_REVIEW (§229.106)
+- `FINRAComplianceFilter` (Rules 4370/2210/3110) — customer communication without principal approval → DENIED (Rule 2210(b)(1)); order data without supervision → REQUIRES_HUMAN_REVIEW (Rule 3110); no BCP filed with FINRA → DENIED (Rule 4370)
+- `FinancialServicesCrossBorderFilter` — FATCA Form 8938/FBAR → DENIED (26 U.S.C. §1471); SAR within 30 days → DENIED (31 CFR §1010.320); OFAC sanctioned jurisdictions (RU/IR/KP/CU/SY) → DENIED; EU DORA + GDPR Art. 46 SCC required → REQUIRES_HUMAN_REVIEW
+
+52 new tests. Total: **1331 passed, 2 skipped**.
+
+---
+
 ## [0.35.0] — 2026-04-13
 
 ### Added — US State Privacy Laws RAG Pre-filter (`39_us_state_privacy_rag.py`)

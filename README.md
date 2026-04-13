@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Downloads](https://img.shields.io/pypi/dm/enterprise-rag-patterns.svg)](https://pypi.org/project/enterprise-rag-patterns/)
 
-**Cross-industry compliance patterns for RAG pipelines — 39 regulated sector examples, 5 vector store adapters, 1315 tests.**
+**Cross-industry compliance patterns for RAG pipelines — 40 regulated sector examples, 5 vector store adapters, 1331 tests.**
 
 Defense-in-depth pre-filters that enforce regulatory requirements at the retrieval layer, before any document reaches the LLM context window.
 
@@ -122,7 +122,7 @@ See the `examples/` directory for complete runnable pipelines.
 
 ---
 
-## Example catalog — 39 regulated sectors
+## Example catalog — 40 regulated sectors
 
 | # | File | Sector | Regulations Enforced |
 |---|------|--------|---------------------|
@@ -165,6 +165,7 @@ See the `examples/` directory for complete runnable pipelines.
 | 37 | `37_canada_pipeda_rag.py` | Canada | PIPEDA Principles 3/4.3 + CPPA Bill C-27 §15/§62, Quebec Law 25 §8/§12.1/§63.3, Ontario PHIPA + BC PIPA §11, OPC cross-border adequacy + contractual safeguards + Quebec PIA |
 | 38 | `38_telecommunications_rag.py` | US Telecom | FCC CPNI 47 U.S.C. §222 (billing/repair/support restriction + third-party opt-in), TCPA 47 U.S.C. §227 (autodialer/SMS consent + DNC Registry + 8AM-9PM rule), CALEA 47 U.S.C. §§1001-1010 (court order requirement + pen register), Section 214 + CLOUD Act cross-border (OFAC sanctions: CN/RU/IR/KP) |
 | 39 | `39_us_state_privacy_rag.py` | US State Privacy | Colorado CPA CRS §6-1-1301 (sensitive data consent + profiling opt-out + sale opt-out), Virginia CDPA Va. Code §59.1-571 (sensitive opt-in + automated decision + targeted advertising), Texas TDPSA Tex. Bus. & Com. Code §541 (sensitive data + sale opt-out + minor data), CTDPA/CPA/VCDPA/TDPSA/CCPA multi-state cross-border applicability |
+| 40 | `40_financial_services_rag.py` | US Financial Services | Dodd-Frank §728 (swap data regulatory authorization) + §619 Volcker Rule (12 CFR §248 compliance program), SEC Regulation S-P 17 CFR §248 (NPI privacy notice + opt-out + cyber disclosure 8-K), FINRA Rules 4370/2210/3110 (BCP filing + principal approval + supervisory procedures), FATCA 26 U.S.C. §1471 + FinCEN SAR 31 CFR §1010.320 + OFAC sanctions cross-border |
 
 ---
 
@@ -298,7 +299,7 @@ Read [CONTRIBUTING.md](./CONTRIBUTING.md) and [GOVERNANCE.md](./GOVERNANCE.md). 
   author  = {Rana, Ashutosh},
   title   = {enterprise-rag-patterns: Cross-industry compliance patterns for RAG pipelines},
   year    = {2026},
-  version = {0.35.0},
+  version = {0.36.0},
   url     = {https://github.com/ashutoshrana/enterprise-rag-patterns},
   license = {MIT}
 }
@@ -310,9 +311,9 @@ Read [CONTRIBUTING.md](./CONTRIBUTING.md) and [GOVERNANCE.md](./GOVERNANCE.md). 
 
 | Library | Focus | Coverage |
 |---------|-------|---------|
-| **enterprise-rag-patterns** | What to retrieve | 39 sectors · 41 regulations · 1315 tests |
-| [regulated-ai-governance](https://github.com/ashutoshrana/regulated-ai-governance) | What agents may do | 29 governance examples · 16 jurisdictions · 1527 tests |
-| [integration-automation-patterns](https://github.com/ashutoshrana/integration-automation-patterns) | How data flows | 32 patterns · schema registry · GraphQL · 1163 tests |
+| **enterprise-rag-patterns** | What to retrieve | 40 sectors · 42 regulations · 1331 tests |
+| [regulated-ai-governance](https://github.com/ashutoshrana/regulated-ai-governance) | What agents may do | 31 governance examples · 18 jurisdictions · 1716 tests |
+| [integration-automation-patterns](https://github.com/ashutoshrana/integration-automation-patterns) | How data flows | 33 patterns · schema registry · GraphQL · 1218 tests |
 
 ---
 
