@@ -6,6 +6,25 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.8.5] — 2026-04-13
+
+### Added — Financial Services RAG Example (PCI DSS + GLBA)
+
+**`examples/13_financial_services_rag.py`** — defense-in-depth RAG pipeline for a
+wealth management chatbot combining PCI DSS v4.0 and GLBA Safeguards Rule compliance:
+- Three-layer defense model: OWASP LLM01 injection scan → GLBA NPI purpose limitation
+  → PCI DSS PAN masking + cardholder data category enforcement
+- Scenario A: authorized wealth advisor — all 5 docs pass; raw PAN masked to `[PAN-MASKED]`
+- Scenario B: PAN masking demonstration — `4532-0151-2345-6789` replaced before LLM context
+- Scenario C: unauthenticated user (no authorized purposes) — GLBA blocks 4/5 NPI docs;
+  only public market research reaches the LLM
+- Scenario D: prompt injection attempt — OWASP LLM01 scanner halts pipeline before retrieval
+- Compliance audit summary: GLBA/PCI audit events, OWASP scan events, total PAN masked
+- Defense-in-depth layer map with PCI DSS Req and GLBA § references
+- Closes #30.
+
+---
+
 ## [0.8.4] — 2026-04-13
 
 ### Added — Cross-Channel Session Continuity Example
