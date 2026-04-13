@@ -6,6 +6,48 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.14.0] — 2026-04-13
+
+### Added — Pharmaceutical/Clinical Trial RAG Example (FDA 21 CFR Part 11 + ICH E6(R3) GCP + HIPAA)
+
+**`examples/19_pharma_clinical_rag.py`** — three-layer defense-in-depth retrieval pipeline
+for pharmaceutical clinical trial systems, enforcing FDA 21 CFR Part 11 (electronic records),
+ICH E6(R3) Good Clinical Practice (blinding integrity and site isolation), and HIPAA Privacy Rule
+(minimum necessary standard for PHI) independently and simultaneously.
+
+New classes (self-contained in the example):
+- `ClinicalRecordCategory` — 14 document categories including RANDOMIZATION_CODE, INTERIM_ANALYSIS,
+  BLIND_BREAK_LOG (unblinded), PATIENT_DATA_IDENTIFIABLE, ADVERSE_EVENT, LAB_RESULT (PHI),
+  INVESTIGATOR_BROCHURE, PROTOCOL, CLINICAL_STUDY_REPORT, PUBLIC_SUMMARY
+- `GCPRole` — 11 clinical trial roles: PI, SUB_INVESTIGATOR, CRA, DATA_MANAGER, REGULATORY_AFFAIRS,
+  BLINDED_STATISTICIAN, UNBLINDED_STATISTICIAN, PHARMACOVIGILANCE, SPONSOR_MEDICAL_MONITOR, QA, EXTERNAL_AUDITOR
+- `TrialPhase` — PHASE_I through PHASE_IV and OBSERVATIONAL
+- `ClinicalAccessContext` — frozen dataclass: GxP credentials, GCP training currency, authorized trial
+  IDs, blinding status, authorized phases, PHI authorization, site assignment, minimum necessary scope
+- `ClinicalDocument` — frozen dataclass: category, trial_id, trial_phase, is_unblinded_data,
+  contains_phi, site_id, is_controlled_record
+- `FDA21CFRPart11Filter` — Layer 1: §11.10(d) credential gate for controlled electronic records;
+  §11.10(g) trial-specific authority check; public records exempt
+- `ICHGCPFilter` — Layer 2: GCP training currency (Section 5.1); blinding integrity enforcement
+  — RANDOMIZATION_CODE, INTERIM_ANALYSIS, BLIND_BREAK_LOG, and is_unblinded_data=True blocked for
+  blinded roles (Section 5.7); site-restricted access for PI/SUB_I/CRA (Section 4.9);
+  non-controlled records exempt
+- `HIPAAMinimumNecessaryFilter` — Layer 3: phi_authorized gate (§164.502(b)); minimum_necessary_scope
+  category check for PHI access scoped to stated request purpose
+- `ClinicalRAGPipeline` — orchestrates all three layers; union of blocked IDs governs final retrieval;
+  blocked ID extraction via `split(" blocked ")[1].split(":")[0]` (handles multi-word prefixes)
+- `ClinicalComplianceAuditRecord` — 21 CFR Part 11 §11.10(e) compliant audit: user_id, role,
+  trial_ids, query_purpose, permitted/blocked counts, per-regulation block details, phi_accessed,
+  blinding_violation_blocked
+
+Four scenarios demonstrate: blinded statistician (unblinded data blocked), CRA site audit
+(cross-site isolation), unauthorized external (only public summary returned), PI safety review
+(site-restricted AE access, no unblinded data).
+
+**Test coverage:** 32 tests (`tests/test_pharma_clinical_rag.py`)
+
+---
+
 ## [0.13.0] — 2026-04-13
 
 ### Added — Multi-State US Consumer Privacy RAG Example (CCPA/CPRA, VCDPA, CPA, CTDPA)
