@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Downloads](https://img.shields.io/pypi/dm/enterprise-rag-patterns.svg)](https://pypi.org/project/enterprise-rag-patterns/)
 
-**Cross-industry compliance patterns for RAG pipelines — 48 regulated sector examples, 5 vector store adapters, 1784 tests.**
+**Cross-industry compliance patterns for RAG pipelines — 50 regulated sector examples, 5 vector store adapters, 1,901 tests.**
 
 Defense-in-depth pre-filters that enforce regulatory requirements at the retrieval layer, before any document reaches the LLM context window.
 
@@ -231,7 +231,9 @@ See the `examples/` directory for complete runnable pipelines.
 |-------------|-------|---------|
 | LangChain | `FERPAComplianceCallbackHandler` | `[langchain]` |
 | LlamaIndex | `FERPANodePostprocessor` | `[llama-index]` |
-| Haystack 2.x | `FERPAHaystackFilter` | `[haystack]` |
+| Haystack 2.x (standalone) | `FERPAMetadataFilter` | [`ferpa-haystack`](https://github.com/ashutoshrana/ferpa-haystack) |
+| Haystack 2.x (built-in) | `FERPAHaystackFilter` | `[haystack]` |
+| Google ADK | `ADKPolicyGuard` | [`regulated-ai-governance`](https://github.com/ashutoshrana/regulated-ai-governance) |
 | Pinecone | `PineconeComplianceFilter` | `[pinecone]` |
 | Weaviate | `WeaviateComplianceFilter` | `[weaviate]` |
 | Qdrant | `QdrantComplianceFilter` | `[qdrant]` |
@@ -291,11 +293,10 @@ docs/
 
 ## Near-term roadmap
 
-- `33_india_pipa_rag.py` — DPDP Act 2023 + MEITY AI Advisory (RAG pre-filter pattern)
-- `34_middle_east_rag.py` — UAE PDPL + Saudi NDMO + Qatar PDPL
-- `35_insurance_naic_rag.py` — NAIC Model Law + FCRA §615 + state insurance data
 - Async vector store adapters for FastAPI/asyncio
-- PyPI download and star count badges
+- `ferpa-haystack` Haystack Hub listing (pending deepset review)
+- LlamaIndex workflow integration for FERPA + HIPAA multi-regulation pipelines
+- Google ADK retrieval guard (pre-retrieval enforcement for ADK agents)
 
 ---
 
@@ -312,7 +313,7 @@ Read [CONTRIBUTING.md](./CONTRIBUTING.md) and [GOVERNANCE.md](./GOVERNANCE.md). 
   author  = {Rana, Ashutosh},
   title   = {enterprise-rag-patterns: Cross-industry compliance patterns for RAG pipelines},
   year    = {2026},
-  version = {0.36.0},
+  version = {0.46.0},
   url     = {https://github.com/ashutoshrana/enterprise-rag-patterns},
   license = {MIT}
 }
@@ -324,9 +325,10 @@ Read [CONTRIBUTING.md](./CONTRIBUTING.md) and [GOVERNANCE.md](./GOVERNANCE.md). 
 
 | Library | Focus | Coverage |
 |---------|-------|---------|
-| **enterprise-rag-patterns** | What to retrieve | 48 sectors · 65 regulations · 1784 tests |
-| [regulated-ai-governance](https://github.com/ashutoshrana/regulated-ai-governance) | What agents may do | 38 governance examples · 25 jurisdictions · 2451 tests |
-| [integration-automation-patterns](https://github.com/ashutoshrana/integration-automation-patterns) | How data flows | 41 patterns · schema registry · GraphQL · 1866 tests |
+| **enterprise-rag-patterns** | What to retrieve | 50 sectors · 65 regulations · 1,901 tests |
+| [ferpa-haystack](https://github.com/ashutoshrana/ferpa-haystack) | Haystack-native FERPA filter | Standalone Haystack 2.x component · 25 tests |
+| [regulated-ai-governance](https://github.com/ashutoshrana/regulated-ai-governance) | What agents may do | 41 governance examples · 25 jurisdictions · 2,631 tests |
+| [integration-automation-patterns](https://github.com/ashutoshrana/integration-automation-patterns) | How data flows | 43 patterns · schema registry · GraphQL · 1,865 tests |
 
 ---
 
