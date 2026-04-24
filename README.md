@@ -1,6 +1,7 @@
 # enterprise-rag-patterns
 
 [![CI](https://github.com/ashutoshrana/enterprise-rag-patterns/actions/workflows/ci.yml/badge.svg)](https://github.com/ashutoshrana/enterprise-rag-patterns/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/ashutoshrana/enterprise-rag-patterns/graph/badge.svg)](https://codecov.io/gh/ashutoshrana/enterprise-rag-patterns)
 [![PyPI](https://img.shields.io/pypi/v/enterprise-rag-patterns.svg)](https://pypi.org/project/enterprise-rag-patterns/)
 [![Python](https://img.shields.io/pypi/pyversions/enterprise-rag-patterns.svg)](https://pypi.org/project/enterprise-rag-patterns/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -222,6 +223,23 @@ See the `examples/` directory for complete runnable pipelines.
 | NAIC Model Privacy Protection Act | §7/§13 insurance privacy | Insurance | 33 |
 | FCRA §1681b | Insurance permissible purpose | Insurance | 33 |
 | FCRA §1681m | Adverse action notice | Insurance | 33 |
+
+---
+
+## How this compares to alternatives
+
+No other open-source library enforces regulatory compliance at the pre-retrieval layer across this breadth of frameworks and regulations:
+
+| Library | FERPA | HIPAA | GDPR | Pre-retrieval enforcement | Frameworks | Regulations |
+|---------|-------|-------|------|--------------------------|------------|-------------|
+| **enterprise-rag-patterns** | ✅ 34 CFR §99 | ✅ 45 CFR §164 | ✅ Art. 5/6/9 | ✅ Yes — before LLM context | 9 | 65+ across 25 jurisdictions |
+| Microsoft Enterprise-RAG | ❌ | ❌ | ❌ | ❌ Post-processing only | 2 (LangChain, SK) | 0 |
+| Intel Enterprise-RAG | ❌ | ❌ | ❌ | ❌ Post-processing only | 3 | 0 |
+| FINOS AI Governance | ❌ | ❌ | ❌ | ❌ No RAG layer | 1 | 0 |
+| LangChain generic RAG | ❌ | ❌ | ❌ | ❌ No compliance layer | 1 | 0 |
+| Azure GPT-RAG | ❌ | ❌ | ❌ | ❌ Post-processing only | 1 | 0 |
+
+**Key architectural distinction:** Standard RAG architectures apply compliance logic after the LLM processes documents. Under FERPA's disclosure rule (34 CFR § 99.30) and HIPAA's Minimum Necessary Rule (45 CFR § 164.502(b)), a document in the LLM context window constitutes a disclosure — regardless of whether the output is filtered afterward. This library enforces access control **before** retrieval, at the vector store query level.
 
 ---
 
