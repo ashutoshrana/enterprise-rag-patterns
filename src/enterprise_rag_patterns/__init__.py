@@ -37,3 +37,4 @@ __all__ = [
     # Session
     "SessionState",
 ]
+from enterprise_rag_patterns.observability import RAGObservability, instrument_compliance  # noqa: F401
