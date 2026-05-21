@@ -32,6 +32,7 @@ __all__ = ["RAGObservability", "FilterMetrics", "instrument_compliance"]
 @dataclass
 class FilterMetrics:
     """Accumulated metrics for one retrieval pass."""
+
     regulation: str
     user_id_hash: str
     query_hash: str
@@ -48,8 +49,11 @@ class FilterMetrics:
 
 class _NoOpSpan:
     """Absorbs all span operations when OTel is not installed."""
+
     def set_attribute(self, *_: Any) -> None: ...
-    def __enter__(self) -> _NoOpSpan: return self
+    def __enter__(self) -> _NoOpSpan:
+        return self
+
     def __exit__(self, *_: Any) -> None: ...
 
 
@@ -105,14 +109,17 @@ class RAGObservability:
             from opentelemetry.sdk.resources import Resource
             from opentelemetry.sdk.trace import TracerProvider
 
-            resource = Resource.create({
-                "service.name": self.service_name,
-                "compliance.regulation": self.regulation,
-            })
+            resource = Resource.create(
+                {
+                    "service.name": self.service_name,
+                    "compliance.regulation": self.regulation,
+                }
+            )
             tp = TracerProvider(resource=resource)
             if otlp_endpoint:
                 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
                 from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
                 tp.add_span_processor(BatchSpanProcessor(OTLPSpanExporter(endpoint=otlp_endpoint)))
             trace.set_tracer_provider(tp)
             self._tracer = trace.get_tracer(self.service_name)
@@ -198,10 +205,13 @@ class RAGObservability:
     def record_escalation(self, reason: str, regulation: str | None = None) -> None:
         """Increment escalation counter for compliance dashboards."""
         if RAGObservability._otel_available:
-            self._counters["escalations"].add(1, {
-                "compliance.regulation": regulation or self.regulation,
-                "escalation.reason": reason,
-            })
+            self._counters["escalations"].add(
+                1,
+                {
+                    "compliance.regulation": regulation or self.regulation,
+                    "escalation.reason": reason,
+                },
+            )
 
 
 def instrument_compliance(regulation: str = "FERPA", service_name: str = "rag-pipeline") -> RAGObservability:
