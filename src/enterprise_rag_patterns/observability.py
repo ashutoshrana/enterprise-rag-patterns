@@ -21,9 +21,10 @@ Usage::
 from __future__ import annotations
 
 import hashlib
+from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Any, Iterator
+from typing import Any
 
 __all__ = ["RAGObservability", "FilterMetrics", "instrument_compliance"]
 
@@ -48,7 +49,7 @@ class FilterMetrics:
 class _NoOpSpan:
     """Absorbs all span operations when OTel is not installed."""
     def set_attribute(self, *_: Any) -> None: ...
-    def __enter__(self) -> "_NoOpSpan": return self
+    def __enter__(self) -> _NoOpSpan: return self
     def __exit__(self, *_: Any) -> None: ...
 
 
@@ -99,10 +100,10 @@ class RAGObservability:
 
     def _setup(self, otlp_endpoint: str | None) -> None:
         try:
-            from opentelemetry import trace, metrics
-            from opentelemetry.sdk.trace import TracerProvider
+            from opentelemetry import metrics, trace
             from opentelemetry.sdk.metrics import MeterProvider
             from opentelemetry.sdk.resources import Resource
+            from opentelemetry.sdk.trace import TracerProvider
 
             resource = Resource.create({
                 "service.name": self.service_name,
@@ -151,10 +152,6 @@ class RAGObservability:
     ) -> Iterator[Any]:
         """
         Context manager wrapping one retrieval pass in an OTel span.
-
-        Span attributes follow GenAI semantic conventions:
-          gen_ai.operation.name, gen_ai.system,
-          compliance.regulation, compliance.user_id_hash, rag.query_hash.
 
         PII safety: raw query and user_id are never stored — only SHA-256 hashes.
         """
