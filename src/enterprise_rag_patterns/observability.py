@@ -23,7 +23,7 @@ from __future__ import annotations
 import hashlib
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Any, Dict, Iterator, List, Optional
+from typing import Any, Iterator
 
 __all__ = ["RAGObservability", "FilterMetrics", "instrument_compliance"]
 
@@ -37,7 +37,7 @@ class FilterMetrics:
     documents_accepted: int = 0
     documents_rejected: int = 0
     filter_latency_ms: float = 0.0
-    rejection_reasons: List[str] = field(default_factory=list)
+    rejection_reasons: list[str] = field(default_factory=list)
 
     @property
     def rejection_rate(self) -> float:
@@ -88,16 +88,16 @@ class RAGObservability:
         self,
         service_name: str = "enterprise-rag-pipeline",
         regulation: str = "FERPA",
-        otlp_endpoint: Optional[str] = None,
+        otlp_endpoint: str | None = None,
     ) -> None:
         self.service_name = service_name
         self.regulation = regulation
         self._tracer: Any = None
-        self._counters: Dict[str, Any] = {}
-        self._histograms: Dict[str, Any] = {}
+        self._counters: dict[str, Any] = {}
+        self._histograms: dict[str, Any] = {}
         self._setup(otlp_endpoint)
 
-    def _setup(self, otlp_endpoint: Optional[str]) -> None:
+    def _setup(self, otlp_endpoint: str | None) -> None:
         try:
             from opentelemetry import trace, metrics
             from opentelemetry.sdk.trace import TracerProvider
@@ -146,7 +146,7 @@ class RAGObservability:
         self,
         query: str,
         user_id: str,
-        regulation: Optional[str] = None,
+        regulation: str | None = None,
         operation: str = "rag.retrieval",
     ) -> Iterator[Any]:
         """
@@ -178,9 +178,9 @@ class RAGObservability:
         span: Any,
         accepted: int,
         rejected: int,
-        rejection_reasons: Optional[List[str]] = None,
-        latency_ms: Optional[float] = None,
-        regulation: Optional[str] = None,
+        rejection_reasons: list[str] | None = None,
+        latency_ms: float | None = None,
+        regulation: str | None = None,
     ) -> None:
         """Record filter outcome on the active span and increment metrics."""
         reg = regulation or self.regulation
@@ -198,7 +198,7 @@ class RAGObservability:
             if rejection_reasons:
                 span.set_attribute("rag.filter.rejection_reasons", ",".join(rejection_reasons[:5]))
 
-    def record_escalation(self, reason: str, regulation: Optional[str] = None) -> None:
+    def record_escalation(self, reason: str, regulation: str | None = None) -> None:
         """Increment escalation counter for compliance dashboards."""
         if RAGObservability._otel_available:
             self._counters["escalations"].add(1, {
