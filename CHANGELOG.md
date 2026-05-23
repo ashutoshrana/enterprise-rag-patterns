@@ -6,6 +6,37 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.46.0] — 2026-05-23
+
+### Added — Enterprise RAG Security Audit Framework (`50_rag_security_auditor.py`)
+
+Holistic six-domain control assessment for enterprise RAG systems:
+
+- `RAGSystemConfig` — configuration snapshot covering 22 security controls across Input Validation, Vector Store Security, Retrieval Controls, Output Security, Compliance Governance, and Incident Response
+- `RAGSecurityAuditor` — evaluates a `RAGSystemConfig` and produces a scored, maturity-levelled audit report (`INITIAL` / `DEVELOPING` / `DEFINED` / `MANAGED` / `OPTIMIZING`) with domain breakdown and actionable remediation guidance
+- `AuditControl` — per-control result (PASS / FAIL / SKIP / WARNING) with regulatory citation and description
+- `AuditReport` — structured report: overall score, maturity level, domain scores, control results, critical findings, and top-5 remediation priorities
+- Regulatory references: OWASP LLM Top 10 2025, NIST AI 600-1, ISO 42001, SOC 2, FERPA §99.31, HIPAA §164.312
+
+Test suite coverage: **1906 passed**.
+
+---
+
+## [0.45.0] — 2026-05-23
+
+### Added — OWASP LLM Top 10 2025 RAG Injection Defense Patterns (`49_owasp_llm_rag_security.py`)
+
+Four-layer retrieval security pipeline for agentic AI platforms:
+
+- `LLM01PromptInjectionFilter` (OWASP LLM01 2025) — direct prompt injection, indirect prompt injection (IPI) via retrieved documents, tool output injection, and anomalous query behavior; references MITRE ATLAS AML.T0041.001, AML.T0048.002
+- `LLM06ExcessiveAgencyFilter` (OWASP LLM06 2025) — blocks documents that would grant the agent excessive permissions, autonomous code execution paths, or cross-tenant data access; references MITRE ATLAS AML.T0054.003
+- `LLM08VectorDataPoisoningFilter` (OWASP LLM08 2025) — detects adversarial embeddings, duplicated namespace poisoning, and embedding-drift anomalies in retrieved chunks
+- `LLMCrossLayerFilter` — NIST AI 600-1 ASI08 composite guard combining all three layers with configurable short-circuit on first DENIED decision
+
+Commercial use cases: agentic AI platforms, enterprise multi-tenant RAG, AI copilots with user-uploaded documents, automated workflow agents, healthcare/legal/financial RAG with PII-bearing documents.
+
+---
+
 ## [0.44.0] — 2026-04-13
 
 ### Added — Telecommunications / FCC CPNI RAG Pre-filter (`48_telecom_fcc_cpni_rag.py`)
