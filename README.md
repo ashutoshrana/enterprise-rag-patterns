@@ -7,7 +7,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Downloads](https://img.shields.io/pypi/dm/enterprise-rag-patterns.svg)](https://pypi.org/project/enterprise-rag-patterns/)
 
-**Cross-industry compliance patterns for RAG pipelines — 50 regulated sector examples, 5 vector store adapters, 1,901 tests.**
+**Reference patterns for FERPA/HIPAA/GDPR-compliant retrieval-augmented workflows — 50 regulated sector examples, 65+ regulations across 25 jurisdictions, 9 AI frameworks, 5 vector store adapters, 1,901 tests.**
 
 Defense-in-depth pre-filters that enforce regulatory requirements at the retrieval layer, before any document reaches the LLM context window.
 
@@ -82,6 +82,7 @@ With vector store or framework extras:
 pip install 'enterprise-rag-patterns[langchain]'
 pip install 'enterprise-rag-patterns[haystack]'
 pip install 'enterprise-rag-patterns[llama-index]'
+pip install 'enterprise-rag-patterns[dspy]'
 pip install 'enterprise-rag-patterns[pinecone]'
 pip install 'enterprise-rag-patterns[weaviate]'
 pip install 'enterprise-rag-patterns[qdrant]'
@@ -247,16 +248,19 @@ No other open-source library enforces regulatory compliance at the pre-retrieval
 
 | Integration | Class | Install |
 |-------------|-------|---------|
-| LangChain | `FERPAComplianceCallbackHandler` | `[langchain]` |
-| LlamaIndex | `FERPANodePostprocessor` | `[llama-index]` |
+| LangChain (callback) | `FERPAComplianceCallbackHandler` | `[langchain]` |
+| LangChain (LCEL) | `FERPAFilterRunnable`, `make_ferpa_chain` | `[langchain]` |
+| LlamaIndex (postprocessor) | `FERPANodePostprocessor` | `[llama-index]` |
+| LlamaIndex (Workflow) | `FERPAWorkflowStep`, `FERPAFilterEvent` | `[llama-index]` |
+| DSPy ≥ 2.5 | `FERPADSPyRetriever`, `HIPAADSPyRetriever` | `[dspy]` |
 | Haystack 2.x (standalone) | `FERPAMetadataFilter` | [`ferpa-haystack`](https://github.com/ashutoshrana/ferpa-haystack) |
 | Haystack 2.x (built-in) | `FERPAHaystackFilter` | `[haystack]` |
+| Microsoft Agent Framework | `FERPAAgentMiddleware` | `[maf]` |
 | Google ADK | `ADKPolicyGuard` | [`regulated-ai-governance`](https://github.com/ashutoshrana/regulated-ai-governance) |
 | Pinecone | `PineconeComplianceFilter` | `[pinecone]` |
 | Weaviate | `WeaviateComplianceFilter` | `[weaviate]` |
 | Qdrant | `QdrantComplianceFilter` | `[qdrant]` |
 | ChromaDB | `ChromaComplianceFilter` | `[chromadb]` |
-| Microsoft Agent Framework | `FERPAAgentMiddleware` | `[maf]` |
 
 ---
 
@@ -343,7 +347,7 @@ Read [CONTRIBUTING.md](./CONTRIBUTING.md) and [GOVERNANCE.md](./GOVERNANCE.md). 
 
 | Library | Focus | Coverage |
 |---------|-------|---------|
-| **enterprise-rag-patterns** | What to retrieve | 50 sectors · 65 regulations · 1,901 tests |
+| **enterprise-rag-patterns** | What to retrieve | 50 sectors · 65+ regulations · 25 jurisdictions · 9 AI frameworks · 1,901 tests |
 | [ferpa-haystack](https://github.com/ashutoshrana/ferpa-haystack) | Haystack-native FERPA filter | Standalone Haystack 2.x component · 25 tests |
 | [regulated-ai-governance](https://github.com/ashutoshrana/regulated-ai-governance) | What agents may do | 41 governance examples · 25 jurisdictions · 2,631 tests |
 | [integration-automation-patterns](https://github.com/ashutoshrana/integration-automation-patterns) | How data flows | 43 patterns · schema registry · GraphQL · 1,865 tests |

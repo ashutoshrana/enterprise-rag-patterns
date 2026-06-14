@@ -68,8 +68,9 @@ pinecone = ["pinecone>=8.0.0"]
 weaviate = ["weaviate-client>=4.10.0"]
 qdrant = ["qdrant-client>=1.9.0"]
 chromadb = ["chromadb>=1.0.0"]
+dspy = ["dspy-ai>=2.5.0"]
 maf = ["microsoft-agent-framework>=1.0.0"]
-all = ["enterprise-rag-patterns[llama-index,haystack,langchain,pinecone,weaviate,qdrant,chromadb,maf]"]
+all = ["enterprise-rag-patterns[llama-index,haystack,langchain,dspy,pinecone,weaviate,qdrant,chromadb,maf]"]
 dev = [
   "enterprise-rag-patterns[test,lint,typecheck]",
 ]
