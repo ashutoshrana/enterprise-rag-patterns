@@ -32,7 +32,7 @@ from enterprise_rag_patterns.compliance import RecordCategory, StudentIdentitySc
 # ---------------------------------------------------------------------------
 
 for _mod in (
-    "microsoft_agent_framework",
+    "agent_framework",
     "llama_index",
     "llama_index.core",
     "llama_index.core.workflow",

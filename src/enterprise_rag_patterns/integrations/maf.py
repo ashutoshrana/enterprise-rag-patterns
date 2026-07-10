@@ -45,12 +45,12 @@ logger = logging.getLogger(__name__)
 
 
 def _check_maf_available() -> None:
-    """Verify microsoft-agent-framework is installed."""
+    """Verify agent-framework (Microsoft Agent Framework) is installed."""
     try:
-        import microsoft_agent_framework  # noqa: F401
+        import agent_framework  # noqa: F401
     except ImportError as exc:
         raise ImportError(
-            "microsoft-agent-framework is required for the MAF integration. "
+            "agent-framework is required for the MAF integration. "
             "Install it with: pip install 'enterprise-rag-patterns[maf]'"
         ) from exc
 

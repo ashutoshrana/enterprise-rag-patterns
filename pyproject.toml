@@ -45,6 +45,7 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Topic :: Software Development :: Libraries :: Python Modules",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
   "Topic :: Security",
@@ -58,18 +59,18 @@ Issues = "https://github.com/ashutoshrana/enterprise-rag-patterns/issues"
 Changelog = "https://github.com/ashutoshrana/enterprise-rag-patterns/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
-test = ["pytest>=7.0", "pytest-cov>=4.0"]
+test = ["pytest>=8.0", "pytest-cov>=6.0"]
 lint = ["ruff>=0.4.0"]
-typecheck = ["mypy>=1.0"]
-llama-index = ["llama-index-core>=0.12.0"]
-haystack = ["haystack-ai>=2.20.0"]
-langchain = ["langchain-core>=0.3.0"]
-pinecone = ["pinecone>=8.0.0"]
+typecheck = ["mypy>=1.13"]
+llama-index = ["llama-index-core>=0.14.0"]
+haystack = ["haystack-ai>=2.30.0"]
+langchain = ["langchain-core>=0.3.0,<1.0.0"]
+pinecone = ["pinecone>=9.0.0"]
 weaviate = ["weaviate-client>=4.10.0"]
 qdrant = ["qdrant-client>=1.9.0"]
 chromadb = ["chromadb>=1.0.0"]
-dspy = ["dspy-ai>=2.5.0"]
-maf = ["microsoft-agent-framework>=1.0.0"]
+dspy = ["dspy-ai>=3.0.0"]
+maf = ["agent-framework>=1.11.0"]
 all = ["enterprise-rag-patterns[llama-index,haystack,langchain,dspy,pinecone,weaviate,qdrant,chromadb,maf]"]
 dev = [
   "enterprise-rag-patterns[test,lint,typecheck]",
@@ -96,6 +97,15 @@ target-version = "py310"
 select = ["E", "F", "I", "UP"]
 
 [tool.mypy]
-python_version = "3.10"
+# NOTE: python_version is the mypy *checking target*, not a statement of the
+# package's minimum supported runtime (requires-python stays ">=3.10"; ruff's
+# target-version = "py310" is what actually gates syntax used in our own
+# source). It is pinned to 3.12 here because optional lazy-imported deps
+# (e.g. agent-framework -> qdrant-client -> numpy) ship .pyi stubs using PEP
+# 695 `type` statements, which mypy refuses to parse under a 3.10/3.11
+# target even for third-party stub files -- that's a hard parse error, not a
+# suppressible diagnostic, so it isn't fixable via ignore_missing_imports or
+# per-module follow_imports overrides.
+python_version = "3.12"
 strict = true
 ignore_missing_imports = true
