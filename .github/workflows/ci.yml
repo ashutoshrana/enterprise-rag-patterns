@@ -113,3 +113,20 @@ jobs:
 
       - name: Verify installable
         run: pip install dist/*.whl --force-reinstall
+
+  real-sdk-boundaries:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dependencies: [minimum, latest]
+    env:
+      HAYSTACK_TELEMETRY_ENABLED: "false"
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install -e '.[test,langchain,haystack]'
+      - if: matrix.dependencies == 'minimum'
+        run: pip install 'langchain-core==0.3.0' 'haystack-ai==2.20.0'
+      - run: pytest integration_tests

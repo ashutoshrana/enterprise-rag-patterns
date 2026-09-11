@@ -245,6 +245,8 @@ class FERPAFilterRunnable:
     def _to_dict(self, doc: Any, index: int) -> dict[str, Any]:
         meta: dict[str, Any] = getattr(doc, "metadata", {}) or {}
         d: dict[str, Any] = {"_idx": index}
+        if "classification" in meta:
+            d["classification"] = meta["classification"]
         if self.student_id_field in meta:
             d[self.student_id_field] = meta[self.student_id_field]
         if self.institution_id_field in meta:

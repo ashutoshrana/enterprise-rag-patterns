@@ -114,6 +114,17 @@ class FERPAComplianceCallbackHandler:
                             ``WARNING``.
     """
 
+    # LangChain callback-manager protocol; execute inline before downstream use.
+    ignore_retriever = False
+    ignore_llm = True
+    ignore_chain = True
+    ignore_agent = True
+    ignore_retry = True
+    ignore_chat_model = True
+    ignore_custom_event = True
+    raise_error = False
+    run_inline = True
+
     def __init__(
         self,
         scope: StudentIdentityScope,
@@ -171,6 +182,8 @@ class FERPAComplianceCallbackHandler:
 
         removed = original_count - len(filtered_documents)
 
+        # Sanitize before raising: callback managers can suppress callback errors.
+        documents[:] = filtered_documents
         if removed > 0 and self.raise_on_violation:
             raise ValueError(
                 f"FERPA violation: {removed} unauthorized document(s) blocked for "
@@ -245,6 +258,8 @@ class FERPAComplianceCallbackHandler:
         """
         meta: dict[str, Any] = getattr(doc, "metadata", {}) or {}
         d: dict[str, Any] = {"_idx": index}
+        if "classification" in meta:
+            d["classification"] = meta["classification"]
         if self.student_id_field in meta:
             d[self.student_id_field] = meta[self.student_id_field]
         if self.institution_id_field in meta:

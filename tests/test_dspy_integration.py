@@ -147,13 +147,31 @@ class TestRebuildPassages:
 
 class TestFERPADSPyRetrieverBasic:
     def test_returns_passages_result(self) -> None:
-        retriever = FakeRetriever([{"content": "data", "student_id": _STUDENT_ID, "institution_id": _INSTITUTION}])
+        retriever = FakeRetriever(
+            [
+                {
+                    "content": "data",
+                    "student_id": _STUDENT_ID,
+                    "institution_id": _INSTITUTION,
+                    "record_category": "academic_record",
+                }
+            ]
+        )
         wrapped = FERPADSPyRetriever(retriever=retriever, policy=_policy())
         result = wrapped("graduation requirements")
         assert isinstance(result, _DSPyPassagesResult)
 
     def test_forward_same_as_call(self) -> None:
-        retriever = FakeRetriever([{"content": "data", "student_id": _STUDENT_ID, "institution_id": _INSTITUTION}])
+        retriever = FakeRetriever(
+            [
+                {
+                    "content": "data",
+                    "student_id": _STUDENT_ID,
+                    "institution_id": _INSTITUTION,
+                    "record_category": "academic_record",
+                }
+            ]
+        )
         wrapped = FERPADSPyRetriever(retriever=retriever, policy=_policy())
         assert wrapped("q").passages == wrapped.forward("q").passages
 
@@ -176,14 +194,24 @@ class TestFERPADSPyRetrieverBasic:
 
 class TestFERPADSPyRetrieverFiltering:
     def test_authorized_passage_passes_through(self) -> None:
-        doc = {"content": "my record", "student_id": _STUDENT_ID, "institution_id": _INSTITUTION}
+        doc = {
+            "content": "my record",
+            "student_id": _STUDENT_ID,
+            "institution_id": _INSTITUTION,
+            "record_category": "academic_record",
+        }
         retriever = FakeRetriever([doc])
         wrapped = FERPADSPyRetriever(retriever=retriever, policy=_policy())
         result = wrapped("q")
         assert len(result.passages) == 1
 
     def test_wrong_student_blocked(self) -> None:
-        doc = {"content": "other record", "student_id": _OTHER_STUDENT, "institution_id": _INSTITUTION}
+        doc = {
+            "content": "other record",
+            "student_id": _OTHER_STUDENT,
+            "institution_id": _INSTITUTION,
+            "record_category": "academic_record",
+        }
         retriever = FakeRetriever([doc])
         wrapped = FERPADSPyRetriever(retriever=retriever, policy=_policy())
         result = wrapped("q")
@@ -197,7 +225,7 @@ class TestFERPADSPyRetrieverFiltering:
         assert len(result.passages) == 0
 
     def test_non_ferpa_content_passes_through(self) -> None:
-        doc = {"content": "general policy doc"}  # no student_id or institution_id
+        doc = {"content": "general policy doc", "classification": "public"}  # no student_id or institution_id
         retriever = FakeRetriever([doc])
         wrapped = FERPADSPyRetriever(retriever=retriever, policy=_policy())
         result = wrapped("q")
@@ -205,9 +233,19 @@ class TestFERPADSPyRetrieverFiltering:
 
     def test_mixed_passages_filtered_correctly(self) -> None:
         docs = [
-            {"content": "alice record", "student_id": _STUDENT_ID, "institution_id": _INSTITUTION},
-            {"content": "bob record", "student_id": _OTHER_STUDENT, "institution_id": _INSTITUTION},
-            {"content": "generic doc"},  # no FERPA tags — passes through
+            {
+                "content": "alice record",
+                "student_id": _STUDENT_ID,
+                "institution_id": _INSTITUTION,
+                "record_category": "academic_record",
+            },
+            {
+                "content": "bob record",
+                "student_id": _OTHER_STUDENT,
+                "institution_id": _INSTITUTION,
+                "record_category": "academic_record",
+            },
+            {"content": "generic doc", "classification": "public"},  # no FERPA tags — passes through
         ]
         retriever = FakeRetriever(docs)
         wrapped = FERPADSPyRetriever(retriever=retriever, policy=_policy())
@@ -223,15 +261,20 @@ class TestFERPADSPyRetrieverFiltering:
         result = wrapped("q")
         assert result.passages == []
 
-    def test_string_passages_pass_through(self) -> None:
+    def test_unclassified_string_passages_blocked(self) -> None:
         # String passages without FERPA metadata are treated as non-FERPA content
         retriever = FakeRetriever(["generic knowledge base entry"])
         wrapped = FERPADSPyRetriever(retriever=retriever, policy=_policy())
         result = wrapped("q")
-        assert len(result.passages) == 1
+        assert len(result.passages) == 0
 
     def test_result_preserves_original_passage_type(self) -> None:
-        doc = {"content": "my record", "student_id": _STUDENT_ID, "institution_id": _INSTITUTION}
+        doc = {
+            "content": "my record",
+            "student_id": _STUDENT_ID,
+            "institution_id": _INSTITUTION,
+            "record_category": "academic_record",
+        }
         retriever = FakeRetriever([doc])
         wrapped = FERPADSPyRetriever(retriever=retriever, policy=_policy())
         result = wrapped("q")
@@ -240,8 +283,18 @@ class TestFERPADSPyRetrieverFiltering:
     def test_cross_institution_isolation(self) -> None:
         """Two policies for different students must produce different results."""
         docs = [
-            {"content": "alice-doc", "student_id": "S-001", "institution_id": "acme-univ"},
-            {"content": "bob-doc", "student_id": "S-002", "institution_id": "acme-univ-b"},
+            {
+                "content": "alice-doc",
+                "student_id": "S-001",
+                "institution_id": "acme-univ",
+                "record_category": "academic_record",
+            },
+            {
+                "content": "bob-doc",
+                "student_id": "S-002",
+                "institution_id": "acme-univ-b",
+                "record_category": "academic_record",
+            },
         ]
         retriever = FakeRetriever(docs)
         policy_alice = _policy("S-001", "acme-univ")
@@ -333,3 +386,15 @@ class TestHIPAADSPyRetriever:
     def test_repr_is_string(self) -> None:
         wrapped = HIPAADSPyRetriever(retriever=FakeRetriever([]), policy=_hipaa_policy())
         assert isinstance(repr(wrapped), str)
+
+
+def test_duplicate_content_does_not_restore_unauthorized_passage():
+    allowed = {
+        "content": "identical",
+        "student_id": _STUDENT_ID,
+        "institution_id": _INSTITUTION,
+        "record_category": "academic_record",
+    }
+    denied = {**allowed, "student_id": _OTHER_STUDENT}
+    wrapped = FERPADSPyRetriever(retriever=FakeRetriever([allowed, denied]), policy=_policy())
+    assert wrapped("q").passages == [allowed]

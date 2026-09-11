@@ -114,7 +114,7 @@ class TestIdentityFiltering:
     def test_shared_knowledge_passes_through(self) -> None:
         """Documents without student/institution identifiers pass as shared KB content."""
         handler = _make_handler()
-        docs = [MockDocument("General policy doc", {})]
+        docs = [MockDocument("General policy doc", {"classification": "public"})]
         handler.on_retriever_end(docs)
         assert len(docs) == 1
 
@@ -134,7 +134,7 @@ class TestIdentityFiltering:
             MockDocument(
                 "Other inst", {"student_id": "stu_001", "institution_id": "inst_xyz", "category": "academic_record"}
             ),
-            MockDocument("Shared KB", {}),
+            MockDocument("Shared KB", {"classification": "public"}),
         ]
         handler.on_retriever_end(docs)
         # Only own record + shared KB should remain
