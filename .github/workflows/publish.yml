@@ -14,19 +14,37 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name }}
 
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
-      - name: Install build dependencies
+      - name: Validate exact release commit and tag
+        env:
+          RELEASE_TAG: "${{ github.event.release.tag_name }}"
+          HAYSTACK_TELEMETRY_ENABLED: "false"
         run: |
-          python -m pip install --upgrade pip
-          pip install build
+          python scripts/check_release.py "$RELEASE_TAG"
+          pip install build twine -e '.[dev,langchain,haystack]'
+          pytest tests
+          pytest integration_tests
 
-      - name: Build package
-        run: python -m build
+      - name: Build and validate distributions
+        env:
+          RELEASE_TAG: "${{ github.event.release.tag_name }}"
+        run: |
+          python -m build
+          twine check dist/*
+          python scripts/check_release.py "$RELEASE_TAG"
+
+      - name: Install wheel in clean environment and check exports
+        run: |
+          python -m venv "$RUNNER_TEMP/wheel-smoke"
+          "$RUNNER_TEMP/wheel-smoke/bin/pip" install dist/*.whl
+          "$RUNNER_TEMP/wheel-smoke/bin/python" -I -c "import enterprise_rag_patterns as p; from importlib.metadata import version; assert p.__version__ == version('enterprise-rag-patterns') == '0.47.0'; assert all(hasattr(p, name) for name in p.__all__)"
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
