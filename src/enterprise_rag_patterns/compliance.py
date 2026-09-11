@@ -205,11 +205,12 @@ class FERPAContextPolicy:
           (when block_cross_institution is True)
         - Their record_category is not authorized by the scope
 
-        Documents without any of these fields are assumed to be non-FERPA
-        content (e.g., knowledge base articles, policies) and are passed through.
+        Private records require non-empty string identity and category fields.
+        Missing or malformed fields are denied. Trusted public content must have
+        classification="public" and neither identity key; untagged content is denied.
 
         Args:
-            documents: List of retrieved document dicts, each optionally containing
+            documents: List of retrieved document dicts, private records containing
                 student_id, institution_id, and record_category fields.
             student_id_field: Key for the student identity field in each document.
             institution_id_field: Key for the institution identity field.
@@ -221,6 +222,18 @@ class FERPAContextPolicy:
         """
         safe_documents = []
         for doc in documents:
+            if (
+                doc.get("classification") == "public"
+                and student_id_field not in doc
+                and institution_id_field not in doc
+            ):
+                safe_documents.append(doc)
+                continue
+            if not all(
+                isinstance(value := doc.get(key), str) and value.strip()
+                for key in (student_id_field, institution_id_field, category_field)
+            ):
+                continue
             # Cross-institution check
             doc_institution = doc.get(institution_id_field)
             if (

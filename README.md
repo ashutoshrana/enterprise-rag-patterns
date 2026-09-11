@@ -1,5 +1,7 @@
 # enterprise-rag-patterns
 
+> Unreleased authorization hardening: see [migration and verification notes](MIGRATION.md).
+
 [![CI](https://github.com/ashutoshrana/enterprise-rag-patterns/actions/workflows/ci.yml/badge.svg)](https://github.com/ashutoshrana/enterprise-rag-patterns/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/ashutoshrana/enterprise-rag-patterns/graph/badge.svg)](https://codecov.io/gh/ashutoshrana/enterprise-rag-patterns)
 [![PyPI](https://img.shields.io/pypi/v/enterprise-rag-patterns.svg)](https://pypi.org/project/enterprise-rag-patterns/)

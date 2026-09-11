@@ -72,7 +72,7 @@ DOCS = [
         "institution_id": "inst-b",
         "record_category": "academic_record",
     },
-    {"doc_id": "shared-kb", "institution_id": "inst-a"},  # no student_id — shared knowledge
+    {"doc_id": "shared-kb", "classification": "public"},  # no student_id — shared knowledge
     {"doc_id": "unknown-category", "student_id": "S-1", "institution_id": "inst-a", "record_category": "unknown_xyz"},
 ]
 

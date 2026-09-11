@@ -22,7 +22,7 @@ from enterprise_rag_patterns.compliance import (
 DOCS = [
     {"doc_id": "own", "student_id": "S-1", "institution_id": "inst-a", "record_category": "academic_record"},
     {"doc_id": "other-student", "student_id": "S-2", "institution_id": "inst-a", "record_category": "academic_record"},
-    {"doc_id": "shared-kb", "institution_id": "inst-a"},
+    {"doc_id": "shared-kb", "classification": "public"},
 ]
 
 

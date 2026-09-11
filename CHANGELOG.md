@@ -6,6 +6,12 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.47.0] — Unreleased
+
+- Require complete private retrieval metadata or trusted explicit public classification.
+- Validate real SDK authorization behavior, async execution, and migration safety.
+- Gate publication on matching tag, exact-commit tests, checked artifacts, and clean wheel imports.
+
 ## [0.46.0] — 2026-05-23
 
 ### Added — Enterprise RAG Security Audit Framework (`50_rag_security_auditor.py`)

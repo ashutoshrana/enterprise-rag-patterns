@@ -52,7 +52,7 @@ def haystack_docs() -> list[_FakeDocument]:
         _FakeDocument({"student_id": "S-1", "institution_id": "inst-a", "category": "academic_record"}),
         _FakeDocument({"student_id": "S-2", "institution_id": "inst-a", "category": "academic_record"}),
         _FakeDocument({"student_id": "S-1", "institution_id": "inst-b", "category": "academic_record"}),
-        _FakeDocument({"institution_id": "inst-a"}),  # shared KB — no student_id
+        _FakeDocument({"classification": "public"}),  # shared KB — no student_id
         _FakeDocument({"student_id": "S-1", "institution_id": "inst-a", "category": "disciplinary_record"}),
     ]
 

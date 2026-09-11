@@ -150,8 +150,8 @@ class TestFERPAWorkflowStep:
     def test_blocks_cross_student(self, scope_s1: StudentIdentityScope) -> None:
         step = FERPAWorkflowStep(scope=scope_s1)
         nodes: list[Any] = [
-            _FakeNode({"student_id": "S-1", "institution_id": "inst-a"}),
-            _FakeNode({"student_id": "S-2", "institution_id": "inst-a"}),
+            _FakeNode({"student_id": "S-1", "institution_id": "inst-a", "category": "academic_record"}),
+            _FakeNode({"student_id": "S-2", "institution_id": "inst-a", "category": "academic_record"}),
         ]
         event = FERPAFilterEvent(nodes=nodes)
         result = asyncio.run(step(event))
@@ -161,8 +161,8 @@ class TestFERPAWorkflowStep:
     def test_passes_shared_kb_node(self, scope_s1: StudentIdentityScope) -> None:
         step = FERPAWorkflowStep(scope=scope_s1)
         nodes: list[Any] = [
-            _FakeNode({"student_id": "S-1", "institution_id": "inst-a"}),
-            _FakeNode({}),  # no student_id → shared KB, should pass
+            _FakeNode({"student_id": "S-1", "institution_id": "inst-a", "category": "academic_record"}),
+            _FakeNode({"classification": "public"}),  # no student_id → shared KB, should pass
         ]
         event = FERPAFilterEvent(nodes=nodes)
         result = asyncio.run(step(event))
@@ -178,8 +178,8 @@ class TestFERPAWorkflowStep:
         # Step configured for S-1, but override gives S-2 scope
         step = FERPAWorkflowStep(scope=scope_s1)
         nodes: list[Any] = [
-            _FakeNode({"student_id": "S-1", "institution_id": "inst-a"}),
-            _FakeNode({"student_id": "S-2", "institution_id": "inst-a"}),
+            _FakeNode({"student_id": "S-1", "institution_id": "inst-a", "category": "academic_record"}),
+            _FakeNode({"student_id": "S-2", "institution_id": "inst-a", "category": "academic_record"}),
         ]
         event = FERPAFilterEvent(nodes=nodes, scope_override=scope_s2)
         result = asyncio.run(step(event))
@@ -189,7 +189,7 @@ class TestFERPAWorkflowStep:
     def test_raise_on_violation(self, scope_s1: StudentIdentityScope) -> None:
         step = FERPAWorkflowStep(scope=scope_s1, raise_on_violation=True)
         nodes: list[Any] = [
-            _FakeNode({"student_id": "S-2", "institution_id": "inst-a"}),
+            _FakeNode({"student_id": "S-2", "institution_id": "inst-a", "category": "academic_record"}),
         ]
         event = FERPAFilterEvent(nodes=nodes)
         with pytest.raises(PermissionError, match="FERPA"):
@@ -199,8 +199,8 @@ class TestFERPAWorkflowStep:
         """NodeWithScore objects with .node attribute are correctly unwrapped."""
         step = FERPAWorkflowStep(scope=scope_s1)
         nodes: list[Any] = [
-            _FakeNodeWithScore({"student_id": "S-1", "institution_id": "inst-a"}),
-            _FakeNodeWithScore({"student_id": "S-2", "institution_id": "inst-a"}),
+            _FakeNodeWithScore({"student_id": "S-1", "institution_id": "inst-a", "category": "academic_record"}),
+            _FakeNodeWithScore({"student_id": "S-2", "institution_id": "inst-a", "category": "academic_record"}),
         ]
         event = FERPAFilterEvent(nodes=nodes)
         result = asyncio.run(step(event))
@@ -239,8 +239,8 @@ class TestFERPAAgentMiddleware:
 
     def test_filters_cross_student_documents(self, middleware: FERPAAgentMiddleware) -> None:
         docs = [
-            _FakeDoc({"student_id": "S-1", "institution_id": "inst-a"}),
-            _FakeDoc({"student_id": "S-2", "institution_id": "inst-a"}),
+            _FakeDoc({"student_id": "S-1", "institution_id": "inst-a", "category": "academic_record"}),
+            _FakeDoc({"student_id": "S-2", "institution_id": "inst-a", "category": "academic_record"}),
         ]
         message = _FakeMessage(payload={"documents": docs})
         asyncio.run(middleware.on_message(message, _next))
@@ -259,8 +259,8 @@ class TestFERPAAgentMiddleware:
 
     def test_passes_shared_kb_document(self, middleware: FERPAAgentMiddleware) -> None:
         docs = [
-            _FakeDoc({"student_id": "S-1", "institution_id": "inst-a"}),
-            _FakeDoc({}),  # no student_id → shared KB
+            _FakeDoc({"student_id": "S-1", "institution_id": "inst-a", "category": "academic_record"}),
+            _FakeDoc({"classification": "public"}),  # no student_id → shared KB
         ]
         message = _FakeMessage(payload={"documents": docs})
         asyncio.run(middleware.on_message(message, _next))
@@ -268,7 +268,7 @@ class TestFERPAAgentMiddleware:
 
     def test_raise_on_violation(self, scope_s1: StudentIdentityScope) -> None:
         m = FERPAAgentMiddleware(scope=scope_s1, raise_on_violation=True)
-        docs = [_FakeDoc({"student_id": "S-2", "institution_id": "inst-a"})]
+        docs = [_FakeDoc({"student_id": "S-2", "institution_id": "inst-a", "category": "academic_record"})]
         message = _FakeMessage(payload={"documents": docs})
         with pytest.raises(PermissionError, match="FERPA"):
             asyncio.run(m.on_message(message, _next))
@@ -305,7 +305,7 @@ def mixed_docs() -> list[_FakeDoc]:
     return [
         _FakeDoc({"student_id": "S-1", "institution_id": "inst-a", "category": "academic_record"}),
         _FakeDoc({"student_id": "S-2", "institution_id": "inst-a", "category": "academic_record"}),
-        _FakeDoc({}),  # shared KB
+        _FakeDoc({"classification": "public"}),  # shared KB
     ]
 
 
@@ -357,7 +357,7 @@ class TestFERPAFilterRunnable:
 
     def test_raise_on_violation(self, scope_s1: StudentIdentityScope) -> None:
         r = FERPAFilterRunnable(scope=scope_s1, raise_on_violation=True)
-        docs = [_FakeDoc({"student_id": "S-2", "institution_id": "inst-a"})]
+        docs = [_FakeDoc({"student_id": "S-2", "institution_id": "inst-a", "category": "academic_record"})]
         with pytest.raises(ValueError, match="FERPA"):
             r(docs)
 
@@ -369,8 +369,8 @@ class TestFERPAFilterRunnable:
         """Per-request scope injection blocks S-1 when override is S-2."""
         runnable = FERPAFilterRunnable(scope=scope_s1)
         docs = [
-            _FakeDoc({"student_id": "S-1", "institution_id": "inst-a"}),
-            _FakeDoc({"student_id": "S-2", "institution_id": "inst-a"}),
+            _FakeDoc({"student_id": "S-1", "institution_id": "inst-a", "category": "academic_record"}),
+            _FakeDoc({"student_id": "S-2", "institution_id": "inst-a", "category": "academic_record"}),
         ]
         config = {"metadata": {"ferpa_scope": scope_s2}}
         result = runnable(docs, config=config)

@@ -20,7 +20,7 @@ Regulatory context:
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, cast
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +33,8 @@ class FERPAHaystackFilter:
     ``document.meta["institution_id"]``.  Optionally further restricts to
     documents whose ``document.meta["category"]`` is in *permitted_categories*.
 
-    Documents without the relevant meta keys are passed through (assumed to be
-    non-FERPA content — general knowledge base, FAQs, etc.).
+    Missing identity/category metadata is denied. Public documents require
+    classification="public" and neither identity key.
 
     Registration: Because ``@component`` must be applied to a class that Haystack
     discovers at pipeline-serialization time, the decorator is applied lazily
@@ -98,6 +98,15 @@ class FERPAHaystackFilter:
         for doc in documents:
             meta: dict[str, Any] = getattr(doc, "meta", {}) or {}
 
+            if meta.get("classification") == "public" and "student_id" not in meta and "institution_id" not in meta:
+                filtered.append(doc)
+                continue
+            if not all(
+                isinstance(meta.get(key), str) and meta[key].strip()
+                for key in ("student_id", "institution_id", "category")
+            ):
+                removed += 1
+                continue
             doc_student = meta.get("student_id")
             if doc_student is not None and doc_student != student_id:
                 removed += 1
@@ -144,14 +153,13 @@ def _make_haystack_component() -> type:
         ImportError: If ``haystack-ai`` is not installed.
     """
     try:
-        from haystack import component
+        from haystack import Document, component
     except ImportError as exc:
         raise ImportError(
             "haystack-ai is required for Haystack component registration. "
             "Install it with: pip install haystack-ai>=2.0.0"
         ) from exc
 
-    @component
     class _RegisteredFERPAHaystackFilter(FERPAHaystackFilter):
         """Haystack-registered variant of ``FERPAHaystackFilter``."""
 
@@ -164,11 +172,19 @@ def _make_haystack_component() -> type:
             permitted_categories: set[str] | None = None,
         ) -> dict[str, list[Any]]:
             """Haystack-registered run method; delegates to parent implementation."""
-            return super().run(
+            return FERPAHaystackFilter.run(
+                self,
                 documents=documents,
                 student_id=student_id,
                 institution_id=institution_id,
                 permitted_categories=permitted_categories,
             )
 
-    return _RegisteredFERPAHaystackFilter
+    _RegisteredFERPAHaystackFilter.run.__annotations__ = {
+        "documents": list[Document],
+        "student_id": str,
+        "institution_id": str,
+        "permitted_categories": set[str] | None,
+        "return": dict[str, list[Any]],
+    }
+    return cast(type, component(_RegisteredFERPAHaystackFilter))

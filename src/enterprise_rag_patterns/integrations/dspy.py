@@ -254,12 +254,12 @@ def _rebuild_passages(
     """
     Return original passage objects that survived filtering.
 
-    Matches by content string to preserve the original passage type
+    Matches the complete normalized record to preserve the original passage type
     (string, dspy.Example, etc.) rather than returning plain dicts.
     Preserves order of original passages.
     """
-    allowed_contents: set[str] = {str(d.get("content", "")) for d in filtered_dicts}
-    return [p for p in original if str(_passage_to_dict(p).get("content", "")) in allowed_contents]
+    # ponytail: equality scan for small retrieval batches; use stable IDs for large batches.
+    return [p for p in original if _passage_to_dict(p) in filtered_dicts]
 
 
 # ---------------------------------------------------------------------------

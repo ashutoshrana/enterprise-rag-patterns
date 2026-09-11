@@ -164,6 +164,9 @@ class FERPAWorkflowStep:
         meta: dict[str, Any] = getattr(node_obj, "metadata", {}) or {}
         d: dict[str, Any] = {"_idx": index}
         d.update(meta)
+        d["_idx"] = index
+        if "category" in meta:
+            d["record_category"] = meta["category"]
         return d
 
     def _extract_categories(self, nodes: list[Any]) -> set[RecordCategory]:
