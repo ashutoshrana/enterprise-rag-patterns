@@ -6,7 +6,12 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [0.47.0] — Unreleased
+## [0.47.1] — 2026-09-19
+
+- Apply shared strict category and identity policy to standalone LlamaIndex postprocessing, including asynchronous query execution and real SDK model-input regressions.
+- Validated source, runtime, wheel/sdist and release-tag versions before publication.
+
+## [0.47.0] — 2026-09-12
 
 - Require complete private retrieval metadata or trusted explicit public classification.
 - Validate real SDK authorization behavior, async execution, and migration safety.
