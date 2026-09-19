@@ -106,3 +106,37 @@ def test_callback_violation_cannot_leak_when_callback_errors_are_suppressed():
     retriever = store.as_retriever()
     assert retriever.invoke("records", config={"callbacks": [handler]}) == []
     assert asyncio.run(retriever.ainvoke("records", config={"callbacks": [handler]})) == []
+
+
+def test_llama_index_query_engine_filters_before_sync_and_async_model_input():
+    import pytest
+
+    pytest.importorskip("llama_index.core")
+    from llama_index.core.llms import MockLLM
+    from llama_index.core.query_engine import RetrieverQueryEngine
+    from llama_index.core.retrievers import BaseRetriever
+    from llama_index.core.schema import NodeWithScore, TextNode
+
+    from enterprise_rag_patterns.integrations.llama_index import FERPANodePostprocessor
+
+    private = {"student_id": "s", "institution_id": "i", "category": "academic_record"}
+    nodes = [
+        NodeWithScore(node=TextNode(text="ALLOWED", metadata=private)),
+        NodeWithScore(node=TextNode(text="SECRET_CANARY", metadata={**private, "category": "financial_aid"})),
+        NodeWithScore(node=TextNode(text="UNTAGGED_CANARY")),
+        NodeWithScore(node=TextNode(text="PUBLIC", metadata={"classification": "public"})),
+    ]
+
+    class Retriever(BaseRetriever):
+        def _retrieve(self, query_bundle):
+            return nodes
+
+    scope = StudentIdentityScope("s", "i", "tester", authorized_categories={RecordCategory.ACADEMIC_RECORD})
+    engine = RetrieverQueryEngine.from_args(
+        Retriever(), llm=MockLLM(), node_postprocessors=[FERPANodePostprocessor(scope)]
+    )
+    for response in [engine.query("records"), asyncio.run(engine.aquery("records"))]:
+        # MockLLM returns its complete prompt, exposing exactly the model boundary.
+        assert "ALLOWED" in str(response) and "PUBLIC" in str(response)
+        assert "CANARY" not in str(response)
+        assert response.source_nodes == [nodes[0], nodes[3]]

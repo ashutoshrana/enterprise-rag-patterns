@@ -20,7 +20,7 @@ import logging
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
 
-from ..compliance import StudentIdentityScope
+from ..compliance import FERPAContextPolicy, StudentIdentityScope
 
 if TYPE_CHECKING:
     # Only for type-checking; not imported at runtime.
@@ -35,8 +35,8 @@ class FERPANodePostprocessor:
 
     Filters a list of ``BaseNode`` objects returned by a retriever, retaining
     only nodes whose metadata matches the authorised ``StudentIdentityScope``.
-    Nodes without ``student_id`` or ``institution_id`` metadata are passed
-    through (assumed to be non-FERPA knowledge-base content).
+    Private nodes require complete identity and authorized category metadata.
+    Public nodes require explicit classification and no identity keys.
 
     A lightweight audit log entry (34 CFR § 99.32) is emitted via the standard
     ``logging`` module after each filtering pass.
@@ -90,8 +90,8 @@ class FERPANodePostprocessor:
         - ``metadata["institution_id"]`` is present and does not equal
           ``scope.institution_id``.
 
-        Nodes without these metadata keys are passed through unchanged
-        (non-FERPA content assumption).
+        Missing identity/category metadata and unauthorized categories are denied.
+        Explicit public classification follows the shared FERPAContextPolicy.
 
         After filtering, a FERPA audit log entry is emitted at INFO level
         in accordance with 34 CFR § 99.32.
@@ -105,24 +105,19 @@ class FERPANodePostprocessor:
         Returns:
             Filtered list of nodes safe to include in LLM context.
         """
-        filtered: list[Any] = []
-        removed = 0
-
-        for node in nodes:
-            metadata: dict[str, Any] = getattr(node, "metadata", {}) or {}
-
-            node_student = metadata.get("student_id")
-            node_institution = metadata.get("institution_id")
-
-            if node_student is not None and node_student != self.scope.student_id:
-                removed += 1
-                continue
-
-            if node_institution is not None and node_institution != self.scope.institution_id:
-                removed += 1
-                continue
-
-            filtered.append(node)
+        records = []
+        for index, node in enumerate(nodes):
+            node_obj = getattr(node, "node", node)
+            metadata: dict[str, Any] = getattr(node_obj, "metadata", {}) or {}
+            record = dict(metadata)
+            if "category" in metadata:
+                record["record_category"] = metadata["category"]
+            record["_idx"] = index
+            records.append(record)
+        authorized = FERPAContextPolicy(self.scope).filter_retrieved_documents(records)
+        retained = {record["_idx"] for record in authorized}
+        filtered = [node for index, node in enumerate(nodes) if index in retained]
+        removed = len(nodes) - len(filtered)
 
         # Emit 34 CFR § 99.32 audit record as structured log entry
         audit_entry = _build_audit_entry(
@@ -136,6 +131,10 @@ class FERPANodePostprocessor:
         logger.info("[FERPA_AUDIT] %s", audit_entry)
 
         return filtered
+
+    async def apostprocess_nodes(self, nodes: list[Any], query_bundle: Any | None = None) -> list[Any]:
+        """Apply the same authorization during asynchronous query execution."""
+        return self.postprocess_nodes(nodes, query_bundle)
 
 
 # ---------------------------------------------------------------------------

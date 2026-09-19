@@ -10,3 +10,5 @@
 | Unauthorized duplicate-content passage reappears after filtering | DSPy rebuilt originals by content text alone | Compare complete normalized records and test identical text with different identities |
 
 | Release appears successful without updated package | Reused version with skip-existing and no exact-tag gate | Use fresh versions, reject tag mismatch, test exact commit, validate distributions and clean wheel imports before upload |
+
+| Standalone LlamaIndex adapter admits unclassified or disallowed-category nodes | Adapter duplicated identity checks without shared category policy | Reuse strict FERPAContextPolicy and exercise real sync/async query-engine prompts |

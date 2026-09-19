@@ -122,10 +122,10 @@ def postprocessor() -> FERPANodePostprocessor:
 @pytest.fixture()
 def llama_nodes() -> list[_FakeNode]:
     return [
-        _FakeNode({"student_id": "S-1", "institution_id": "inst-a"}),
+        _FakeNode({"student_id": "S-1", "institution_id": "inst-a", "category": "academic_record"}),
         _FakeNode({"student_id": "S-2", "institution_id": "inst-a"}),
         _FakeNode({"student_id": "S-1", "institution_id": "inst-b"}),
-        _FakeNode({}),  # shared KB node
+        _FakeNode({"classification": "public"}),  # explicitly public node
     ]
 
 
@@ -156,3 +156,8 @@ class TestFERPANodePostprocessor:
     def test_empty_input(self, postprocessor: FERPANodePostprocessor) -> None:
         result = postprocessor.postprocess_nodes([])  # type: ignore[arg-type]
         assert result == []
+
+
+def test_llama_index_enforces_category_and_missing_metadata(postprocessor):
+    nodes = [_FakeNode({}), _FakeNode({"student_id": "S-1", "institution_id": "inst-a", "category": "financial_aid"})]
+    assert postprocessor.postprocess_nodes(nodes) == []
