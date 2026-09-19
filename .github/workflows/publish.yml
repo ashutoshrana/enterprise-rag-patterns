@@ -28,7 +28,7 @@ jobs:
           HAYSTACK_TELEMETRY_ENABLED: "false"
         run: |
           python scripts/check_release.py "$RELEASE_TAG"
-          pip install build twine -e '.[dev,langchain,haystack]'
+          pip install build twine -e '.[dev,langchain,haystack,llama-index]'
           pytest tests
           pytest integration_tests
 
