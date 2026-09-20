@@ -6,6 +6,12 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.47.2] — 2026-09-20
+
+- Add reproducible real-Haystack retrieval benchmarks with native/gate/combined/bypass paths, independent fixture oracle and deny-all rejection.
+- Record source hashes, runtime and installed package metadata separately; document synthetic scope and category-policy differences.
+- Run optional SQL-expression tests as part of the test extra instead of silently skipping them.
+
 ## [0.47.1] — 2026-09-19
 
 - Apply shared strict category and identity policy to standalone LlamaIndex postprocessing, including asynchronous query execution and real SDK model-input regressions.

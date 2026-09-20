@@ -327,7 +327,9 @@ class TestPackageImport:
         assert PR is PipelineResult
 
     def test_version_present(self):
+        from importlib.metadata import version
+
         import enterprise_rag_patterns
 
         assert hasattr(enterprise_rag_patterns, "__version__")
-        assert enterprise_rag_patterns.__version__ == "0.47.1"
+        assert enterprise_rag_patterns.__version__ == version("enterprise-rag-patterns")
