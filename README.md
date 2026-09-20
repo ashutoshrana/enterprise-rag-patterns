@@ -1,6 +1,6 @@
 # enterprise-rag-patterns
 
-> Unreleased authorization hardening: see [migration and verification notes](MIGRATION.md).
+> Authorization behavior and upgrade guidance: see [migration and verification notes](MIGRATION.md).
 
 [![CI](https://github.com/ashutoshrana/enterprise-rag-patterns/actions/workflows/ci.yml/badge.svg)](https://github.com/ashutoshrana/enterprise-rag-patterns/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/ashutoshrana/enterprise-rag-patterns/graph/badge.svg)](https://codecov.io/gh/ashutoshrana/enterprise-rag-patterns)
@@ -9,9 +9,15 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Downloads](https://img.shields.io/pypi/dm/enterprise-rag-patterns.svg)](https://pypi.org/project/enterprise-rag-patterns/)
 
-**Reference patterns for FERPA/HIPAA/GDPR-compliant retrieval-augmented workflows — 50 regulated sector examples, 65+ regulations across 25 jurisdictions, 9 AI frameworks, 5 vector store adapters, 1,901 tests.**
+**Python retrieval policies and adapters for applications that need to restrict which records enter an AI prompt.**
 
-Defense-in-depth pre-filters that enforce regulatory requirements at the retrieval layer, before any document reaches the LLM context window.
+Use this package when you need framework-independent policy objects, multiple regulatory-domain reference patterns, or adapters for an existing RAG application. For example, an advising assistant can filter retrieved student records by identity, institution and authorized record category before constructing its prompt.
+
+**Input → output:** the core FERPA policy takes an authenticated application scope and document dictionaries with identity/category fields, then returns the permitted dictionaries. Audit records are created separately. The [quick start](#quick-start) runs without a model API key; [real SDK examples in tests](integration_tests/test_real_sdk.py) show local retrieval and recorded model-input checks. See the [API reference](docs/api-reference.md) for the wider surface and [migration notes](MIGRATION.md) for strict metadata rules.
+
+**Choose the package:** use [ferpa-haystack](https://github.com/ashutoshrana/haystack-ferpa-filter) for dedicated Haystack `Document` components. Use this repository for the broader policy and adapter collection. The [portfolio guide](https://github.com/ashutoshrana/ashutoshrana/blob/main/PROJECT_GUIDE.md) explains how these packages fit together.
+
+**Limits:** your application must authenticate the caller, supply trustworthy authorization scopes and ingestion metadata, and route only filtered results into prompts. Public classification is an explicit trusted ingestion decision; missing private metadata is denied. These controls support access-policy implementation; installing the package does not establish legal compliance or secure an entire application.
 
 ---
 
@@ -19,7 +25,7 @@ Defense-in-depth pre-filters that enforce regulatory requirements at the retriev
 
 Standard RAG implementations retrieve documents and pass them directly to an LLM — with no enforcement of who is allowed to see what. In regulated environments this creates a structural compliance failure: a student receives another student's financial aid record; a patient's ePHI surfaces in an unrelated clinical query; a grid operator's chatbot leaks BES Cyber System documentation to an unauthorized contractor.
 
-This library provides the **missing compliance layer**: identity-scoped pre-filters, layered regulatory enforcement, and structured audit records. Documents that fail any compliance layer never reach the LLM.
+This library provides identity-scoped filters, domain policy patterns and structured audit records. Connect the filter before prompt construction and use only its output; a bypassing application path remains outside that protection.
 
 ---
 
@@ -110,7 +116,15 @@ scope = StudentIdentityScope(
 )
 policy = FERPAContextPolicy(scope=scope)
 
-# Filter before the LLM sees any document
+# Synthetic retrieval results use top-level fields for this core policy.
+retrieved_docs = [
+    {"content": "GPA: 3.85", "student_id": "stu_001",
+     "institution_id": "univ_abc", "category": "academic_record"},
+    {"content": "Another student's record", "student_id": "stu_002",
+     "institution_id": "univ_abc", "category": "academic_record"},
+]
+
+# Filter before constructing the model prompt.
 safe_docs = policy.filter_retrieved_documents(
     retrieved_docs,
     student_id_field="student_id",
@@ -118,11 +132,13 @@ safe_docs = policy.filter_retrieved_documents(
     category_field="category",
 )
 
-# Emit a 34 CFR §99.32 disclosure log entry
+assert [doc["content"] for doc in safe_docs] == ["GPA: 3.85"]
+
+# Create an audit record; your application must persist it.
 audit = policy.record_access(categories_accessed={RecordCategory.ACADEMIC_RECORD})
 ```
 
-See the `examples/` directory for complete runnable pipelines.
+Browse the [example catalog](examples/) for sector patterns; individual framework examples may require optional dependencies and provider configuration.
 
 ---
 
