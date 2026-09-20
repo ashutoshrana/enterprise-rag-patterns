@@ -44,7 +44,7 @@ jobs:
         run: |
           python -m venv "$RUNNER_TEMP/wheel-smoke"
           "$RUNNER_TEMP/wheel-smoke/bin/pip" install dist/*.whl
-          "$RUNNER_TEMP/wheel-smoke/bin/python" -I -c "import enterprise_rag_patterns as p; from importlib.metadata import version; assert p.__version__ == version('enterprise-rag-patterns') == '0.47.1'; assert all(hasattr(p, name) for name in p.__all__)"
+          "$RUNNER_TEMP/wheel-smoke/bin/python" -I -c "import enterprise_rag_patterns as p; from importlib.metadata import version; assert p.__version__ == version('enterprise-rag-patterns'); assert all(hasattr(p, name) for name in p.__all__)"
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1

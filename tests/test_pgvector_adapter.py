@@ -258,12 +258,11 @@ class TestPGVectorSQLAlchemyFilterWithSQLAlchemy:
         assert "student_id" in compiled
         assert "institution_id" in compiled
 
-    def test_raises_import_error_without_sqlalchemy(self) -> None:
-        """Simulate missing sqlalchemy — skip if it's installed."""
+    def test_raises_import_error_without_sqlalchemy(self, monkeypatch) -> None:
+        """Exercise the missing dependency path even when installed for SQL tests."""
         import sys
 
-        if "sqlalchemy" in sys.modules:
-            pytest.skip("sqlalchemy is installed; cannot test ImportError path")
+        monkeypatch.setitem(sys.modules, "sqlalchemy", None)
 
         adapter = PGVectorSQLAlchemyFilter(metadata_column=object())
         with pytest.raises(ImportError, match="sqlalchemy"):
