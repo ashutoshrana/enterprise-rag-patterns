@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "query": "records",
+  "scope": {
+    "student_id": "student-a",
+    "institution_id": "institution-a",
+    "authorized_categories": [
+      "academic_record"
+    ]
+  },
+  "permitted_ids": [
+    "allowed",
+    "public"
+  ],
+  "documents": [
+    {
+      "id": "allowed",
+      "content": "records ALLOWED",
+      "meta": {
+        "student_id": "student-a",
+        "institution_id": "institution-a",
+        "category": "academic_record"
+      }
+    },
+    {
+      "id": "public",
+      "content": "records PUBLIC",
+      "meta": {
+        "classification": "public"
+      }
+    },
+    {
+      "id": "wrong-student",
+      "content": "records SECRET_STUDENT",
+      "meta": {
+        "student_id": "student-b",
+        "institution_id": "institution-a",
+        "category": "academic_record"
+      }
+    },
+    {
+      "id": "wrong-tenant",
+      "content": "records SECRET_TENANT",
+      "meta": {
+        "student_id": "student-a",
+        "institution_id": "institution-b",
+        "category": "academic_record"
+      }
+    },
+    {
+      "id": "wrong-category",
+      "content": "records SECRET_CATEGORY",
+      "meta": {
+        "student_id": "student-a",
+        "institution_id": "institution-a",
+        "category": "financial_aid"
+      }
+    },
+    {
+      "id": "missing",
+      "content": "records SECRET_MISSING",
+      "meta": {}
+    },
+    {
+      "id": "malformed",
+      "content": "records SECRET_MALFORMED",
+      "meta": {
+        "student_id": [],
+        "institution_id": "institution-a",
+        "category": "academic_record"
+      }
+    },
+    {
+      "id": "conflicting-public",
+      "content": "records SECRET_CONFLICT",
+      "meta": {
+        "classification": "public",
+        "student_id": "student-b"
+      }
+    },
+    {
+      "id": "null-public",
+      "content": "records SECRET_NULL",
+      "meta": {
+        "classification": "public",
+        "student_id": null
+      }
+    }
+  ],
+  "provenance": {
+    "origin": "https://github.com/ashutoshrana/haystack-ferpa-filter",
+    "path": "benchmarks/retrieval_cases.json",
+    "source_revision": "5f87c548960bee5b86e14d5dc01eabf8a4b35087",
+    "source_sha256": "623444c0960fae6440b9f32474720188161f3fdae1fa9d67b95537d4626ed6f0",
+    "oracle_scope": "Enterprise Haystack adapter with explicit academic_record allowlist; not implicit core enum parity."
+  }
+}

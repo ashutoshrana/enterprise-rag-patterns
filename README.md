@@ -142,6 +142,27 @@ Browse the [example catalog](examples/) for sector patterns; individual framewor
 
 ---
 
+## Measured retrieval boundary
+
+From a repository checkout, install `pip install -e '.[haystack]'`, then run:
+
+```bash
+HAYSTACK_TELEMETRY_ENABLED=false python -m benchmarks.retrieval_boundary --repeats 5 > boundary-results.json
+# Optional real BM25 corpus-size experiments:
+HAYSTACK_TELEMETRY_ENABLED=false python -m benchmarks.retrieval_boundary --corpus-size 1000 --repeats 5
+HAYSTACK_TELEMETRY_ENABLED=false python -m benchmarks.retrieval_boundary --corpus-size 10000 --repeats 5
+```
+
+The [benchmark](benchmarks/retrieval_boundary.py) measures this repository's Haystack adapter in a real in-memory BM25 retriever → filter → prompt builder → recording generator route. It compares native attribute filters, the package gate, both together and a required bypass negative control. The [local synthetic fixture](benchmarks/retrieval_cases.json) records its canonical origin and explicitly permitted IDs. There is no cross-repository runtime dependency or model API call.
+
+Every protected run must exclude unauthorized document IDs and content and retain all permitted fixture documents (authorized recall 1.0); every bypass run must expose a seeded canary. A deny-all gate fails the utility check. Native null comparisons admit the fixture's `null-public` record: this documents a limitation of that predicate, not an inability to implement authorization in Haystack. JSON records authorized recall, unauthorized counts/IDs, retrieval candidate counts, repeated pipeline timings, environment, runtime and installed-distribution versions, fixture hash and benchmark/adapter source hashes. One warm-up is excluded. Async timing includes event-loop startup; store and pipeline construction are excluded. These small synthetic measurements do not establish answer quality or production performance.
+
+The [boundary tests](integration_tests/test_retrieval_boundary.py) also recheck reused candidates against an explicitly changed application permission snapshot. They do not test provider-cache invalidation or external revocation. The benchmark uses an explicit category allowlist: the Haystack adapter accepts string categories, while the core FERPA policy rejects unknown enum values. An async pipeline schedules the adapter's synchronous filter; this is not a new asynchronous policy backend. Existing LangChain and LlamaIndex tests remain separate coverage, not benchmarked comparisons.
+
+For a standalone Haystack tutorial, see the sibling [ferpa-haystack example](https://github.com/ashutoshrana/haystack-ferpa-filter/blob/main/examples/basic_usage.py).
+
+---
+
 ## Example catalog — 50 patterns
 
 | # | File | Sector | Regulations Enforced |

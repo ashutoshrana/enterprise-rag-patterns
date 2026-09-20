@@ -12,3 +12,5 @@
 | Release appears successful without updated package | Reused version with skip-existing and no exact-tag gate | Use fresh versions, reject tag mismatch, test exact commit, validate distributions and clean wheel imports before upload |
 
 | Standalone LlamaIndex adapter admits unclassified or disallowed-category nodes | Adapter duplicated identity checks without shared category policy | Reuse strict FERPAContextPolicy and exercise real sync/async query-engine prompts |
+
+| Retriever or filtered-document assertions miss leaks introduced during prompt assembly | Boundary tests stopped before the complete generator input and lacked a positive bypass control | Record real Haystack pipeline prompts against explicit fixture IDs/content and require unauthorized canaries in every bypass repetition; report source hashes and category-policy scope |
