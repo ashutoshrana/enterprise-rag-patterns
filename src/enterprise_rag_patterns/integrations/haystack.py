@@ -20,7 +20,8 @@ Regulatory context:
 from __future__ import annotations
 
 import logging
-from typing import Any, cast
+from importlib.util import find_spec
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +39,7 @@ class FERPAHaystackFilter:
 
     Registration: Because ``@component`` must be applied to a class that Haystack
     discovers at pipeline-serialization time, the decorator is applied lazily
-    the first time ``run`` is called (via ``_ensure_registered``).  This keeps
+    at construction when Haystack is installed. This keeps
     the module importable without ``haystack-ai`` installed.
 
     Usage (Haystack 2.x pipeline)::
@@ -58,6 +59,15 @@ class FERPAHaystackFilter:
         })
         filtered_docs = result["ferpa_filter"]["filtered_documents"]
     """
+
+    def __new__(cls) -> FERPAHaystackFilter:
+        if cls is FERPAHaystackFilter and find_spec("haystack") is not None:
+            return _make_haystack_component()()
+        return super().__new__(cls)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize through the public constructor, preserving lazy registration."""
+        return {"type": f"{type(self).__module__}.{type(self).__name__}", "init_parameters": {}}
 
     def run(
         self,
@@ -86,11 +96,9 @@ class FERPAHaystackFilter:
         Returns:
             ``{"filtered_documents": [...]}`` — dict keyed by Haystack output name.
         """
-        # Validate the Haystack import is available (lazy, for error clarity)
-        try:
-            pass  # No symbols needed at runtime beyond Document duck-typing
-        except Exception:  # pragma: no cover
-            pass
+        for name, value in (("student_id", student_id), ("institution_id", institution_id)):
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"{name} must be a non-empty string")
 
         filtered: list[Any] = []
         removed = 0
@@ -126,9 +134,7 @@ class FERPAHaystackFilter:
             filtered.append(doc)
 
         logger.info(
-            "[FERPA_AUDIT] event=haystack_filter student_id=%s institution_id=%s total=%d removed=%d allowed=%d",
-            student_id,
-            institution_id,
+            "[FERPA_AUDIT] event=haystack_filter total=%d removed=%d allowed=%d",
             len(documents),
             removed,
             len(filtered),
@@ -137,54 +143,8 @@ class FERPAHaystackFilter:
         return {"filtered_documents": filtered}
 
 
-def _make_haystack_component() -> type:
-    """
-    Lazily register ``FERPAHaystackFilter`` as a Haystack ``@component``.
+def _make_haystack_component() -> type[FERPAHaystackFilter]:
+    """Import the registered component only when Haystack is requested."""
+    from ._haystack_component import RegisteredFERPAHaystackFilter
 
-    Called only when the caller explicitly needs a Haystack-registered component
-    (e.g., for pipeline serialization).  Separating registration from class
-    definition keeps the module importable without ``haystack-ai``.
-
-    Returns:
-        The ``FERPAHaystackFilter`` class decorated with ``@component`` and
-        annotated with ``@component.output_types``.
-
-    Raises:
-        ImportError: If ``haystack-ai`` is not installed.
-    """
-    try:
-        from haystack import Document, component
-    except ImportError as exc:
-        raise ImportError(
-            "haystack-ai is required for Haystack component registration. "
-            "Install it with: pip install haystack-ai>=2.0.0"
-        ) from exc
-
-    class _RegisteredFERPAHaystackFilter(FERPAHaystackFilter):
-        """Haystack-registered variant of ``FERPAHaystackFilter``."""
-
-        @component.output_types(filtered_documents=list)  # type: ignore[untyped-decorator]
-        def run(
-            self,
-            documents: list[Any],
-            student_id: str,
-            institution_id: str,
-            permitted_categories: set[str] | None = None,
-        ) -> dict[str, list[Any]]:
-            """Haystack-registered run method; delegates to parent implementation."""
-            return FERPAHaystackFilter.run(
-                self,
-                documents=documents,
-                student_id=student_id,
-                institution_id=institution_id,
-                permitted_categories=permitted_categories,
-            )
-
-    _RegisteredFERPAHaystackFilter.run.__annotations__ = {
-        "documents": list[Document],
-        "student_id": str,
-        "institution_id": str,
-        "permitted_categories": set[str] | None,
-        "return": dict[str, list[Any]],
-    }
-    return cast(type, component(_RegisteredFERPAHaystackFilter))
+    return RegisteredFERPAHaystackFilter
