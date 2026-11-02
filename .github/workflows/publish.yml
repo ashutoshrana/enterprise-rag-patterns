@@ -47,7 +47,7 @@ jobs:
           "$RUNNER_TEMP/wheel-smoke/bin/python" -I -c "import enterprise_rag_patterns as p; from importlib.metadata import version; assert p.__version__ == version('enterprise-rag-patterns'); assert all(hasattr(p, name) for name in p.__all__)"
 
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
         # Uses OIDC trusted publishing — no API token needed if configured on PyPI
         # Fallback: add PYPI_API_TOKEN secret and use:
         # with:

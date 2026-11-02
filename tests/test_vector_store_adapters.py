@@ -154,3 +154,12 @@ class TestQdrantComplianceFilterLazyImport:
             assert "qdrant-client" in str(exc)
         except Exception:
             pass
+
+
+@pytest.mark.parametrize("field", ["student_id", "institution_id"])
+@pytest.mark.parametrize("value", [None, "", "  ", 7])
+def test_store_scope_rejects_invalid_principals(field, value):
+    scope = {"student_id": "S-1", "institution_id": "inst-a"}
+    scope[field] = value
+    with pytest.raises(ValueError, match=field):
+        ComplianceFilter(**scope)

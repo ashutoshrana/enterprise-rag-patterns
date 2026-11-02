@@ -374,7 +374,7 @@ Read [CONTRIBUTING.md](./CONTRIBUTING.md) and [GOVERNANCE.md](./GOVERNANCE.md). 
   author  = {Rana, Ashutosh},
   title   = {enterprise-rag-patterns: Cross-industry compliance patterns for RAG pipelines},
   year    = {2026},
-  version = {0.46.0},
+  version = {0.48.0},
   url     = {https://github.com/ashutoshrana/enterprise-rag-patterns},
   license = {MIT}
 }

@@ -146,3 +146,65 @@ def test_deny_all_gate_cannot_pass_benchmark(monkeypatch):
     monkeypatch.setattr(FERPAHaystackFilter, "run", deny_all)
     with pytest.raises(AssertionError, match="utility"):
         benchmark(repeats=1, modes=("sync",))
+
+
+def test_public_component_runs_store_to_model_and_serializes():
+    from inspect import signature
+
+    from haystack import Pipeline
+
+    fixture = load_fixture()
+    store = InMemoryDocumentStore()
+    store.write_documents(documents_for(fixture, len(fixture["documents"])))
+    pipeline = Pipeline()
+    pipeline.add_component("retriever", InMemoryBM25Retriever(store, top_k=20))
+    pipeline.add_component("guard", FERPAHaystackFilter())
+    pipeline.add_component("prompt", PromptBuilder(template=TEMPLATE, required_variables=["question", "documents"]))
+    pipeline.add_component("generator", RecordingGenerator())
+    pipeline.connect("retriever.documents", "guard.documents")
+    pipeline.connect("guard.filtered_documents", "prompt.documents")
+    pipeline.connect("prompt.prompt", "generator.prompt")
+    load_options = {}
+    if "allowed_modules" in signature(Pipeline.loads).parameters:
+        load_options["allowed_modules"] = [
+            "enterprise_rag_patterns.integrations._haystack_component", "benchmarks.retrieval_boundary"
+        ]
+    for candidate in (pipeline, Pipeline.loads(pipeline.dumps(), **load_options)):
+        result = run_once(candidate, fixture["query"])
+        assert set(result["observed_ids"]) == set(fixture["permitted_ids"])
+        assert "SECRET_" not in result["prompt"]
+
+
+def test_public_component_deserializes_in_fresh_process():
+    import subprocess
+
+    fixture = load_fixture()
+    store = InMemoryDocumentStore()
+    store.write_documents(documents_for(fixture, len(fixture["documents"])))
+    pipeline = pipeline_for(store, fixture["scope"], "gate")
+    code = """
+import sys
+from inspect import signature
+from haystack import Pipeline
+from benchmarks.retrieval_boundary import documents_for, load_fixture, run_once
+assert "enterprise_rag_patterns.integrations._haystack_component" not in sys.modules
+options = {}
+if "allowed_modules" in signature(Pipeline.loads).parameters:
+    options["allowed_modules"] = [
+        "enterprise_rag_patterns.integrations._haystack_component", "benchmarks.retrieval_boundary"
+    ]
+pipeline = Pipeline.loads(sys.stdin.read(), **options)
+fixture = load_fixture()
+# In-memory documents are application state, not embedded in pipeline YAML.
+pipeline.get_component("retriever").document_store.write_documents(
+    documents_for(fixture, len(fixture["documents"]))
+)
+result = run_once(pipeline, fixture["query"])
+assert set(result["observed_ids"]) == set(fixture["permitted_ids"])
+assert "SECRET_" not in result["prompt"]
+"""
+    result = subprocess.run(
+        [sys.executable, "-c", code], input=pipeline.dumps(), text=True,
+        cwd=Path(__file__).resolve().parents[1], capture_output=True,
+    )
+    assert result.returncode == 0, result.stderr

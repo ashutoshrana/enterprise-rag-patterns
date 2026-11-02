@@ -50,6 +50,12 @@ class ComplianceFilter:
     permitted_categories: set[str] = field(default_factory=set)
     regulation: str = "FERPA"
 
+    def __post_init__(self) -> None:
+        for name in ("student_id", "institution_id"):
+            value = getattr(self, name)
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"{name} must be a non-empty string")
+
 
 class VectorStoreFilterAdapter(ABC):
     """
