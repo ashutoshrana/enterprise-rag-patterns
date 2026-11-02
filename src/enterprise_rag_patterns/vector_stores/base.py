@@ -39,8 +39,8 @@ class ComplianceFilter:
             In multi-tenant deployments, prevents cross-institution record bleed.
         permitted_categories: Whitelist of record-category strings the caller is
             authorised to retrieve (e.g. ``{"academic_record", "directory_information"}``).
-            When empty, no category filter is applied (use with caution — typically only
-            appropriate for non-FERPA content collections).
+            Empty/None grants reject construction before a private query.
+        unrestricted_categories: Explicit trusted wildcard; must be an actual bool.
         regulation: Identifier for the governing regulation, used for audit tagging.
             Defaults to ``"FERPA"``.
     """
@@ -49,12 +49,20 @@ class ComplianceFilter:
     institution_id: str
     permitted_categories: set[str] = field(default_factory=set)
     regulation: str = "FERPA"
+    unrestricted_categories: bool = False
 
     def __post_init__(self) -> None:
         for name in ("student_id", "institution_id"):
             value = getattr(self, name)
             if not isinstance(value, str) or not value.strip():
                 raise ValueError(f"{name} must be a non-empty string")
+        if not isinstance(self.unrestricted_categories, bool):
+            raise ValueError("unrestricted_categories must be a bool")
+        if not self.permitted_categories and not self.unrestricted_categories:
+            raise ValueError(
+                "No private category grants: do not query; "
+                "explicit unrestricted_categories=True is required for a wildcard"
+            )
 
 
 class VectorStoreFilterAdapter(ABC):

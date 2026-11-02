@@ -30,3 +30,11 @@
 | A release guard accepts incomplete artifacts or mismatched source-distribution identity | Validation iterated whatever artifacts happened to exist and checked only wheel metadata | Require one wheel and one sdist, stable source/tag identity and both metadata records; exercise missing, extra and mismatched archive fixtures |
 
 | Python 3.10 optional installs select vulnerable dependencies while Python 3.12 scans clear | Fixed dependency releases require Python 3.11, so the resolver falls back to affected older versions | Keep core 3.10 support, add unconditional patched floors to affected extras, document 3.11 SDK contracts and treat 3.10 rejection as an excluded support cell |
+
+| Empty category grants disclose private categories on native paths | Falsy collections selected a legacy wildcard and directory classification overrode trusted grants | Deny empty grants, require an explicit strict boolean wildcard, honor directory grants and reject ambiguous serialized legacy contracts |
+
+| Node postprocessing writes request identifiers to ordinary logs | Detailed audit identity and operational telemetry shared the same automatic INFO emission | Log counts and opaque correlation IDs by default; deliver detailed records only through an acknowledged opt-in protected sink |
+
+| A validated vector scope later produces an identity-only query | Builders treated an empty category collection as no predicate and some column layouts silently omitted categories | Revalidate scope at every builder boundary, reject no-grant private queries and require a category column for finite SQLAlchemy grants |
+
+| An advisory-clear SDK minimum still resolves an affected dependency graph | Weaviate older minimums capped Authlib below patched releases | Qualify the complete minimum graph and require the tested compatible SDK plus patched Authlib floor |

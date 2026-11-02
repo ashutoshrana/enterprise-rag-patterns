@@ -140,7 +140,7 @@ def test_oracle_agrees_with_core_only_for_explicit_fixture_scope():
 
 
 def test_deny_all_gate_cannot_pass_benchmark(monkeypatch):
-    def deny_all(self, documents, student_id, institution_id, permitted_categories=None):
+    def deny_all(self, documents, student_id, institution_id, permitted_categories=None, unrestricted_categories=False):
         return {"filtered_documents": []}
 
     monkeypatch.setattr(FERPAHaystackFilter, "run", deny_all)
@@ -167,7 +167,8 @@ def test_public_component_runs_store_to_model_and_serializes():
     load_options = {}
     if "allowed_modules" in signature(Pipeline.loads).parameters:
         load_options["allowed_modules"] = [
-            "enterprise_rag_patterns.integrations._haystack_component", "benchmarks.retrieval_boundary"
+            "enterprise_rag_patterns.integrations._haystack_component",
+            "benchmarks.retrieval_boundary",
         ]
     for candidate in (pipeline, Pipeline.loads(pipeline.dumps(), **load_options)):
         result = run_once(candidate, fixture["query"])
@@ -204,7 +205,10 @@ assert set(result["observed_ids"]) == set(fixture["permitted_ids"])
 assert "SECRET_" not in result["prompt"]
 """
     result = subprocess.run(
-        [sys.executable, "-c", code], input=pipeline.dumps(), text=True,
-        cwd=Path(__file__).resolve().parents[1], capture_output=True,
+        [sys.executable, "-c", code],
+        input=pipeline.dumps(),
+        text=True,
+        cwd=Path(__file__).resolve().parents[1],
+        capture_output=True,
     )
     assert result.returncode == 0, result.stderr

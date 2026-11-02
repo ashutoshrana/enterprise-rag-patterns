@@ -66,12 +66,13 @@ class ChromaComplianceFilter(VectorStoreFilterAdapter):
         Returns:
             A ``dict`` compatible with ``chromadb.Collection.query(where=...)``.
         """
+        scope.__post_init__()
         clauses: list[dict[str, Any]] = [
             {"student_id": {"$eq": scope.student_id}},
             {"institution_id": {"$eq": scope.institution_id}},
         ]
 
-        if scope.permitted_categories:
+        if not scope.unrestricted_categories:
             clauses.append({"category": {"$in": sorted(scope.permitted_categories)}})
 
         # ChromaDB requires $and to wrap a list; when there is only one clause

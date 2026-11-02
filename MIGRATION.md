@@ -12,7 +12,7 @@ Run the ordinary tests and `pytest integration_tests` separately: legacy tests u
 
 ## SDK compatibility
 
-The real integration matrix tests LangChain Core 0.3.0 and latest with InMemoryVectorStore, and Haystack 2.20.0 and latest with InMemoryDocumentStore/BM25. Local validation on 2026-10-26 passed with LangChain Core 1.7.0, LlamaIndex Core 0.14.25 and Haystack 3.4.1, and repeated the Haystack tests with 2.20.0 on Python 3.12.12. Python 3.10 was checked for source syntax only in this run; the current Haystack 3 line requires Python 3.11 or newer. These are local store tests, not certification of hosted stores. Latest dependency resolution is checked in CI; it is not a promise that every future version will work.
+The real integration matrix tests LangChain Core 1.3.3 and latest with InMemoryVectorStore, and Haystack 2.20.0 and latest with InMemoryDocumentStore/BM25. Local validation on 2026-10-26 passed with LangChain Core 1.7.0, LlamaIndex Core 0.14.25 and Haystack 3.4.1, and repeated the Haystack tests with 2.20.0 on Python 3.12.12. Python 3.10 was checked for source syntax only in this run; the current Haystack 3 line requires Python 3.11 or newer. These are local store tests, not certification of hosted stores. Latest dependency resolution is checked in CI; it is not a promise that every future version will work.
 
 Prefer `FERPAFilterRunnable.as_runnable()` for explicit enforcement. The compatibility callback now implements callback-manager attributes and sanitizes before raising, because managers may suppress callback exceptions. It runs inline; pass it using invocation `config={"callbacks": [handler]}`. Haystack pipelines now instantiate `FERPAHaystackFilter()` directly; the private factory remains available for existing callers. Construction registers the component lazily, preserving imports without Haystack installed. Saved pipelines reference a stable optional component module, so loading them in a fresh process registers it automatically. Haystack 3 additionally requires `allowed_modules=["enterprise_rag_patterns.integrations._haystack_component"]` when loading this component; include any other application components explicitly, following the [upstream migration guide](https://github.com/deepset-ai/haystack/blob/main/MIGRATION.md).
 
@@ -20,7 +20,7 @@ The Haystack component runs after retrieval and before prompt construction. It d
 
 ## Standalone LlamaIndex adapter (0.47.1)
 
-`FERPANodePostprocessor` now applies the same strict category and metadata policy as the workflow and LCEL adapters, including explicit public classification. It preserves `NodeWithScore` objects and implements async postprocessing. Real query-engine tests inspect the full synthetic model prompt on both sync and async paths. CI tests LlamaIndex Core 0.12.0 and the latest resolved version; see the [upstream postprocessor interface](https://github.com/run-llama/llama_index/blob/main/llama-index-core/llama_index/core/postprocessor/types.py).
+`FERPANodePostprocessor` now applies the same strict category and metadata policy as the workflow and LCEL adapters, including explicit public classification. It preserves `NodeWithScore` objects and implements async postprocessing. Real query-engine tests inspect the full synthetic model prompt on both sync and async paths. CI tests LlamaIndex Core 0.13.0 and the latest resolved version; see the [upstream postprocessor interface](https://github.com/run-llama/llama_index/blob/main/llama-index-core/llama_index/core/postprocessor/types.py).
 
 ## Retired MAF extra (0.48.0)
 
@@ -33,3 +33,23 @@ The `[dspy]` and `[chromadb]` extras are removed from metadata and `[all]`. Thei
 ## Python support by installation path
 
 The core package remains supported on Python 3.10+. `llama-index` and `all` require Python 3.11+ because the patched Pillow 13 / dnspython 2.9 dependency versions no longer support 3.10. These fixed dependencies are unconditional: requesting an affected extra on Python 3.10 fails dependency resolution rather than silently omitting its SDK or selecting an affected older fallback. The native SDK CI matrix for these paths runs on Python 3.11 and 3.12. Other extras and core tests retain their declared Python 3.10 support.
+
+## Category and audit boundary migration (0.49.0)
+
+Omitted, `None` and empty category grants now deny private categories. An intentional trusted wildcard must set `unrestricted_categories=True`; only actual booleans are accepted (strings such as `"false"` and integers such as `1` are rejected). Explicit public classification remains an ingestion trust decision, and identity/tenant checks remain mandatory. Authenticate the caller and derive grants in the host application; this option is not authentication or legal eligibility.
+
+`FERPAHaystackFilter.run(..., permitted_categories={"academic_record"})` supplies a finite grant; use the explicit wildcard only when the host's policy truly permits every private category. Core `StudentIdentityScope` now requires `DIRECTORY_INFORMATION` in its trusted category grant set; the category name does not establish a disclosure exception or override an application denial.
+
+Haystack component serialization now includes integer `category_contract_version=2`. `from_dict` rejects legacy snapshots without that marker. Rebuild from the authenticated application's reviewed policy, then serialize again. Do not bulk-add the marker: older omitted/empty values meant wildcard, and the saved state cannot tell whether the original caller intended zero grants or unrestricted access. Review per-invocation pipeline inputs as well as saved components.
+
+LlamaIndex default INFO logs now contain counts and an opaque audit ID, without student, institution or requester identifiers. If detailed auditing is required, pass `audit_sink=protected_records.append` (or an appropriate synchronous durable sink); its detailed dictionary carries the same `audit_id`. Sink exceptions stop postprocessing before model use. Async sinks/awaitable acknowledgments are rejected. The host owns redaction, retention, access restrictions and durability; ordinary logging is not a substitute.
+
+Private vector selectors (`ComplianceFilter`, Pinecone, Weaviate, Qdrant and pgvector builders) reject omitted/None/empty category grants before a query. An explicit boolean `unrestricted_categories=True` retains the prior identity-only private selector. Builders revalidate the scope before use, including after caller mutation. These store selectors do not provide a portable public-only query; explicit public-classification handling remains at the final retrieval gate. SQLAlchemy finite-category queries require a category/metadata column rather than silently omitting category enforcement.
+
+The security-supported SDK floors are now LangChain Core 1.3.3 and LlamaIndex Core 0.13.0; older functional minimums are no longer advertised because they match known official advisories. Haystack 2.20.0 remains the minimum native pipeline test version. Current SDK versions are not upgraded solely for novelty.
+
+The Weaviate extra now requires weaviate-client>=4.16.0 and Authlib>=1.9.1: the earlier 4.10–4.15 graphs capped Authlib below the patched branch. The selected minimum and current retained native builder shapes are tested separately; no hosted Weaviate OAuth/cluster behavior is inferred from these builder tests.
+
+The LangChain callback also emits only counts and an opaque audit ID in ordinary INFO/WARNING messages and violation text. Its detailed `AuditRecord` goes only to an explicitly configured sink. The existing `record_id` supplies correlation; `record_access(..., record_id=...)` optionally accepts a caller-generated correlation ID without changing prior constructor/serialization fields. The callback keeps its locally generated ID separate from any mutation performed by a protected sink. This does not claim to redact arbitrary host/sink exceptions or other logging paths.
+
+The same operational redaction applies to LCEL, the package LlamaIndex workflow hook and the retained legacy MAF hook: counts plus a locally generated opaque record ID, detailed identity only through an explicit sink. This does not restore native MAF support or certify every host logging/exception path; the MAF install extra remains retired.

@@ -86,12 +86,13 @@ class PineconeComplianceFilter(VectorStoreFilterAdapter):
         Returns:
             A ``dict`` compatible with ``pinecone.Index.query(filter=...)``.
         """
+        scope.__post_init__()
         clauses: list[dict[str, Any]] = [
             {"student_id": {"$eq": scope.student_id}},
             {"institution_id": {"$eq": scope.institution_id}},
         ]
 
-        if scope.permitted_categories:
+        if not scope.unrestricted_categories:
             clauses.append({"category": {"$in": sorted(scope.permitted_categories)}})
 
         return {"$and": clauses}
@@ -199,9 +200,10 @@ class PineconeNamespaceIsolation:
         Returns:
             A Pinecone metadata filter dict.
         """
+        scope.__post_init__()
         student_clause: dict[str, Any] = {self.student_id_field: {"$eq": scope.student_id}}
 
-        if not scope.permitted_categories:
+        if scope.unrestricted_categories:
             return student_clause
 
         category_clause: dict[str, Any] = {self.category_field: {"$in": sorted(scope.permitted_categories)}}

@@ -16,9 +16,12 @@ Regulatory context:
 
 from __future__ import annotations
 
+import inspect
 import logging
+from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
+from uuid import uuid4
 
 from ..compliance import FERPAContextPolicy, StudentIdentityScope
 
@@ -38,8 +41,8 @@ class FERPANodePostprocessor:
     Private nodes require complete identity and authorized category metadata.
     Public nodes require explicit classification and no identity keys.
 
-    A lightweight audit log entry (34 CFR § 99.32) is emitted via the standard
-    ``logging`` module after each filtering pass.
+    Operational logs contain counts and an opaque audit ID only. Detailed
+    identity records require an explicit synchronous application-owned audit_sink.
 
     Usage::
 
@@ -62,7 +65,7 @@ class FERPANodePostprocessor:
         34 CFR § 99.32 — Record of disclosures required.
     """
 
-    def __init__(self, scope: StudentIdentityScope) -> None:
+    def __init__(self, scope: StudentIdentityScope, audit_sink: Callable[[dict[str, Any]], None] | None = None) -> None:
         """
         Initialise the postprocessor with an authorised identity scope.
 
@@ -70,7 +73,12 @@ class FERPANodePostprocessor:
             scope: The ``StudentIdentityScope`` defining the student and
                 institution whose records may be included in the context.
         """
+        if inspect.iscoroutinefunction(audit_sink) or inspect.iscoroutinefunction(
+            getattr(audit_sink, "__call__", None)
+        ):
+            raise TypeError("Audit sinks must acknowledge delivery synchronously")
         self.scope = scope
+        self.audit_sink = audit_sink
 
     # ------------------------------------------------------------------
     # LlamaIndex postprocessor protocol (duck-typed to avoid hard import)
@@ -93,8 +101,8 @@ class FERPANodePostprocessor:
         Missing identity/category metadata and unauthorized categories are denied.
         Explicit public classification follows the shared FERPAContextPolicy.
 
-        After filtering, a FERPA audit log entry is emitted at INFO level
-        in accordance with 34 CFR § 99.32.
+        After filtering, counts and an opaque audit ID are logged at INFO.
+        Detailed audit delivery is opt-in and belongs in a protected sink.
 
         Args:
             nodes: List of ``BaseNode``-compatible objects with a ``.metadata``
@@ -119,16 +127,29 @@ class FERPANodePostprocessor:
         filtered = [node for index, node in enumerate(nodes) if index in retained]
         removed = len(nodes) - len(filtered)
 
-        # Emit 34 CFR § 99.32 audit record as structured log entry
-        audit_entry = _build_audit_entry(
-            student_id=self.scope.student_id,
-            institution_id=self.scope.institution_id,
-            requesting_user_id=self.scope.requesting_user_id,
-            nodes_total=len(nodes),
-            nodes_removed=removed,
-            nodes_allowed=len(filtered),
+        audit_id = uuid4().hex
+        if self.audit_sink is not None:
+            audit_entry = _build_audit_entry(
+                student_id=self.scope.student_id,
+                institution_id=self.scope.institution_id,
+                requesting_user_id=self.scope.requesting_user_id,
+                nodes_total=len(nodes),
+                nodes_removed=removed,
+                nodes_allowed=len(filtered),
+            )
+            audit_entry["audit_id"] = audit_id
+            delivered = self.audit_sink(audit_entry)
+            if inspect.isawaitable(delivered):
+                if inspect.iscoroutine(delivered):
+                    delivered.close()
+                raise TypeError("Audit sinks must acknowledge delivery synchronously")
+        logger.info(
+            "[FERPA_AUDIT] audit_id=%s total=%d removed=%d allowed=%d",
+            audit_id,
+            len(nodes),
+            removed,
+            len(filtered),
         )
-        logger.info("[FERPA_AUDIT] %s", audit_entry)
 
         return filtered
 

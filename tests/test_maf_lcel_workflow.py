@@ -419,3 +419,40 @@ class TestMakeFerpaChain:
         # Should not raise; audit_sink is accepted without error
         chain = make_ferpa_chain(retriever, prompt, llm, scope=scope_s1, audit_sink=sink)
         assert chain is not None
+
+
+@pytest.mark.parametrize("violation", [False, True])
+def test_legacy_maf_operational_logs_and_errors_exclude_scope_ids(caplog, violation):
+    import logging
+
+    ids = ("PRIVATE_STUDENT", "PRIVATE_INSTITUTION", "PRIVATE_REQUESTOR")
+    scope = StudentIdentityScope(*ids, authorized_categories={RecordCategory.ACADEMIC_RECORD})
+    records = []
+    middleware = FERPAAgentMiddleware(scope, audit_sink=records.append, raise_on_violation=violation)
+    message = _FakeMessage(
+        {
+            "documents": [
+                _FakeDoc({"student_id": ids[0], "institution_id": ids[1], "category": "academic_record"}),
+                _FakeDoc({"student_id": "FOREIGN_STUDENT", "institution_id": ids[1], "category": "academic_record"}),
+            ]
+        }
+    )
+    effects = []
+
+    async def next_handler(message):
+        effects.append(message)
+        return message
+
+    with caplog.at_level(logging.INFO):
+        if violation:
+            with pytest.raises(PermissionError) as error:
+                asyncio.run(middleware.on_message(message, next_handler))
+            assert all(identifier not in str(error.value) for identifier in ids)
+            assert effects == []
+        else:
+            asyncio.run(middleware.on_message(message, next_handler))
+            assert len(message.payload["documents"]) == 1
+            assert records[0].record_id in caplog.text
+    for identifier in (*ids, "FOREIGN_STUDENT"):
+        assert identifier not in caplog.text
+        assert all(identifier not in str(vars(record)) for record in caplog.records)

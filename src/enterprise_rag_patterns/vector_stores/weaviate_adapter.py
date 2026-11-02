@@ -72,6 +72,7 @@ class WeaviateComplianceFilter(VectorStoreFilterAdapter):
         Raises:
             ImportError: If ``weaviate-client`` is not installed.
         """
+        scope.__post_init__()
         try:
             from weaviate.classes.query import Filter
         except ImportError as exc:
@@ -84,7 +85,7 @@ class WeaviateComplianceFilter(VectorStoreFilterAdapter):
             "institution_id"
         ).equal(scope.institution_id)
 
-        if scope.permitted_categories:
+        if not scope.unrestricted_categories:
             categories = sorted(scope.permitted_categories)
             # Build OR chain over individual equal() filters — Weaviate v4 has no native $in
             cat_filter: Any = Filter.by_property("category").equal(categories[0])

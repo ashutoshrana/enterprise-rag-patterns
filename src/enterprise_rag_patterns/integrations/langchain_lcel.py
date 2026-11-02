@@ -42,9 +42,9 @@ from __future__ import annotations
 import asyncio
 import logging
 from typing import Any
+from uuid import uuid4
 
 from enterprise_rag_patterns.compliance import (
-    AuditRecord,
     FERPAContextPolicy,
     RecordCategory,
     StudentIdentityScope,
@@ -137,6 +137,7 @@ class FERPAFilterRunnable:
         scope = self._resolve_scope(config)
         policy = FERPAContextPolicy(scope=scope, audit_sink=self.audit_sink)
 
+        audit_id = str(uuid4())
         original_count = len(documents)
         doc_dicts: list[dict[str, Any]] = [self._to_dict(doc, i) for i, doc in enumerate(documents)]
         filtered_dicts = policy.filter_retrieved_documents(
@@ -151,24 +152,28 @@ class FERPAFilterRunnable:
 
         if removed > 0:
             if self.raise_on_violation:
-                raise ValueError(
-                    f"FERPA: {removed} unauthorized document(s) blocked for "
-                    f"student={scope.student_id!r}, institution={scope.institution_id!r}"
-                )
+                raise ValueError(f"FERPA: {removed} unauthorized document(s) blocked. audit_id={audit_id}")
             logger.warning(
-                "[FERPA_AUDIT] lcel_filter student=%s removed=%d retained=%d",
-                scope.student_id,
+                "[FERPA_AUDIT] lcel_filter audit_id=%s removed=%d retained=%d",
+                audit_id,
                 removed,
                 len(filtered_docs),
             )
 
         categories = self._extract_categories(filtered_docs)
         if categories:
-            audit: AuditRecord = policy.record_access(
+            policy.record_access(
                 categories_accessed=list(categories),
                 workflow_context="langchain_lcel",
+                record_id=audit_id,
             )
-            logger.info("FERPA audit (LCEL): %s", audit.to_log_entry())
+            logger.info(
+                "[FERPA_AUDIT] audit_id=%s total=%d removed=%d allowed=%d",
+                audit_id,
+                original_count,
+                removed,
+                len(filtered_docs),
+            )
 
         return filtered_docs
 

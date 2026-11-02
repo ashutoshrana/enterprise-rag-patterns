@@ -76,7 +76,12 @@ def test_haystack_memory_store_to_model():
     pipeline.add_component("model", Recorder())
     pipeline.connect("retriever.documents", "guard.documents")
     pipeline.connect("guard.filtered_documents", "model.documents")
-    result = pipeline.run({"retriever": {"query": "records"}, "guard": {"student_id": "s", "institution_id": "i"}})
+    result = pipeline.run(
+        {
+            "retriever": {"query": "records"},
+            "guard": {"student_id": "s", "institution_id": "i", "permitted_categories": {"academic_record"}},
+        }
+    )
     assert result["model"]["contents"] == ["records ALLOWED"]
 
 
@@ -140,3 +145,34 @@ def test_llama_index_query_engine_filters_before_sync_and_async_model_input():
         assert "ALLOWED" in str(response) and "PUBLIC" in str(response)
         assert "CANARY" not in str(response)
         assert response.source_nodes == [nodes[0], nodes[3]]
+
+
+def test_directory_category_grant_reaches_native_model_only_when_explicit():
+    from llama_index.core.llms import MockLLM
+    from llama_index.core.query_engine import RetrieverQueryEngine
+    from llama_index.core.retrievers import BaseRetriever
+    from llama_index.core.schema import NodeWithScore, TextNode
+
+    from enterprise_rag_patterns.integrations.llama_index import FERPANodePostprocessor
+
+    directory = NodeWithScore(
+        node=TextNode(
+            text="DIRECTORY_CANARY",
+            metadata={"student_id": "s", "institution_id": "i", "category": "directory_information"},
+        )
+    )
+
+    class Retriever(BaseRetriever):
+        def _retrieve(self, query_bundle):
+            return [directory]
+
+    for allowed in (False, True):
+        scope = StudentIdentityScope(
+            "s", "i", "tester", authorized_categories=({RecordCategory.DIRECTORY_INFORMATION} if allowed else set())
+        )
+        engine = RetrieverQueryEngine.from_args(
+            Retriever(), llm=MockLLM(), node_postprocessors=[FERPANodePostprocessor(scope)]
+        )
+        for response in [engine.query("records"), asyncio.run(engine.aquery("records"))]:
+            assert ("DIRECTORY_CANARY" in str(response)) is allowed
+            assert response.source_nodes == ([directory] if allowed else [])

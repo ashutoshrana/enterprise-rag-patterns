@@ -15,13 +15,15 @@ from enterprise_rag_patterns.compliance import (
 
 
 class TestStudentIdentityScope:
-    def test_permits_directory_information_always(self):
+    def test_directory_information_requires_explicit_grant(self):
         scope = StudentIdentityScope(
             student_id="S-1",
             institution_id="inst-a",
             requesting_user_id="agent",
             authorized_categories=set(),
         )
+        assert scope.permits(RecordCategory.DIRECTORY_INFORMATION) is False
+        scope.authorized_categories.add(RecordCategory.DIRECTORY_INFORMATION)
         assert scope.permits(RecordCategory.DIRECTORY_INFORMATION) is True
 
     def test_permits_authorized_category(self):
@@ -228,3 +230,19 @@ class TestEnrollmentAdvisorFactory:
     def test_disclosure_reason_is_school_official(self):
         policy = make_enrollment_advisor_policy("S-42", "acme-univ", "advisor:1")
         assert policy.scope.disclosure_reason == DisclosureReason.SCHOOL_OFFICIAL
+
+
+def test_explicit_audit_id_preserves_existing_record_shape():
+    from dataclasses import asdict
+
+    import pytest
+
+    scope = StudentIdentityScope("s", "i", "r", {RecordCategory.ACADEMIC_RECORD})
+    record = FERPAContextPolicy(scope).record_access([RecordCategory.ACADEMIC_RECORD], record_id="opaque-correlation")
+    assert record.record_id == "opaque-correlation"
+    legacy = FERPAContextPolicy(scope).record_access([RecordCategory.ACADEMIC_RECORD], "workflow", "query-hash")
+    assert legacy.workflow_context == "workflow" and legacy.retrieval_query_hash == "query-hash"
+    assert "audit_id" not in asdict(record)  # No new serialized field or positional constructor slot.
+    for invalid in ("", " ", 1):
+        with pytest.raises(ValueError, match="record_id"):
+            FERPAContextPolicy(scope).record_access([], record_id=invalid)

@@ -81,18 +81,18 @@ User Query
 ## Installation
 
 ```bash
-pip install 'enterprise-rag-patterns>=0.48.0'
+pip install 'enterprise-rag-patterns>=0.49.0'
 ```
 
 With vector store or framework extras:
 
 ```bash
-pip install 'enterprise-rag-patterns[langchain]>=0.48.0'
-pip install 'enterprise-rag-patterns[haystack]>=0.48.0'
-pip install 'enterprise-rag-patterns[llama-index]>=0.48.0'
-pip install 'enterprise-rag-patterns[pinecone]>=0.48.0'
-pip install 'enterprise-rag-patterns[weaviate]>=0.48.0'
-pip install 'enterprise-rag-patterns[qdrant]>=0.48.0'
+pip install 'enterprise-rag-patterns[langchain]>=0.49.0'
+pip install 'enterprise-rag-patterns[haystack]>=0.49.0'
+pip install 'enterprise-rag-patterns[llama-index]>=0.49.0'
+pip install 'enterprise-rag-patterns[pinecone]>=0.49.0'
+pip install 'enterprise-rag-patterns[weaviate]>=0.49.0'
+pip install 'enterprise-rag-patterns[qdrant]>=0.49.0'
 ```
 
 ---
@@ -100,10 +100,14 @@ pip install 'enterprise-rag-patterns[qdrant]>=0.48.0'
 The `all` installation requires Python 3.11+ and excludes security-quarantined DSPy/ChromaDB and retired MAF. Use the release floor to prevent backtracking to an older package with different support/security contracts:
 
 ```bash
-pip install 'enterprise-rag-patterns[all]>=0.48.0'
+pip install 'enterprise-rag-patterns[all]>=0.49.0'
 ```
 
 **Python support:** core Python 3.10+; `llama-index` and `all` extras require Python 3.11+ for patched dependencies and reject Python 3.10 resolution. See [migration notes](MIGRATION.md) for the installation matrix.
+
+**Runtime qualification:** core Python 3.10 compatibility is separate from security maintenance and optional SDK coverage. For production, use a security-maintained Python release at its latest patch level (3.11+) within the qualified SDK matrix. Native SDK jobs qualify Python 3.11/3.12 separately from newer-interpreter core tests; see [CI configuration](.github/workflows/ci.yml).
+
+**Boundary upgrade:** omitted/None/empty category grants deny private categories; intentionally unrestricted access requires `unrestricted_categories=True`. Review [migration guidance](MIGRATION.md) before loading legacy pipelines or upgrading caller policy mappings.
 
 ## Quick start
 

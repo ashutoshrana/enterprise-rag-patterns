@@ -72,6 +72,7 @@ class QdrantComplianceFilter(VectorStoreFilterAdapter):
         Raises:
             ImportError: If ``qdrant-client`` is not installed.
         """
+        scope.__post_init__()
         try:
             from qdrant_client.models import FieldCondition, Filter, MatchAny, MatchValue
         except ImportError as exc:
@@ -85,7 +86,7 @@ class QdrantComplianceFilter(VectorStoreFilterAdapter):
             FieldCondition(key="institution_id", match=MatchValue(value=scope.institution_id)),
         ]
 
-        if scope.permitted_categories:
+        if not scope.unrestricted_categories:
             must_conditions.append(
                 FieldCondition(
                     key="category",

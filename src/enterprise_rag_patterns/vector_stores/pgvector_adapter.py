@@ -156,6 +156,7 @@ class PGVectorComplianceFilter(VectorStoreFilterAdapter):
             )
             params == ["S-001", "acme-univ", ["academic_record"]]
         """
+        scope.__post_init__()
         clauses: list[str] = []
         params: list[Any] = []
 
@@ -164,7 +165,7 @@ class PGVectorComplianceFilter(VectorStoreFilterAdapter):
             params.append(scope.student_id)
             clauses.append(f"{self._meta}->>'{self._institution_field}' = %s")
             params.append(scope.institution_id)
-            if scope.permitted_categories:
+            if not scope.unrestricted_categories:
                 clauses.append(f"{self._meta}->>'{self._category_field}' = ANY(%s)")
                 params.append(sorted(scope.permitted_categories))
         else:
@@ -172,7 +173,7 @@ class PGVectorComplianceFilter(VectorStoreFilterAdapter):
             params.append(scope.student_id)
             clauses.append(f"{self._institution_field} = %s")
             params.append(scope.institution_id)
-            if scope.permitted_categories:
+            if not scope.unrestricted_categories:
                 clauses.append(f"{self._category_field} = ANY(%s)")
                 params.append(sorted(scope.permitted_categories))
 
@@ -192,6 +193,7 @@ class PGVectorComplianceFilter(VectorStoreFilterAdapter):
         Returns:
             ``(where_sql, params)`` with ``$N``-style placeholders.
         """
+        scope.__post_init__()
         clauses: list[str] = []
         params: list[Any] = []
         idx = 1
@@ -203,7 +205,7 @@ class PGVectorComplianceFilter(VectorStoreFilterAdapter):
             clauses.append(f"{self._meta}->>'{self._institution_field}' = ${idx}")
             params.append(scope.institution_id)
             idx += 1
-            if scope.permitted_categories:
+            if not scope.unrestricted_categories:
                 clauses.append(f"{self._meta}->>'{self._category_field}' = ANY(${idx}::text[])")
                 params.append(sorted(scope.permitted_categories))
         else:
@@ -213,7 +215,7 @@ class PGVectorComplianceFilter(VectorStoreFilterAdapter):
             clauses.append(f"{self._institution_field} = ${idx}")
             params.append(scope.institution_id)
             idx += 1
-            if scope.permitted_categories:
+            if not scope.unrestricted_categories:
                 clauses.append(f"{self._category_field} = ANY(${idx}::text[])")
                 params.append(sorted(scope.permitted_categories))
 
@@ -310,6 +312,9 @@ class PGVectorSQLAlchemyFilter(VectorStoreFilterAdapter):
         Raises:
             ImportError: If ``sqlalchemy`` is not installed.
         """
+        scope.__post_init__()
+        if not scope.unrestricted_categories and self._metadata_col is None and self._category_col is None:
+            raise ValueError("Finite category grants require a category column or metadata column")
         try:
             from sqlalchemy import and_, or_
         except ImportError as exc:
@@ -323,7 +328,7 @@ class PGVectorSQLAlchemyFilter(VectorStoreFilterAdapter):
             # JSONB column: metadata['key'].as_string() == value
             conditions.append(self._metadata_col[self._student_key].as_string() == scope.student_id)
             conditions.append(self._metadata_col[self._institution_key].as_string() == scope.institution_id)
-            if scope.permitted_categories:
+            if not scope.unrestricted_categories:
                 # metadata['category'].as_string() IN (...)
                 cat_list = sorted(scope.permitted_categories)
                 conditions.append(or_(*[self._metadata_col[self._category_key].as_string() == cat for cat in cat_list]))
@@ -331,7 +336,7 @@ class PGVectorSQLAlchemyFilter(VectorStoreFilterAdapter):
             # Normalised columns
             conditions.append(self._student_col == scope.student_id)
             conditions.append(self._institution_col == scope.institution_id)
-            if scope.permitted_categories and self._category_col is not None:
+            if not scope.unrestricted_categories and self._category_col is not None:
                 conditions.append(self._category_col.in_(sorted(scope.permitted_categories)))
 
         return and_(*conditions)

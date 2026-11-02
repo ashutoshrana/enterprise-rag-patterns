@@ -38,6 +38,7 @@ def scope_no_categories() -> ComplianceFilter:
         student_id="stu-002",
         institution_id="purdue",
         permitted_categories=set(),
+        unrestricted_categories=True,
         regulation="FERPA",
     )
 
@@ -181,10 +182,18 @@ class TestQuerySync:
 
     def test_cross_institution_uses_different_namespace(self, isolator: PineconeNamespaceIsolation) -> None:
         scope_a = ComplianceFilter(
-            student_id="s1", institution_id="inst-a", permitted_categories=set(), regulation="FERPA"
+            student_id="s1",
+            institution_id="inst-a",
+            permitted_categories=set(),
+            unrestricted_categories=True,
+            regulation="FERPA",
         )
         scope_b = ComplianceFilter(
-            student_id="s2", institution_id="inst-b", permitted_categories=set(), regulation="FERPA"
+            student_id="s2",
+            institution_id="inst-b",
+            permitted_categories=set(),
+            unrestricted_categories=True,
+            regulation="FERPA",
         )
         mock_index = MagicMock()
         mock_index.query.return_value = {"matches": []}
@@ -232,10 +241,18 @@ class TestAsyncQuery:
     def test_async_query_namespace_isolation(self, isolator: PineconeNamespaceIsolation) -> None:
         """Different institutions produce different namespaces in async queries."""
         scope_inst_x = ComplianceFilter(
-            student_id="s1", institution_id="inst-x", permitted_categories=set(), regulation="FERPA"
+            student_id="s1",
+            institution_id="inst-x",
+            permitted_categories=set(),
+            unrestricted_categories=True,
+            regulation="FERPA",
         )
         scope_inst_y = ComplianceFilter(
-            student_id="s2", institution_id="inst-y", permitted_categories=set(), regulation="FERPA"
+            student_id="s2",
+            institution_id="inst-y",
+            permitted_categories=set(),
+            unrestricted_categories=True,
+            regulation="FERPA",
         )
 
         namespaces_used: list[str] = []
@@ -258,3 +275,16 @@ class TestAsyncQuery:
         asyncio.run(run_both())
         assert len(namespaces_used) == 2
         assert namespaces_used[0] != namespaces_used[1]
+
+
+def test_zero_grants_never_invoke_sync_or_async_backend(isolator):
+    scope = ComplianceFilter("s", "i", {"academic_record"})
+    scope.permitted_categories.clear()
+    index = MagicMock()
+    with pytest.raises(ValueError, match="No private category grants"):
+        isolator.query_sync(index, vector=[0.1], scope=scope)
+    index.query.assert_not_called()
+    client = MagicMock()
+    with pytest.raises(ValueError, match="No private category grants"):
+        asyncio.run(isolator.async_query(client, vector=[0.1], scope=scope))
+    client.IndexAsyncio.assert_not_called()

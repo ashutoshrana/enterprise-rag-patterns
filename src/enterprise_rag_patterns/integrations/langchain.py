@@ -50,9 +50,9 @@ from __future__ import annotations
 
 import logging
 from typing import Any
+from uuid import uuid4
 
 from enterprise_rag_patterns.compliance import (
-    AuditRecord,
     FERPAContextPolicy,
     RecordCategory,
     StudentIdentityScope,
@@ -106,8 +106,8 @@ class FERPAComplianceCallbackHandler:
         category_field: Document metadata key for the record category.
                         Default: ``"category"``
         audit_sink: Optional callable receiving each ``AuditRecord`` produced
-                    by this handler (34 CFR § 99.32).  When ``None``, records
-                    are emitted via ``logging`` only.
+                    by this handler. Detailed identity goes only to that explicit sink;
+                    ordinary logs contain counts and an opaque correlation ID.
         raise_on_violation: If ``True``, raise ``ValueError`` when unauthorized
                             documents are detected.  If ``False`` (default),
                             silently drop unauthorized documents and log a
@@ -161,6 +161,7 @@ class FERPAComplianceCallbackHandler:
             **kwargs: Additional LangChain callback keyword arguments
                       (``run_id``, ``parent_run_id``, etc.).
         """
+        audit_id = str(uuid4())
         original_count = len(documents)
 
         # Convert to the dict-based API expected by FERPAContextPolicy.
@@ -185,12 +186,7 @@ class FERPAComplianceCallbackHandler:
         # Sanitize before raising: callback managers can suppress callback errors.
         documents[:] = filtered_documents
         if removed > 0 and self.raise_on_violation:
-            raise ValueError(
-                f"FERPA violation: {removed} unauthorized document(s) blocked for "
-                f"student={self.policy.scope.student_id!r}, "
-                f"institution={self.policy.scope.institution_id!r}. "
-                "Check StudentIdentityScope.authorized_categories."
-            )
+            raise ValueError(f"FERPA violation: {removed} unauthorized document(s) blocked. audit_id={audit_id}")
 
         # Mutate the list in-place — LangChain passes the same list downstream.
         documents.clear()
@@ -200,17 +196,23 @@ class FERPAComplianceCallbackHandler:
         categories_accessed = self._extract_accessed_categories(filtered_documents)
         if categories_accessed:
             workflow_ctx = kwargs.get("workflow_context", "langchain_retriever")
-            audit: AuditRecord = self.policy.record_access(
+            self.policy.record_access(
                 categories_accessed=list(categories_accessed),
                 workflow_context=str(workflow_ctx),
+                record_id=audit_id,
             )
-            logger.info("FERPA audit: %s", audit.to_log_entry())
+            logger.info(
+                "[FERPA_AUDIT] audit_id=%s total=%d removed=%d allowed=%d",
+                audit_id,
+                original_count,
+                removed,
+                len(filtered_documents),
+            )
 
         if removed > 0:
             logger.warning(
-                "[FERPA_AUDIT] event=langchain_filter student_id=%s institution_id=%s total=%d removed=%d allowed=%d",
-                self.policy.scope.student_id,
-                self.policy.scope.institution_id,
+                "[FERPA_AUDIT] event=langchain_filter audit_id=%s total=%d removed=%d allowed=%d",
+                audit_id,
                 original_count,
                 removed,
                 len(filtered_documents),
