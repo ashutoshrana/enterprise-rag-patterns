@@ -1,64 +1,83 @@
 # Implementation Note 02: FERPA Boundaries in Retrieval-Augmented Generation
 
-Most RAG tutorials stop at retrieval quality. A standard RAG walkthrough asks: how well does the system find relevant documents? That is the right question for a demo.
+Most RAG tutorials stop at retrieval quality. An education-record workflow has
+an earlier question: which records is this requester authorized to use?
 
-In a FERPA-regulated environment, it is the wrong first question. The right first question is: what records may this system retrieve, for whom, and under what conditions?
-
-This note documents the design principles behind FERPA-aware RAG architecture. The implementation is in `src/enterprise_rag_patterns/compliance.py`. A working example is in `examples/ferpa_rag_pipeline.py`.
-
----
+This note separates the library's filtering behavior from the institution's
+legal and operational responsibilities. Reviewed against main commit `30e2eaf`
+on 2026-11-01. The implementation is in
+[`compliance.py`](../src/enterprise_rag_patterns/compliance.py); a runnable
+reference is [`ferpa_rag_pipeline.py`](../examples/ferpa_rag_pipeline.py).
 
 ## What FERPA requires, concisely
 
-FERPA (20 U.S.C. § 1232g; implementing regulations at 34 CFR Part 99) grants students rights over their education records held by institutions receiving federal funding. The key operational requirements for AI systems are:
+FERPA generally requires consent for disclosure of personally identifiable
+information from education records unless an exception applies. The
+school-official exception requires legitimate educational interests; qualifying
+contractors must meet additional conditions, including institutional control
+over use and maintenance of the records. Calling software an “agent” does not
+establish that exception.
 
-**1. Access control at the record level (not just the system level)**
-Authenticating a user into the system is insufficient. Access must be controlled at the individual record level, scoped to the student and record type.
+Section 99.32 has recordkeeping requirements and exceptions, including certain
+disclosures to school officials. It does not universally require a
+tamper-evident log of every retrieval. Where required, the disclosure record
+must be retained as long as the education records are maintained. Directory
+information also has conditions, including notice and opt-out rights; a
+library category label does not establish permission to disclose it.
 
-**2. Legitimate educational interest required (34 CFR § 99.31(a)(1))**
-A school official may access student records only when there is a legitimate educational interest in doing so. AI agents acting as school officials must have this purpose defined before retrieval begins — not inferred during the interaction.
+These points follow the Department of Education's
+[FERPA regulations, §§ 99.31, 99.32 and 99.37](https://studentprivacy.ed.gov/ferpa)
+and its [school-official recordation clarification](https://studentprivacy.ed.gov/faq/must-school-or-lea-record-non-consensual-disclosure-personally-identifiable-information-pii),
+checked 2026-11-01. The institution must determine the applicable legal basis
+and retention/access process; the library does not make that determination.
 
-**3. Disclosure records required (34 CFR § 99.32)**
-Institutions must maintain a record of each request for access to education records and the stated reason. In a RAG pipeline, this means audit logging is not optional. Every retrieval that touches protected records must generate a tamper-evident audit entry.
+## Where retrieval architectures fail
 
-**4. Student-scoped retrieval required**
-The retrieval query that feeds the LLM context window must be constrained to the records of the specific student whose session is active. A pipeline that retrieves the top-k most relevant records across all students, then filters by relevance, does not satisfy FERPA. The boundary filter must be applied before retrieval ranking, not after.
+A shared index can return a relevant record belonging to a different student
+or institution. Restrict the store request using trusted identity and category
+metadata, then check returned records before prompt assembly. A system prompt
+asking the model to ignore another student's information is too late to keep
+that information out of model input.
 
----
+Query-layer constraints and post-retrieval checks protect different boundaries.
+`FERPAContextPolicy.filter_retrieved_documents()` checks an already-retrieved
+list. It does not construct or execute a vector-store query, authenticate the
+requester, or prevent the retrieval service from seeing out-of-scope records.
 
-## Where standard RAG architectures fail under FERPA
+## Design rules for FERPA-aware RAG
 
-### Problem 1: The relevance-before-identity pattern
+### Rule 1: Establish identity and authority before retrieval
 
-Most vector search implementations rank by semantic similarity across the entire index, then return the top-k results. If the index contains records from many students, a query about "missed coursework" may retrieve semantically relevant records from multiple students — ranked by relevance, not by identity.
+Build `StudentIdentityScope` from authenticated, institution-authorized context.
+Do not accept student, institution, category, or disclosure-reason claims
+straight from a user prompt. The dataclass stores the supplied scope; it does
+not verify consent or legitimate educational interest.
 
-A FERPA-compliant pipeline must apply a metadata filter (`student_id = X AND institution_id = Y`) as a pre-filter, before semantic ranking. This is supported by all major vector databases (Pinecone, Weaviate, Chroma, pgvector) via metadata filtering, but requires explicit implementation at design time.
+### Rule 2: Apply constraints in the store request
 
-### Problem 2: Cross-institution contamination
+The [vector-store adapters](../src/enterprise_rag_patterns/vector_stores/base.py)
+translate `ComplianceFilter` into store-specific filter values. Callers must
+pass those values to the actual query. An empty `permitted_categories` set
+omits category filtering, so supply categories for protected-record queries.
 
-Multi-institution deployments — a platform serving multiple universities from shared infrastructure — must enforce institution-level data isolation. A session authenticated for institution A must not surface records tagged to institution B, even if the records are semantically relevant.
+A filter argument does not prove the engine ranks only authorized records.
+For example, [pgvector's filtering documentation](https://github.com/pgvector/pgvector#filtering)
+states that approximate-index filtering happens after the index scan
+(checked 2026-11-01). Verify the selected store's returned-record behavior and
+query plan; do not infer absence of timing or existence side channels.
 
-This boundary is easy to miss when a shared knowledge base contains institution-agnostic content (policy documents, course catalogs, general FAQs) alongside institution-specific student records. The policy layer must classify each document at index time and enforce boundaries at retrieval time.
+### Rule 3: Check returned records before context assembly
 
-### Problem 3: Prompt-layer filtering is insufficient
+This standalone example exercises the current policy API. The list represents
+results already returned by a retriever; the in-memory sink demonstrates the
+callback interface, not durable audit storage.
 
-A common pattern is to retrieve broadly and then add a system prompt instruction such as "Only discuss information relevant to [student name]." This does not satisfy FERPA. The records have already entered the LLM context window. The filter must prevent records from entering context in the first place — not attempt to suppress them afterward.
-
-### Problem 4: No audit trail
-
-A RAG pipeline that retrieves records without logging who accessed what, when, and why does not satisfy 34 CFR § 99.32. Audit logging in enterprise RAG is architecturally different from application logging — it must be correlated to the specific student, the retrieval query hash, and the workflow context, and must be available to students on request.
-
----
-
-## Design rules for FERPA-compliant RAG
-
-### Rule 1: Identity scope before retrieval
-
-Establish the `StudentIdentityScope` — student, institution, authorized record categories, legitimate educational interest reason — before the retrieval query is constructed. The scope is an input to the retrieval function, not a filter applied to its output.
+The executable example below targets the reviewed source checkout, not an
+unverified installed release.
 
 ```python
 from enterprise_rag_patterns.compliance import (
-    StudentIdentityScope, RecordCategory, DisclosureReason
+    DisclosureReason, FERPAContextPolicy, RecordCategory, StudentIdentityScope,
 )
 
 scope = StudentIdentityScope(
@@ -68,95 +87,68 @@ scope = StudentIdentityScope(
     authorized_categories={RecordCategory.ACADEMIC_RECORD},
     disclosure_reason=DisclosureReason.SCHOOL_OFFICIAL,
 )
-```
-
-### Rule 2: Apply metadata filter at the vector store level
-
-Pass the student_id and institution_id as metadata filters to the vector store query, not as post-retrieval filters. This prevents ineligible records from ranking or appearing in results.
-
-```python
-# Example with metadata-filtered vector store query
-results = vector_store.similarity_search(
-    query=user_query,
-    filter={
-        "student_id": scope.student_id,
-        "institution_id": scope.institution_id,
-    },
-    k=5,
-)
-```
-
-### Rule 3: Pass results through the policy layer before context assembly
-
-After retrieval and before the results are assembled into the context envelope, pass them through `FERPAContextPolicy.filter_retrieved_documents()`. This catches any documents that bypassed the vector store filter and enforces category-level authorization.
-
-```python
-from enterprise_rag_patterns.compliance import FERPAContextPolicy
-
-policy = FERPAContextPolicy(scope=scope, audit_sink=audit_logger)
+audit_records = []
+policy = FERPAContextPolicy(scope=scope, audit_sink=audit_records.append)
+raw_results = [
+    {"student_id": "S-12345", "institution_id": "acme-univ",
+     "record_category": "academic_record", "content": "Authorized record"},
+    {"student_id": "S-other", "institution_id": "acme-univ",
+     "record_category": "academic_record", "content": "Other student's record"},
+    {"content": "Unclassified content"},
+]
 safe_docs = policy.filter_retrieved_documents(raw_results)
-# Only safe_docs enter the ContextEnvelope
-```
-
-### Rule 4: Log every access to protected records
-
-After each successful retrieval of protected records, call `policy.record_access()` with the categories accessed and workflow context. Store audit records durably — not in rotated application logs, but in a store accessible to students and institutional auditors.
-
-```python
+assert safe_docs == [raw_results[0]]
+assert audit_records == []  # Filtering alone does not call record_access().
 audit = policy.record_access(
     categories_accessed=[RecordCategory.ACADEMIC_RECORD],
     workflow_context="enrollment advisor: graduation audit query",
-    query_hash=sha256_of_query,
 )
-# audit.to_log_entry() produces a structured log line for institutional systems
+assert audit_records == [audit]
 ```
 
-### Rule 5: Scope escalation requires explicit re-authorization
+Private records require nonempty string identity and recognized category fields.
+The default policy rejects other students, other institutions, missing or
+malformed metadata, and categories outside the supplied set, with one important
+exception: `StudentIdentityScope.permits()` always allows
+`RecordCategory.DIRECTORY_INFORMATION`. That category bypasses the category
+allowlist, although private-record identity checks still apply. The application
+must enforce directory-information eligibility and opt-outs separately. Explicit trusted public content
+can pass with `classification="public"` and neither identity key. This marker
+must come from a controlled classification process. Missing institution metadata
+must not be relabeled as shared or public to bypass the policy.
 
-If a workflow step requires access to a record category not in the initial scope, the scope must be explicitly upgraded with a new legitimate educational interest reason. The system must not silently expand the retrieval scope mid-session.
+### Rule 4: Integrate audit persistence deliberately
 
----
+`record_access()` creates an `AuditRecord` and invokes the optional `audit_sink`.
+With no sink it returns the record without persisting it. The base filter does
+not call this method automatically; framework integrations may do so on their
+own execution paths. Inspect the adapter you actually use.
+
+The application owns durable storage, access restrictions, integrity controls,
+retention, and failure handling. `to_log_entry()` is formatted text; it does
+not add tamper evidence. Do not infer regulatory completeness from the
+`AuditRecord` name or its source docstring. For example, the current record has
+no individual retrieved-document IDs; retain those separately if needed.
+
+### Rule 5: Re-authorize changes in scope
+
+A workflow needing additional categories must obtain authority outside the
+model, then construct the new scope. A mutable Python scope is not an approval
+workflow. Test that caches, conversation history, retries, and human handoffs
+respect the current institution and requester.
 
 ## Architecture pattern summary
 
-```
-[User / Agent Request]
-        |
-        v
-[Identity Scope Construction]  ← Define student, institution, authorized categories
-        |
-        v
-[Vector Store Query]           ← Apply metadata filter (student_id + institution_id)
-        |
-        v
-[FERPAContextPolicy.filter()]  ← Second-layer enforcement, category authorization
-        |
-        v
-[Audit Record Creation]        ← 34 CFR § 99.32 compliance, durable storage
-        |
-        v
-[Context Envelope Assembly]    ← Only authorized, filtered documents enter LLM context
-        |
-        v
-[LLM Generation]
+```text
+Authenticated request and institution authorization
+    → scoped store query (application passes adapter filter)
+    → returned-record policy check
+    → application audit handling
+    → context assembly using only accepted records
+    → model generation
 ```
 
----
-
-## Multi-tenant deployment note
-
-In deployments serving multiple institutions from shared infrastructure, institution boundary enforcement requires two additional steps beyond the retrieval filter:
-
-1. **Index-time tagging:** Every document in the vector index must be tagged with its originating institution at ingest time. Documents without an institution tag should be classified as `institution_id = "shared"` for non-PII knowledge base content.
-
-2. **Session-level institution binding:** The session must bind to a single institution at authentication time. A session authenticated for institution A must not be reused for institution B within the same session context.
-
----
-
-## Reference
-
-- FERPA statute: 20 U.S.C. § 1232g
-- FERPA regulations: 34 CFR Part 99
-- Key provisions: § 99.3 (definitions), § 99.31 (legitimate educational interest), § 99.32 (record of disclosures)
-- Implementation: [`src/enterprise_rag_patterns/compliance.py`](../src/enterprise_rag_patterns/compliance.py)
-- Working example: [`examples/ferpa_rag_pipeline.py`](../examples/ferpa_rag_pipeline.py)
+Validate the complete model input with out-of-scope canary records, including
+malformed metadata and duplicate text with different identities. Store filters,
+policy tests, and audit callbacks each demonstrate a specific boundary; none
+alone establish a FERPA-compliant deployment.

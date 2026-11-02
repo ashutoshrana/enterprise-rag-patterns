@@ -21,9 +21,38 @@ The implementation pattern is:
 4. rehydrate the next interaction from workflow state plus channel metadata
 5. expose the current workflow state to operator-facing systems
 
+## Current implementation
+
+Reviewed against main commit `30e2eaf` on 2026-11-01.
+[`SessionState`](../src/enterprise_rag_patterns/session.py) is an in-memory
+container for `session_id`, `primary_channel`, `known_channels`, `checkpoints`,
+and `escalated`. `register_channel()` adds to the channel set;
+`add_checkpoint()` appends a string. The primary channel is not automatically
+registered, and adding the same checkpoint twice preserves both entries.
+
+The executable example below targets the reviewed source checkout, not an
+unverified installed release.
+
+```python
+from enterprise_rag_patterns.session import SessionState
+
+state = SessionState(session_id="session-abc", primary_channel="voice")
+state.register_channel("voice")
+state.add_checkpoint("identity_verified")
+state.register_channel("sms")
+assert state.known_channels == {"voice", "sms"}
+assert state.checkpoints == ["identity_verified"]
+```
+
+Persistence, inbound-event normalization, identity binding, replay protection,
+concurrent updates, and operator dashboards belong to the application. This
+class does not provide them. It also does not track retrieved sources, their
+contents, or retrieval timestamps. The reference flow below describes the
+application architecture to build around this container.
+
 ## Why it matters
 
-This separation allows:
+With application persistence and event handling in place, this separation supports:
 - continuity across voice, messaging, and dashboard actions
 - replay-safe state reconstruction
 - fewer duplicate prompts for users
@@ -54,4 +83,4 @@ If each channel keeps its own local progress assumptions, continuity breaks and 
 
 ## Operational note
 
-This pattern becomes more important, not less, as the number of channels increases.
+As channels increase, validate continuity by resuming the same authorized workflow across channels and replaying a duplicate event. A successful in-memory example alone does not establish durable recovery or replay safety.
