@@ -22,3 +22,11 @@
 | Version validation fails despite updated source, or native SDK tests see stub modules | Editable distribution metadata retains its installed version, while unit tests install SDK stubs in the same process | Reinstall editable metadata after a version bump and run unit and native integration suites in separate processes |
 
 | Published context examples fail against the public API or imply automatic orchestration | Design guidance introduced fields and behavior absent from the lightweight dataclasses | Use actual constructors, separate application responsibilities, and execute fenced documentation examples in a focused test |
+
+| Installing the all extra fails before any package can run | The maf extra required a distribution absent from the registry while its adapter only had stub execution coverage | Retire the unavailable extra, exclude it from all, retain the legacy module and explicitly exclude native registration from support |
+
+| A supported optional install automatically brings outstanding advisory findings | SDK transitive graphs contain unresolved vulnerabilities and no reviewed compatible clean graph | Remove affected extras from metadata and all, preserve adapter APIs as security quarantined, and require fresh per-extra/Python audits plus native tests before restoration |
+
+| A release guard accepts incomplete artifacts or mismatched source-distribution identity | Validation iterated whatever artifacts happened to exist and checked only wheel metadata | Require one wheel and one sdist, stable source/tag identity and both metadata records; exercise missing, extra and mismatched archive fixtures |
+
+| Python 3.10 optional installs select vulnerable dependencies while Python 3.12 scans clear | Fixed dependency releases require Python 3.11, so the resolver falls back to affected older versions | Keep core 3.10 support, add unconditional patched floors to affected extras, document 3.11 SDK contracts and treat 3.10 rejection as an excluded support cell |

@@ -81,23 +81,29 @@ User Query
 ## Installation
 
 ```bash
-pip install enterprise-rag-patterns
+pip install 'enterprise-rag-patterns>=0.48.0'
 ```
 
 With vector store or framework extras:
 
 ```bash
-pip install 'enterprise-rag-patterns[langchain]'
-pip install 'enterprise-rag-patterns[haystack]'
-pip install 'enterprise-rag-patterns[llama-index]'
-pip install 'enterprise-rag-patterns[dspy]'
-pip install 'enterprise-rag-patterns[pinecone]'
-pip install 'enterprise-rag-patterns[weaviate]'
-pip install 'enterprise-rag-patterns[qdrant]'
-pip install 'enterprise-rag-patterns[chromadb]'
+pip install 'enterprise-rag-patterns[langchain]>=0.48.0'
+pip install 'enterprise-rag-patterns[haystack]>=0.48.0'
+pip install 'enterprise-rag-patterns[llama-index]>=0.48.0'
+pip install 'enterprise-rag-patterns[pinecone]>=0.48.0'
+pip install 'enterprise-rag-patterns[weaviate]>=0.48.0'
+pip install 'enterprise-rag-patterns[qdrant]>=0.48.0'
 ```
 
 ---
+
+The `all` installation requires Python 3.11+ and excludes security-quarantined DSPy/ChromaDB and retired MAF. Use the release floor to prevent backtracking to an older package with different support/security contracts:
+
+```bash
+pip install 'enterprise-rag-patterns[all]>=0.48.0'
+```
+
+**Python support:** core Python 3.10+; `llama-index` and `all` extras require Python 3.11+ for patched dependencies and reject Python 3.10 resolution. See [migration notes](MIGRATION.md) for the installation matrix.
 
 ## Quick start
 
@@ -175,7 +181,7 @@ For a standalone Haystack tutorial, see the sibling [ferpa-haystack example](htt
 | 06 | `06_owasp_security_scan.py` | Cybersecurity | OWASP LLM Top 10 (2025) — LLM01 injection, LLM02 PII |
 | 07 | `07_soc2_cbac_pipeline.py` | Regulated SaaS | SOC 2 Type II CC6.1/C1.1 — tenant isolation, CBAC |
 | 08 | `08_nist_ai_rmf_assessment.py` | AI Risk | NIST AI RMF 1.0 + AI 600-1 — MAP/MEASURE/MANAGE |
-| 09 | `09_vector_store_adapters.py` | Vector Stores | Pinecone / Weaviate / Qdrant / ChromaDB compliance filters |
+| 09 | `09_vector_store_adapters.py` | Vector Stores | Pinecone / Weaviate / Qdrant filters; ChromaDB is security quarantined |
 | 10 | `10_escalation_policy.py` | All Sectors | Escalation policy + action boundary enforcement |
 | 11 | `11_context_assembly.py` | Enterprise RAG | Multi-source ContextEnvelope — CRM + ERP + KB assembly |
 | 12 | `12_cross_channel_session.py` | Omnichannel | Cross-channel session continuity with compliance scope |
@@ -272,7 +278,7 @@ No other open-source library enforces regulatory compliance at the pre-retrieval
 
 | Library | FERPA | HIPAA | GDPR | Pre-retrieval enforcement | Frameworks | Regulations |
 |---------|-------|-------|------|--------------------------|------------|-------------|
-| **enterprise-rag-patterns** | ✅ 34 CFR §99 | ✅ 45 CFR §164 | ✅ Art. 5/6/9 | ✅ Yes — before LLM context | 9 | 65+ across 25 jurisdictions |
+| **enterprise-rag-patterns** | ✅ 34 CFR §99 | ✅ 45 CFR §164 | ✅ Art. 5/6/9 | ✅ Yes — before LLM context | See supported integrations below | 65+ across 25 jurisdictions |
 | Microsoft Enterprise-RAG | ❌ | ❌ | ❌ | ❌ Post-processing only | 2 (LangChain, SK) | 0 |
 | Intel Enterprise-RAG | ❌ | ❌ | ❌ | ❌ Post-processing only | 3 | 0 |
 | FINOS AI Governance | ❌ | ❌ | ❌ | ❌ No RAG layer | 1 | 0 |
@@ -283,6 +289,8 @@ No other open-source library enforces regulatory compliance at the pre-retrieval
 
 ---
 
+DSPy and ChromaDB adapters are security quarantined and excluded from installation extras and `[all]`. Existing modules remain for compatibility; native support is suspended pending a reviewed dependency graph and executable tests. See [security policy](SECURITY.md) and [migration notes](MIGRATION.md).
+
 ## Framework and vector store integrations
 
 | Integration | Class | Install |
@@ -291,17 +299,16 @@ No other open-source library enforces regulatory compliance at the pre-retrieval
 | LangChain (LCEL) | `FERPAFilterRunnable`, `make_ferpa_chain` | `[langchain]` |
 | LlamaIndex (postprocessor) | `FERPANodePostprocessor` | `[llama-index]` |
 | LlamaIndex (Workflow) | `FERPAWorkflowStep`, `FERPAFilterEvent` | `[llama-index]` |
-| DSPy ≥ 2.5 | `FERPADSPyRetriever`, `HIPAADSPyRetriever` | `[dspy]` |
-| Haystack 2.x (standalone) | `FERPAMetadataFilter` | [`ferpa-haystack`](https://github.com/ashutoshrana/ferpa-haystack) |
+| Haystack 2.x (standalone) | `FERPAMetadataFilter` | [`ferpa-haystack`](https://github.com/ashutoshrana/haystack-ferpa-filter) |
 | Haystack 2.x (built-in) | `FERPAHaystackFilter` | `[haystack]` |
-| Microsoft Agent Framework | `FERPAAgentMiddleware` | `[maf]` |
 | Google ADK | `ADKPolicyGuard` | [`regulated-ai-governance`](https://github.com/ashutoshrana/regulated-ai-governance) |
 | Pinecone | `PineconeComplianceFilter` | `[pinecone]` |
 | Weaviate | `WeaviateComplianceFilter` | `[weaviate]` |
 | Qdrant | `QdrantComplianceFilter` | `[qdrant]` |
-| ChromaDB | `ChromaComplianceFilter` | `[chromadb]` |
 
 ---
+
+The legacy `integrations.maf.FERPAAgentMiddleware` exposes a duck-typed `on_message` hook tested with stubs. It is not a supported native Microsoft Agent Framework registration path. The former `[maf]` extra referenced an unavailable distribution and is omitted from `[all]`; use the framework-independent policy core until a native adapter is implemented and tested.
 
 ## Repository structure
 
@@ -386,8 +393,8 @@ Read [CONTRIBUTING.md](./CONTRIBUTING.md) and [GOVERNANCE.md](./GOVERNANCE.md). 
 
 | Library | Focus | Coverage |
 |---------|-------|---------|
-| **enterprise-rag-patterns** | What to retrieve | 50 sectors · 65+ regulations · 25 jurisdictions · 9 AI frameworks · 1,901 tests |
-| [ferpa-haystack](https://github.com/ashutoshrana/ferpa-haystack) | Haystack-native FERPA filter | Standalone Haystack 2.x component · 25 tests |
+| **enterprise-rag-patterns** | What to retrieve | Policy collection and supported integrations; see validation scope above |
+| [ferpa-haystack](https://github.com/ashutoshrana/haystack-ferpa-filter) | Haystack-native FERPA filter | Standalone Haystack document filter |
 | [regulated-ai-governance](https://github.com/ashutoshrana/regulated-ai-governance) | What agents may do | 41 governance examples · 25 jurisdictions · 2,631 tests |
 | [integration-automation-patterns](https://github.com/ashutoshrana/integration-automation-patterns) | How data flows | 43 patterns · schema registry · GraphQL · 1,865 tests |
 

@@ -40,3 +40,9 @@ This library implements **enterprise RAG patterns** for FERPA-regulated educatio
 This library does **not** manage authentication, network access, or cryptography directly. Integrating applications are responsible for securing LLM API keys, vector store credentials, and user session management.
 
 **FERPA Note:** If you discover a pattern in this library that could enable unauthorized disclosure of education records, treat it as a high-severity vulnerability and report immediately.
+
+## Dependency quarantine for this release
+
+DSPy and ChromaDB integrations are unsupported and security quarantined. Their optional installation extras and aggregate `all` membership are removed; adapter modules and existing APIs remain for compatibility. Do not interpret a pip unknown-extra warning as successful SDK installation. Existing environments can retain old SDK dependencies, so create a clean environment when adopting the supported installation paths.
+
+Restore support only after identifying a compatible dependency graph, auditing each supported extra and the all/dev unions on Python 3.10 and 3.12 without CVE ignores, and running native boundary tests without counting skipped tests as support. Record package versions and unresolved findings. Dependency scanners report known advisories; a clear scan does not establish absence of vulnerabilities or deployment security. Third-party attribution, licenses and history are preserved.

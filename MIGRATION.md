@@ -21,3 +21,15 @@ The Haystack component runs after retrieval and before prompt construction. It d
 ## Standalone LlamaIndex adapter (0.47.1)
 
 `FERPANodePostprocessor` now applies the same strict category and metadata policy as the workflow and LCEL adapters, including explicit public classification. It preserves `NodeWithScore` objects and implements async postprocessing. Real query-engine tests inspect the full synthetic model prompt on both sync and async paths. CI tests LlamaIndex Core 0.12.0 and the latest resolved version; see the [upstream postprocessor interface](https://github.com/run-llama/llama_index/blob/main/llama-index-core/llama_index/core/postprocessor/types.py).
+
+## Retired MAF extra (0.48.0)
+
+The earlier `[maf]` extra required `microsoft-agent-framework`, which is unavailable from the package registry. Its `FERPAAgentMiddleware.on_message` implementation was exercised with SDK stubs, not native SDK registration. The unavailable extra is retired and excluded from `[all]`; the existing module and callable API remain for legacy callers. This release does not claim native Microsoft Agent Framework support. Use the framework-independent policy core while a native integration remains unimplemented and untested.
+
+## Security quarantine (0.48.0)
+
+The `[dspy]` and `[chromadb]` extras are removed from metadata and `[all]`. Their resolved SDK graphs include outstanding advisories: DSPy brings LiteLLM and DiskCache; ChromaDB has server authorization/code-execution findings. No compatible, reviewed graph clears all findings. Adapter modules remain importable for legacy callers, but these integrations are unsupported and security quarantined. Unknown-extra warnings from pip are not evidence that an old installation command provides the SDK. Install the core or a supported extra instead. Restoration requires a fresh Python 3.10/3.12 dependency audit with no ignored CVEs plus native permit, deny, malformed-input and bypass tests. This is a dependency-risk boundary; it does not claim a reproduced exploit in this package.
+
+## Python support by installation path
+
+The core package remains supported on Python 3.10+. `llama-index` and `all` require Python 3.11+ because the patched Pillow 13 / dnspython 2.9 dependency versions no longer support 3.10. These fixed dependencies are unconditional: requesting an affected extra on Python 3.10 fails dependency resolution rather than silently omitting its SDK or selecting an affected older fallback. The native SDK CI matrix for these paths runs on Python 3.11 and 3.12. Other extras and core tests retain their declared Python 3.10 support.
