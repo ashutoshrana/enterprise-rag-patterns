@@ -1,32 +1,10 @@
 """
 integrations/maf.py — Microsoft Agent Framework (MAF) integration.
 
-Provides ``FERPAAgentMiddleware``, a MAF ``MiddlewareBase`` that intercepts
-agent tool calls, applies FERPA identity-scope filtering on any retrieved
-documents, and emits 34 CFR § 99.32 audit records.
-
-Microsoft Agent Framework (MAF) is the enterprise-ready successor to AutoGen
-and Semantic Kernel, released 2026. MAF uses a middleware pipeline architecture
-for intercepting agent messages and tool calls.
-
-Installation::
-
-    pip install 'enterprise-rag-patterns[maf]'
-
-Usage::
-
-    from enterprise_rag_patterns.integrations.maf import FERPAAgentMiddleware
-    from enterprise_rag_patterns.compliance import StudentIdentityScope, RecordCategory
-
-    scope = StudentIdentityScope(
-        student_id="stu_001",
-        institution_id="inst_abc",
-        authorized_categories={RecordCategory.ACADEMIC_RECORD},
-    )
-    middleware = FERPAAgentMiddleware(scope=scope)
-
-    # Register with MAF agent runtime
-    runtime = AgentRuntime(middlewares=[middleware])
+Legacy duck-typed ``on_message`` hook, tested with stubs only. This module is
+preserved for existing callers; native Microsoft Agent Framework registration
+is unsupported. The former ``[maf]`` extra referenced an unavailable SDK
+distribution and has been retired. Use the framework-independent policy core.
 """
 
 from __future__ import annotations
@@ -45,23 +23,23 @@ logger = logging.getLogger(__name__)
 
 
 def _check_maf_available() -> None:
-    """Verify microsoft-agent-framework is installed."""
+    """Check the legacy import contract without claiming native SDK support."""
     try:
         import microsoft_agent_framework  # noqa: F401
     except ImportError as exc:
         raise ImportError(
-            "microsoft-agent-framework is required for the MAF integration. "
-            "Install it with: pip install 'enterprise-rag-patterns[maf]'"
+            "The legacy microsoft_agent_framework import is unavailable. "
+            "Native MAF registration is unsupported; use the framework-independent policy core."
         ) from exc
 
 
 class FERPAAgentMiddleware:
     """
-    Microsoft Agent Framework middleware enforcing FERPA identity-scope
-    filtering on document retrieval tool calls.
+    Legacy message hook enforcing FERPA identity-scope filtering on
+    application-provided document retrieval payloads.
 
-    Implements MAF ``MiddlewareBase`` via duck typing so the class is importable
-    without the MAF SDK installed. Dependency check is deferred to ``__init__``.
+    Preserves the earlier duck-typed callable contract; this is not a native
+    MAF middleware implementation. The legacy import check runs at construction.
 
     Two enforcement layers per MAF message intercept:
       1. Identity pre-filter: ``student_id`` + ``institution_id`` must match scope.

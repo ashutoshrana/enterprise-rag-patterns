@@ -10,3 +10,10 @@ def test_release_tag_guard():
     version = subprocess.check_output([sys.executable, str(script)], text=True).strip()
     subprocess.run([sys.executable, str(script), "v" + version], check=True, capture_output=True)
     assert subprocess.run([sys.executable, str(script), "v999.0.0"], capture_output=True).returncode != 0
+
+
+def test_all_extra_excludes_unavailable_legacy_sdk():
+    metadata = (Path(__file__).resolve().parents[1] / "pyproject.toml").read_text()
+    assert "microsoft-agent-framework" not in metadata
+    all_extra = next(line for line in metadata.splitlines() if line.startswith("all ="))
+    assert ",maf]" not in all_extra

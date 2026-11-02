@@ -8,6 +8,13 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.48.0] — Unreleased
 
+- Preserve Python 3.10 core support while requiring Python 3.11+ patched dependencies for affected SDK extras; reject unsafe older fallback resolution.
+
+- Security quarantine: remove DSPy and ChromaDB extras and all-extras membership while preserving legacy adapter APIs; see SECURITY.md.
+
+- Retire the unavailable MAF extra from all-extras installation; preserve the legacy module without claiming native SDK support. See MIGRATION.md.
+- Point dedicated Haystack integration links to the maintained repository.
+
 - Correct the public Haystack component API so it registers directly in native pipelines and loads in fresh processes.
 - Validate principal scopes at construction and execution boundaries, and verify store-to-model prompt filtering.
 - Preserve optional SDK typing across installed and absent dependency environments.

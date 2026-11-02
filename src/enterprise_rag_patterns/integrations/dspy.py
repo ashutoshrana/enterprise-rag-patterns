@@ -8,7 +8,7 @@ LLM synthesis stage.
 Compatible with DSPy ≥ 2.5.0 (Pydantic v2).
 
 Installation:
-    pip install enterprise-rag-patterns[dspy]
+    DSPy support is security quarantined; see SECURITY.md
 
 Usage — FERPA::
 
