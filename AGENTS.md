@@ -20,3 +20,5 @@
 | Optional SDK type checking differs between environments | A decorator is untyped without the SDK, while ignores become unused with newer typed SDKs | Type the factory subtype and decorator boundary explicitly, then check installed and absent SDK typing modes |
 
 | Version validation fails despite updated source, or native SDK tests see stub modules | Editable distribution metadata retains its installed version, while unit tests install SDK stubs in the same process | Reinstall editable metadata after a version bump and run unit and native integration suites in separate processes |
+
+| Published context examples fail against the public API or imply automatic orchestration | Design guidance introduced fields and behavior absent from the lightweight dataclasses | Use actual constructors, separate application responsibilities, and execute fenced documentation examples in a focused test |
