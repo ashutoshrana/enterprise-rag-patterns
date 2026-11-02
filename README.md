@@ -107,7 +107,7 @@ pip install 'enterprise-rag-patterns[all]>=0.49.0'
 
 **Runtime qualification:** core Python 3.10 compatibility is separate from security maintenance and optional SDK coverage. For production, use a security-maintained Python release at its latest patch level (3.11+) within the qualified SDK matrix. Native SDK jobs qualify Python 3.11/3.12 separately from newer-interpreter core tests; see [CI configuration](.github/workflows/ci.yml).
 
-**Boundary upgrade:** omitted/None/empty category grants deny private categories; intentionally unrestricted access requires `unrestricted_categories=True`. Review [migration guidance](MIGRATION.md) before loading legacy pipelines or upgrading caller policy mappings.
+**Boundary upgrade:** omitted/None/empty category grants deny private categories; an intentional wildcard on the Haystack adapter or private vector selectors requires `unrestricted_categories=True`. Private vector selectors reject no-grant queries before backend access and do not provide a portable public-only store query; explicit public classification is handled by the final retrieval gate. Review [0.49.0 release notes](CHANGELOG.md#0490--2026-11-02) and [migration guidance](MIGRATION.md) before loading legacy pipelines or upgrading caller policy mappings.
 
 ## Quick start
 
@@ -385,7 +385,7 @@ Read [CONTRIBUTING.md](./CONTRIBUTING.md) and [GOVERNANCE.md](./GOVERNANCE.md). 
   author  = {Rana, Ashutosh},
   title   = {enterprise-rag-patterns: Cross-industry compliance patterns for RAG pipelines},
   year    = {2026},
-  version = {0.48.0},
+  version = {0.49.0},
   url     = {https://github.com/ashutoshrana/enterprise-rag-patterns},
   license = {MIT}
 }
