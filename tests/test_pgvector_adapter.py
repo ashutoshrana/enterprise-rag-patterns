@@ -24,6 +24,7 @@ def _scope(
         student_id=student_id,
         institution_id=institution_id,
         permitted_categories=categories or set(),
+        unrestricted_categories=not categories,
     )
 
 

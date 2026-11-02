@@ -60,14 +60,28 @@ class FERPAHaystackFilter:
         filtered_docs = result["ferpa_filter"]["filtered_documents"]
     """
 
-    def __new__(cls) -> FERPAHaystackFilter:
+    def __new__(cls, category_contract_version: int = 2) -> FERPAHaystackFilter:
         if cls is FERPAHaystackFilter and find_spec("haystack") is not None:
-            return _make_haystack_component()()
+            return _make_haystack_component()(category_contract_version=category_contract_version)
         return super().__new__(cls)
+
+    def __init__(self, category_contract_version: int = 2) -> None:
+        if type(category_contract_version) is not int or category_contract_version != 2:
+            raise ValueError("Review category grants and explicitly migrate category_contract_version to 2")
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> FERPAHaystackFilter:
+        contract_version = data.get("init_parameters", {}).get("category_contract_version")
+        if type(contract_version) is not int or contract_version != 2:
+            raise ValueError("Legacy category wildcard semantics require explicit migration to contract 2")
+        return cls(**data["init_parameters"])
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize through the public constructor, preserving lazy registration."""
-        return {"type": f"{type(self).__module__}.{type(self).__name__}", "init_parameters": {}}
+        return {
+            "type": f"{type(self).__module__}.{type(self).__name__}",
+            "init_parameters": {"category_contract_version": 2},
+        }
 
     def run(
         self,
@@ -75,6 +89,7 @@ class FERPAHaystackFilter:
         student_id: str,
         institution_id: str,
         permitted_categories: set[str] | None = None,
+        unrestricted_categories: bool = False,
     ) -> dict[str, list[Any]]:
         """
         Filter *documents* to those matching the authorised FERPA scope.
@@ -91,7 +106,8 @@ class FERPAHaystackFilter:
                 with a different ``institution_id`` are excluded.
             permitted_categories: Optional whitelist of category strings.  When
                 provided, documents whose ``meta["category"]`` is not in the set
-                are excluded.  When ``None`` or empty, no category filter applies.
+                are excluded. Omitted, None and empty grants deny private categories.
+            unrestricted_categories: Explicit trusted wildcard; identity checks still apply.
 
         Returns:
             ``{"filtered_documents": [...]}`` — dict keyed by Haystack output name.
@@ -99,6 +115,9 @@ class FERPAHaystackFilter:
         for name, value in (("student_id", student_id), ("institution_id", institution_id)):
             if not isinstance(value, str) or not value.strip():
                 raise ValueError(f"{name} must be a non-empty string")
+
+        if not isinstance(unrestricted_categories, bool):
+            raise ValueError("unrestricted_categories must be a bool")
 
         filtered: list[Any] = []
         removed = 0
@@ -125,9 +144,9 @@ class FERPAHaystackFilter:
                 removed += 1
                 continue
 
-            if permitted_categories:
+            if not unrestricted_categories:
                 doc_category = meta.get("category")
-                if doc_category is not None and doc_category not in permitted_categories:
+                if doc_category is not None and doc_category not in (permitted_categories or set()):
                     removed += 1
                     continue
 

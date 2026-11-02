@@ -19,6 +19,7 @@ class RegisteredFERPAHaystackFilter(FERPAHaystackFilter):
         student_id: str,
         institution_id: str,
         permitted_categories: set[str] | None = None,
+        unrestricted_categories: bool = False,
     ) -> dict[str, list[Any]]:
         return FERPAHaystackFilter.run(
             self,
@@ -26,4 +27,5 @@ class RegisteredFERPAHaystackFilter(FERPAHaystackFilter):
             student_id=student_id,
             institution_id=institution_id,
             permitted_categories=permitted_categories,
+            unrestricted_categories=unrestricted_categories,
         )

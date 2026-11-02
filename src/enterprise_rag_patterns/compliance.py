@@ -99,8 +99,6 @@ class StudentIdentityScope:
 
     def permits(self, category: RecordCategory) -> bool:
         """Return True if this scope authorizes retrieval of the given record category."""
-        if category == RecordCategory.DIRECTORY_INFORMATION:
-            return True  # Directory information does not require scope authorization
         return category in self.authorized_categories
 
 
@@ -268,6 +266,7 @@ class FERPAContextPolicy:
         categories_accessed: list[RecordCategory],
         workflow_context: str = "",
         query_hash: str = "",
+        record_id: str | None = None,
     ) -> AuditRecord:
         """
         Create and persist a FERPA 34 CFR § 99.32 audit record for this access.
@@ -283,8 +282,10 @@ class FERPAContextPolicy:
         Returns:
             The created AuditRecord (also passed to audit_sink).
         """
+        if record_id is not None and (not isinstance(record_id, str) or not record_id.strip()):
+            raise ValueError("record_id must be a non-empty string")
         audit = AuditRecord(
-            record_id=str(uuid.uuid4()),
+            record_id=record_id if record_id is not None else str(uuid.uuid4()),
             student_id=self.scope.student_id,
             institution_id=self.scope.institution_id,
             requesting_user_id=self.scope.requesting_user_id,

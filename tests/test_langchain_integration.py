@@ -169,8 +169,8 @@ class TestCategoryFiltering:
         handler.on_retriever_end(docs)
         assert len(docs) == 1
 
-    def test_allows_directory_information_always(self) -> None:
-        """FERPA: directory_information is always permitted regardless of scope."""
+    def test_directory_information_requires_grant(self) -> None:
+        """Directory category labels do not override the trusted grant set."""
         handler = _make_handler(scope=_make_scope(categories={RecordCategory.ACADEMIC_RECORD}))
         docs = [
             MockDocument(
@@ -178,7 +178,7 @@ class TestCategoryFiltering:
             ),
         ]
         handler.on_retriever_end(docs)
-        assert len(docs) == 1
+        assert len(docs) == 0
 
     def test_blocks_multiple_unauthorized_categories(self) -> None:
         handler = _make_handler(scope=_make_scope(categories={RecordCategory.ACADEMIC_RECORD}))

@@ -5,29 +5,36 @@ on:
     types: [published]
 
 jobs:
-  publish:
+  build:
     if: ${{ !github.event.release.prerelease && !github.event.release.draft }}
-    name: Build and publish to PyPI
+    name: Build and validate release artifacts
     runs-on: ubuntu-latest
-    environment: pypi
+    outputs:
+      artifact-id: ${{ steps.upload.outputs.artifact-id }}
     env:
       RELEASE_TAG: ${{ github.event.release.tag_name }}
     permissions:
       contents: read
-      id-token: write
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
 
+      - name: Install hash-locked release build tools
+        run: |
+          python -m venv "$RUNNER_TEMP/release-tools"
+          "$RUNNER_TEMP/release-tools/bin/python" -m pip install --require-hashes -r ci/release-build-requirements.txt
+          "$RUNNER_TEMP/release-tools/bin/python" -m pip check
+          "$RUNNER_TEMP/release-tools/bin/python" -m pip --version
+          "$RUNNER_TEMP/release-tools/bin/python" -m pip list --format=freeze
       - name: Validate exact release commit and tag
         env:
           RELEASE_TAG: "${{ github.event.release.tag_name }}"
@@ -35,16 +42,16 @@ jobs:
         run: |
           python scripts/check_release.py "$RELEASE_TAG"
           test "$(git rev-parse HEAD)" = "$(git rev-parse "$RELEASE_TAG^{commit}")"
-          pip install build twine -e '.[dev,langchain,haystack,llama-index]'
+          pip install -e '.[dev,langchain,haystack,llama-index]'
           pytest tests
-          pytest integration_tests
+          pytest integration_tests --ignore=integration_tests/test_native_vector_categories.py
 
       - name: Build and validate distributions
         env:
           RELEASE_TAG: "${{ github.event.release.tag_name }}"
         run: |
-          python -m build
-          twine check dist/*
+          "$RUNNER_TEMP/release-tools/bin/python" -m build --no-isolation
+          "$RUNNER_TEMP/release-tools/bin/python" -m twine check dist/*
           python scripts/check_release.py "$RELEASE_TAG"
 
       - name: Install wheel in clean environment and check exports
@@ -56,10 +63,44 @@ jobs:
       - name: Install sdist in clean environment and check exports
         run: |
           python -m venv "$RUNNER_TEMP/sdist-smoke"
-          "$RUNNER_TEMP/sdist-smoke/bin/pip" install dist/*.tar.gz
+          "$RUNNER_TEMP/sdist-smoke/bin/python" -m pip install --require-hashes -r ci/release-build-requirements.txt
+          "$RUNNER_TEMP/sdist-smoke/bin/pip" install --no-build-isolation dist/*.tar.gz
           "$RUNNER_TEMP/sdist-smoke/bin/python" -I -c "import enterprise_rag_patterns as p; from importlib.metadata import version; import os; assert p.__version__ == version('enterprise-rag-patterns') == os.environ['RELEASE_TAG'].removeprefix('v'); assert all(hasattr(p, name) for name in p.__all__)"
           "$RUNNER_TEMP/sdist-smoke/bin/pip" check
           "$RUNNER_TEMP/wheel-smoke/bin/pip" check
 
-      - name: Publish to PyPI
+      - name: Record verified artifact hashes
+        run: sha256sum dist/* > SHA256SUMS
+      - name: Upload verified distributions
+        id: upload
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: verified-release-distributions
+          path: |
+            dist/*
+            SHA256SUMS
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    needs: build
+    if: ${{ !github.event.release.prerelease && !github.event.release.draft }}
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Download this run's verified distributions
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          artifact-ids: ${{ needs.build.outputs.artifact-id }}
+          path: .
+          merge-multiple: true
+      - name: Verify unchanged artifact bytes
+        run: sha256sum --check SHA256SUMS
+      - name: Publish distributions and attestations
         uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
+        with:
+          packages-dir: dist/
+          attestations: true

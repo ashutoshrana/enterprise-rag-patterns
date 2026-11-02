@@ -11,9 +11,9 @@ from __future__ import annotations
 
 import logging
 from typing import Any
+from uuid import uuid4
 
 from enterprise_rag_patterns.compliance import (
-    AuditRecord,
     FERPAContextPolicy,
     RecordCategory,
     StudentIdentityScope,
@@ -77,6 +77,7 @@ class FERPAAgentMiddleware:
         documents = payload.get("documents") if isinstance(payload, dict) else None
 
         if documents is not None:
+            audit_id = str(uuid4())
             original_count = len(documents)
             doc_dicts = [self._to_dict(d, i) for i, d in enumerate(documents)]
             filtered_dicts = self.policy.filter_retrieved_documents(doc_dicts)
@@ -86,13 +87,10 @@ class FERPAAgentMiddleware:
 
             if removed > 0:
                 if self.raise_on_violation:
-                    raise PermissionError(
-                        f"FERPA: {removed} unauthorized document(s) blocked "
-                        f"for student={self.policy.scope.student_id!r}"
-                    )
+                    raise PermissionError(f"FERPA: {removed} unauthorized document(s) blocked. audit_id={audit_id}")
                 logger.warning(
-                    "[FERPA_AUDIT] maf_middleware student=%s removed=%d retained=%d",
-                    self.policy.scope.student_id,
+                    "[FERPA_AUDIT] maf_middleware audit_id=%s removed=%d retained=%d",
+                    audit_id,
                     removed,
                     len(filtered_docs),
                 )
@@ -104,11 +102,18 @@ class FERPAAgentMiddleware:
             # Emit 34 CFR § 99.32 audit record
             categories = self._extract_categories(filtered_docs)
             if categories:
-                audit: AuditRecord = self.policy.record_access(
+                self.policy.record_access(
                     categories_accessed=list(categories),
                     workflow_context="maf_middleware",
+                    record_id=audit_id,
                 )
-                logger.info("FERPA audit (MAF): %s", audit.to_log_entry())
+                logger.info(
+                    "[FERPA_AUDIT] audit_id=%s total=%d removed=%d allowed=%d",
+                    audit_id,
+                    original_count,
+                    removed,
+                    len(filtered_docs),
+                )
 
         return await next_handler(message)
 

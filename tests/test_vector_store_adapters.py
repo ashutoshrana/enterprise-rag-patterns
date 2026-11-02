@@ -30,6 +30,7 @@ def scope_no_categories() -> ComplianceFilter:
         student_id="S-002",
         institution_id="univ-b",
         permitted_categories=set(),
+        unrestricted_categories=True,
         regulation="FERPA",
     )
 
@@ -67,7 +68,7 @@ class TestPineconeComplianceFilter:
         assert len(cat_clauses) == 1
         assert set(cat_clauses[0]["category"]["$in"]) == {"academic_record", "financial_record"}
 
-    def test_no_category_filter_when_empty(self, scope_no_categories: ComplianceFilter) -> None:
+    def test_explicit_unrestricted_category_filter(self, scope_no_categories: ComplianceFilter) -> None:
         clauses = _pinecone_clauses(PineconeComplianceFilter().build_filter(scope_no_categories))
         cat_clauses = [c for c in clauses if "category" in c]
         assert len(cat_clauses) == 0
@@ -163,3 +164,37 @@ def test_store_scope_rejects_invalid_principals(field, value):
     scope[field] = value
     with pytest.raises(ValueError, match=field):
         ComplianceFilter(**scope)
+
+
+@pytest.mark.parametrize("categories", [None, set()])
+def test_no_private_grants_reject_before_query(categories):
+    calls = []
+    with pytest.raises(ValueError, match="No private category grants"):
+        scope = ComplianceFilter("s", "i", permitted_categories=categories)
+        calls.append(PineconeComplianceFilter().build_filter(scope))
+    assert calls == []
+
+
+@pytest.mark.parametrize("value", ["false", 1, None])
+def test_vector_unrestricted_is_strict_bool(value):
+    with pytest.raises(ValueError, match="bool"):
+        ComplianceFilter("s", "i", unrestricted_categories=value)
+
+
+def test_changed_scope_is_revalidated_before_native_builder_or_query():
+    from enterprise_rag_patterns.vector_stores import QdrantComplianceFilter, WeaviateComplianceFilter
+    from enterprise_rag_patterns.vector_stores.pgvector_adapter import PGVectorComplianceFilter
+
+    scope = ComplianceFilter("s", "i", {"academic_record"})
+    scope.permitted_categories.clear()
+    calls = []
+    for adapter in (
+        PineconeComplianceFilter(),
+        QdrantComplianceFilter(),
+        WeaviateComplianceFilter(),
+        PGVectorComplianceFilter(),
+    ):
+        with pytest.raises(ValueError, match="No private category grants"):
+            built = adapter.build_filter(scope)
+            calls.append(built)
+    assert calls == []

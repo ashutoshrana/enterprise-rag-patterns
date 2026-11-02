@@ -6,7 +6,14 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [0.48.0] — Unreleased
+## [0.49.0] — Unreleased
+
+- Deny private categories when grants are omitted, None or empty; unrestricted access requires an explicit boolean choice.
+- Require explicit directory-category authorization and keep detailed LlamaIndex audit identities in an opt-in protected sink; operational logs contain counts/correlation only.
+- Version Haystack component serialization and reject legacy snapshots pending explicit category-policy migration.
+
+
+## [0.48.0] — 2026-11-02
 
 - Preserve Python 3.10 core support while requiring Python 3.11+ patched dependencies for affected SDK extras; reject unsafe older fallback resolution.
 

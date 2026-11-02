@@ -47,9 +47,9 @@ from __future__ import annotations
 
 import logging
 from typing import Any
+from uuid import uuid4
 
 from enterprise_rag_patterns.compliance import (
-    AuditRecord,
     FERPAContextPolicy,
     RecordCategory,
     StudentIdentityScope,
@@ -59,12 +59,12 @@ logger = logging.getLogger(__name__)
 
 
 def _check_llama_index_available() -> None:
-    """Verify llama-index-core >=0.12 is installed."""
+    """Verify llama-index-core >=0.13 is installed."""
     try:
         import llama_index.core.workflow  # noqa: F401
     except ImportError as exc:
         raise ImportError(
-            "llama-index-core>=0.12.0 is required for FERPAWorkflowStep. "
+            "llama-index-core>=0.13.0 is required for FERPAWorkflowStep. "
             "Install it with: pip install 'enterprise-rag-patterns[llama-index]'"
         ) from exc
 
@@ -129,6 +129,7 @@ class FERPAWorkflowStep:
         policy = FERPAContextPolicy(scope=scope, audit_sink=self._audit_sink)
 
         nodes = event.nodes or []
+        audit_id = str(uuid4())
         original_count = len(nodes)
 
         doc_dicts = [self._node_to_dict(n, i) for i, n in enumerate(nodes)]
@@ -139,21 +140,28 @@ class FERPAWorkflowStep:
 
         if removed > 0:
             if self._raise_on_violation:
-                raise PermissionError(f"FERPA: {removed} unauthorized node(s) blocked for student={scope.student_id!r}")
+                raise PermissionError(f"FERPA: {removed} unauthorized node(s) blocked. audit_id={audit_id}")
             logger.warning(
-                "[FERPA_AUDIT] llama_index_workflow student=%s removed=%d retained=%d",
-                scope.student_id,
+                "[FERPA_AUDIT] llama_index_workflow audit_id=%s removed=%d retained=%d",
+                audit_id,
                 removed,
                 len(filtered_nodes),
             )
 
         categories = self._extract_categories(filtered_nodes)
         if categories:
-            audit: AuditRecord = policy.record_access(
+            policy.record_access(
                 categories_accessed=list(categories),
                 workflow_context="llama_index_workflow",
+                record_id=audit_id,
             )
-            logger.info("FERPA audit (LlamaIndex Workflow): %s", audit.to_log_entry())
+            logger.info(
+                "[FERPA_AUDIT] audit_id=%s total=%d removed=%d allowed=%d",
+                audit_id,
+                original_count,
+                removed,
+                len(filtered_nodes),
+            )
 
         event.nodes = filtered_nodes
         return event

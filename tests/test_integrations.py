@@ -90,13 +90,12 @@ class TestFERPAHaystackFilter:
         metas = [d.meta for d in result["filtered_documents"]]
         assert not any(m.get("category") == "disciplinary_record" for m in metas)
 
-    def test_no_category_filter_when_none(self, haystack_filter: FERPAHaystackFilter, haystack_docs: Docs) -> None:
+    def test_none_categories_deny_private(self, haystack_filter: FERPAHaystackFilter, haystack_docs: Docs) -> None:
         result = haystack_filter.run(
             haystack_docs, student_id="S-1", institution_id="inst-a", permitted_categories=None
         )
         metas = [d.meta for d in result["filtered_documents"]]
-        # disciplinary_record should pass through when no category filter
-        assert any(m.get("category") == "disciplinary_record" for m in metas)
+        assert not any(m.get("category") == "disciplinary_record" for m in metas)
 
     def test_empty_input(self, haystack_filter: FERPAHaystackFilter) -> None:
         result = haystack_filter.run([], student_id="S-1", institution_id="inst-a")
