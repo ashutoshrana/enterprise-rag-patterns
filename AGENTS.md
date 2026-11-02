@@ -38,3 +38,5 @@
 | A validated vector scope later produces an identity-only query | Builders treated an empty category collection as no predicate and some column layouts silently omitted categories | Revalidate scope at every builder boundary, reject no-grant private queries and require a category column for finite SQLAlchemy grants |
 
 | An advisory-clear SDK minimum still resolves an affected dependency graph | Weaviate older minimums capped Authlib below patched releases | Qualify the complete minimum graph and require the tested compatible SDK plus patched Authlib floor |
+
+| Release notes omit native boundary fixes added during review | Notes were drafted before final source and SDK qualification were frozen | Reconcile the dated release entry against the final diff, native regression cases and qualification manifest before closing the release |

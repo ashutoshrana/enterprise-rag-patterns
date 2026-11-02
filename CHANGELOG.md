@@ -6,12 +6,21 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [0.49.0] — Unreleased
+## [0.49.0] — 2026-11-02
 
-- Deny private categories when grants are omitted, None or empty; unrestricted access requires an explicit boolean choice.
-- Require explicit directory-category authorization and keep detailed LlamaIndex audit identities in an opt-in protected sink; operational logs contain counts/correlation only.
-- Version Haystack component serialization and reject legacy snapshots pending explicit category-policy migration.
+### Fixed
 
+- Deny private categories when native retrieval grants are omitted, `None` or empty. The Haystack adapter and private vector selectors require the strict boolean `unrestricted_categories=True` for an intentional wildcard.
+- Reject no-grant private vector queries before backend access and revalidate scopes before building filters, including after caller mutation. Finite SQLAlchemy category grants require a category or metadata column.
+- Require explicit directory-category authorization; directory classification does not override the host application's grants.
+- Keep identities out of default operational logs and violation text in the LangChain callback, LCEL filter, LlamaIndex postprocessor/workflow and legacy MAF wrapper. Use counts and opaque correlation IDs; detailed audit records require an explicit protected sink. Legacy MAF native support remains retired.
+- Version Haystack serialization with `category_contract_version=2` and reject ambiguous legacy snapshots. Reconstruct saved policies from reviewed host grants; do not bulk-add the marker.
+
+### Compatibility
+
+- Raise security-supported floors to LangChain Core 1.3.3, LlamaIndex Core 0.13.0, Weaviate Client 4.16.0 and Authlib 1.9.1. The Weaviate floor avoids older SDK graphs that cap Authlib below patched releases.
+- On 2026-11-02, native checks covered minimum/current snapshots: Haystack 2.20.0/3.4.1, LangChain Core 1.3.3/1.7.4 and LlamaIndex Core 0.13.0/0.14.25. These snapshots do not guarantee every intermediate or future SDK release. Native SDK CI covers Python 3.11/3.12; newer-interpreter core checks do not establish broader native SDK support.
+- Preserve Python 3.10 core compatibility and the existing quarantines. Review [migration guidance](MIGRATION.md) for explicit grants, serialized policies, vector selectors and dependency support before upgrading.
 
 ## [0.48.0] — 2026-11-02
 
