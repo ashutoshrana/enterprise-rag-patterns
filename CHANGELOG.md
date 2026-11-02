@@ -6,6 +6,12 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.48.0] — Unreleased
+
+- Correct the public Haystack component API so it registers directly in native pipelines and loads in fresh processes.
+- Validate principal scopes at construction and execution boundaries, and verify store-to-model prompt filtering.
+- Preserve optional SDK typing across installed and absent dependency environments.
+
 ## [0.47.2] — 2026-09-20
 
 - Add reproducible real-Haystack retrieval benchmarks with native/gate/combined/bypass paths, independent fixture oracle and deny-all rejection.
