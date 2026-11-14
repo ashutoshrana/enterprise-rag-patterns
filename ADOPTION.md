@@ -2,18 +2,18 @@
 
 ## PyPI Downloads
 
-Verified via [pypistats.org](https://pypistats.org/packages/enterprise-rag-patterns) — independent third-party statistics.
+Historical download figures recorded from [pypistats.org](https://pypistats.org/packages/enterprise-rag-patterns).
 
 | Week of | Downloads |
 |---------|-----------|
 | 2026-04-13 | ~2,896 |
 | 2026-04-20 | ~2,607 |
 
-Downloads are organic — no self-installs, no promotional campaigns.
+Download events do not establish unique users, independent adoption, or production installations. [PyPI Stats](https://pypistats.org/faqs) includes automated CI/CD downloads. As of 2026-11-14, pypistats reports 374 downloads in the last month (mirrors excluded).
 
 ## How It Is Used
 
-`enterprise-rag-patterns` is a reference implementation library. Developers use it to:
+`enterprise-rag-patterns` is a reference implementation library. It is designed to:
 
 1. **Enforce FERPA/HIPAA/GDPR at the retrieval layer** — before any document reaches the LLM context window
 2. **Audit all document access decisions** — every retrieval produces a structured compliance record
